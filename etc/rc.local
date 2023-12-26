@@ -1,0 +1,15 @@
+# Quick-fix to enable user-containers to start after decryption (LUKS + Clevis) and ZPOOL import & ZFS mount occurred
+# Used to solve the problem where containers refuse to automatically start following a system reboot
+
+# Podman containers are run as user "podman"
+
+# Manually force containers to start
+sleep 1
+runuser -l podman -c "systemctl --user daemon-reexec"
+runuser -l podman -c "systemctl --user daemon-reload"
+sleep 1
+for filename in /home/podman/config/systemd/user/default.target.wants/*
+do
+    service=$(basename $filename)
+    runuser -l podman -c "systemctl --user restart $service"
+done
