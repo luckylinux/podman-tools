@@ -16,6 +16,7 @@ echo "Setup Traefik Monitoring Service for User <$user>"
 # Copy Traefik Monitoring Script to Podman User Folder
 mkdir -p $userhomedir/bin
 cp $toolpath/bin/monitor-traefik.sh $userhomedir/bin/monitor-traefik.sh
+chown -R $user:$user $userhomedir/bin/monitor-traefik.sh
 
 # Give Script Execution Permissions
 chmod +x $userhomedir/bin/monitor-traefik.sh
@@ -25,6 +26,7 @@ echo "Installing Systemd Service file in <$userhomedir/.config/systemd/user/moni
 
 # Copy Traefik Monitoring Service File to Podman Systemd Service Folder
 cp $toolpath/systemd/services/monitor-traefik.service $userhomedir/.config/systemd/user/monitor-traefik.service
+chown $user:$user $userhomedir/.config/systemd/user/monitor-traefik.service
 
 # Reload Systemd Service Files
 runuser -l $user -c "systemctl --user daemon-reload"

@@ -2,16 +2,16 @@
 
 while true
 do
-    # List Containers
-    mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+   # List Containers
+   mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 
-    #formatted=""
+   #formatted=""
 
    # Get current epoch time
    now=$(date +%s)
 
    # Get past epoch Time in which traefik was started (constant value)
-   traefik_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=traefik)
+   traefik_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=^traefik\$)
 
    # Get traefik running duration
    traefik_duration_s=$((now-traefik_startedat))
