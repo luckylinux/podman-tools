@@ -20,22 +20,22 @@ if [[ "$schedulemode" == "cron" ]]
 then
    # Setup CRON to automatically generate updated Systemd Service files
    destination="/etc/cron.d/podman-service-autostart"
-   cp cron/podman-service-autostart "$destination"
+   cp "cron/podman-service-autostart" "$destination"
    chmod +x "$destination"
    replace_text "$destination" "toolpath" "$toolpath" "user" "$targetuser"
 elif [[ "$schedulemode" == "systemd" ]]
 then
    # Copy Systemd Service File
    destination="$homedir/podman-setup-service-autostart.service"
-   cp systemd/services/podman-setup-service-autostart.service "$destination"
+   cp "systemd/services/podman-setup-service-autostart.service" "$destination"
    chmod +x "$destination"
-   replace_rext "$destination" "toolpath" "$toolpath" "user" "$targetuser"
+   replace_text "$destination" "toolpath" "$toolpath" "user" "$targetuser"
 
    # Copy Systemd Timer File
    destination="$homedir/podman-setup-service-autostart.timer"
-   cp systemd/timers/podman-setup-service-autostart.service "$destination"
+   cp "systemd/timers/podman-setup-service-autostart.timer" "$destination"
    chmod +x "$destination"
-   replace_rext "$destination" "toolpath" "$toolpath" "user" "$targetuser"
+   replace_text "$destination" "toolpath" "$toolpath" "user" "$targetuser"
 else
    #echo "Scheduling Mode <$schedulemode> is NOT supported. Possible choices are <cron> or <systemd>. Aborting !"
    schedule_mode_not_supported "$schedulemode"
