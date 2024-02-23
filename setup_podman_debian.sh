@@ -240,20 +240,9 @@ scriptspath=$(pwd)
 # Install requirements
 apt install --yes sudo
 
-# Enable Kernel Backports
+# Enable Backports Repository
 # Copy Debian Backports Repository Configuration
-# NOT NEEDED FOR DEBIAN TESTING
-cp /tools_nfs/Debian/debian-backports.list.bookworm /etc/apt/sources.list.d/debian-backports.list
-
-# Copy Kernel Backports APT Configuration
-# Not needed - Use Raspberry PI Kernel
-#cp /tools_nfs/Debian/kernel-backports.bullseye /etc/apt/preferences.d/kernel-backports
-
-# Setup repository with newest version
-#source  /etc/os-release
-#echo "deb [signed-by=/usr/share/keyrings/alvistack.gpg] http://downloadcontent.opensuse.org/repositories/home:/alvistack/Debian_${VERSION_ID}/ /" > /etc/apt/sources.list.d/alvistack.list
-#wget http://downloadcontent.opensuse.org/repositories/home:/alvistack/Debian_${VERSION_ID}/Release.key -O alvistack_key
-#cat alvistack_key | gpg --dearmor -o  /usr/share/keyrings/alvistack.gpg
+cp repositories/debian/bookworm/sources.list.d/debian-backports.list /etc/apt/sources.list.d/debian-backports.list
 
 # Install podman
 apt -y install podman
@@ -309,10 +298,6 @@ echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/$user/.bashrc
 echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/$user/.bash_profile
 
 # Change some configuration
-#sed -i "s/^runroot = \"/run/containers/storage\"/runroot = \"/var/run/user/${userid}\"/g" storage.conf
-#sed -i "s/^graphroot = \"/var/lib/containers/storage\"/graphroot = \"${storage}\"/g" storage.conf
-#sed -i "s/^rootless_storage_path = \"\$HOME/.local/share/containers/storage\"/rootless_storage_path = \"${storage}\"/g" storage.conf
-#sed -Ei "s|^runroot = \"/run/containers/storage\"|#runroot = \"/var/run/user/${userid}\"|g" storage.conf
 sed -Ei "s|^#? ?runroot = \".*\"|runroot = \"/run/user/${userid}\"|g" storage.conf
 sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"/home/${user}/storage\"|g" storage.conf
 sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"/home/${user}/storage\"|g" storage.conf
@@ -358,7 +343,6 @@ sudo -u $user cp /lib/systemd/user/podman.socket /home/$user/.config/systemd/use
 sudo -u $user cp /lib/systemd/user/podman-auto-update.timer /home/$user/.config/systemd/user/
 sudo -u $user cp /lib/systemd/user/podman-auto-update.service /home/$user/.config/systemd/user/
 sudo -u $user cp /lib/systemd/user/podman-restart.service /home/$user/.config/systemd/user/
-
 
 # Install additionnal packages
 apt --yes install uidmap fuse-overlayfs slirp4netns

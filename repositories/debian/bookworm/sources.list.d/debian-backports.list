@@ -1,0 +1,3 @@
+# BACKPORT SOURCES
+deb http://ftp.dk.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware
+deb-src http://ftp.dk.debian.org/debian/ bookworm-backports main contrib non-free non-free-firmware

@@ -1,3 +1,0 @@
-#SHELL=/bin/bash
-#0 0 * * * ${user} bash ${toolpath}/update_podman_containers.sh
-#

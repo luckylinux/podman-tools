@@ -1,0 +1,9 @@
+[Unit]
+Description=Custom Updater for Podman Containers Automatic Update
+
+[Service]
+ExecStart=/bin/bash -c '{{toolpath}}/update_podman_containers.sh'
+#ExecStop=
+
+[Install]
+WantedBy=default.target

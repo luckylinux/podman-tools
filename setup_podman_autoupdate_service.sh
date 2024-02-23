@@ -4,15 +4,51 @@
 relativepath="./" # Define relative path to go from this script to the root level of the tool
 if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
 
-# Create CRON file
-tee /etc/cron.d/podman-auto-update << EOF
-SHELL=/bin/bash
-0 0 * * * podman bash $toolpath/update_podman_containers.sh
+# Load functions
+source functions.sh
 
-EOF
+# Define user
+if [[ ! -v user ]]
+then
+   user=${1:-'podman'}
+fi
 
-# Make it executable
-chmod +x /etc/cron.d/podman-auto-update
+# Define mode
+if [[ ! -v schedulemode ]]
+   schedulemode=${2:-'cron'}
+fi
 
-# Copy CRON file
-#cp cron/podman-auto-update /etc/cron.d/podman-auto-update
+# Get homedir
+homedir=$(get_homedir "$user")
+
+# Get Systemdconfigdir
+systemdconfigdir=$(get_systemdconfigdir "$user")
+
+if [[ "$schedulemode" == "cron" ]]
+then
+   # Setup CRON to automatically generate updated Systemd Service files
+   destination="/etc/cron.d/podman-custom-auto-update"
+   cp "cron/podman-custom-auto-update" "$destination"
+   chmod +x "$destination"
+   replace_text "$destination" "toolpath" "$toolpath" "user" "$user"
+elif [[ "$schedulemode" == "systemd" ]]
+then
+   # Copy Systemd Service File
+   filename="podman-setup-service-custom-auto-update.service"
+   destination="$systemdconfigdir/$filename"
+   cp "systemd/services/$filename" "$destination"
+   chmod +x "$destination"
+   replace_text "$destination" "toolpath" "$toolpath" "user" "$user"
+   systemd_reload_enable "$user" "$filename"
+
+   # Copy Systemd Timer File
+   filename="podman-setup-service-custom-auto-update.timer"
+   destination="$systemdconfigdir/$filename"
+   cp "systemd/timers/$filename" "$destination"
+   chmod +x "$destination"
+   replace_text "$destination" "toolpath" "$toolpath" "user" "$user"
+   systemd_reload_enable "$user" "$filename"
+else
+   # Error
+   schedule_mode_not_supported "$schedulemode"
+fi

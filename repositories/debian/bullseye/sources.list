@@ -1,0 +1,11 @@
+# MAIN
+deb http://ftp.dk.debian.org/debian/ bullseye main contrib non-free non-free-firmware
+deb-src http://ftp.dk.debian.org/debian/ bullseye main contrib non-free non-free-firmware
+
+# SECURITY UPDATES
+deb http://ftp.dk.debian.org/debian-security bullseye-security main contrib non-free non-free-firmware
+deb-src http://ftp.dk.debian.org/debian-security bullseye-security main contrib non-free non-free-firmware
+
+# UPDATES
+deb http://ftp.dk.debian.org/debian/ bullseye-updates main contrib non-free non-free-firmware
+deb-src http://ftp.dk.debian.org/debian/ bullseye-updates main contrib non-free non-free-firmware

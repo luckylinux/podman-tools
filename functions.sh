@@ -58,3 +58,13 @@ get_systemdconfigdir() {
    # Return result
    echo $systemdconfigdir
 }
+
+# Shortcut to Systemd daemon-reload + enable + restart service
+systemd_reload_enable() {
+   local user=$1
+   local service=$2
+
+   runuser -l $user -c "systemctl --user daemon-reload"
+   runuser -l $user -c "systemctl --user enable $service"
+   runuser -l $user -c "systemctl --user restart $service"
+}

@@ -1,0 +1,3 @@
+Package: zfs zfs-initramfs zfsutils-linux zfsutils zfsutils-linux zfs-zed zfs-dkms libzfs2linux libnvpair1linux libuutil1linux libzpool2linux zfs-auto-snapshot libzfs4linux libnvpair3linux libuutil3linux libzpool5linux
+Pin: release n=bookworm-backports
+Pin-Priority: 900
