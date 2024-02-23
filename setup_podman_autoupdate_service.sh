@@ -15,6 +15,7 @@ fi
 
 # Define mode
 if [[ ! -v schedulemode ]]
+then
    schedulemode=${2:-'cron'}
 fi
 

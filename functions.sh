@@ -64,7 +64,18 @@ systemd_reload_enable() {
    local user=$1
    local service=$2
 
+   # Reload Systemd Service Files
    runuser -l $user -c "systemctl --user daemon-reload"
+
+   # Enable the Service to start automatically at each boot
    runuser -l $user -c "systemctl --user enable $service"
+
+   # Start the Service
    runuser -l $user -c "systemctl --user restart $service"
+
+   # Verify the Status is OK
+   runuser -l $user -c "systemctl --user status $service"
+
+   # Check the logs from time to time and in case of issues
+   runuser -l $user -c "journalctl --user -xeu $service"
 }
