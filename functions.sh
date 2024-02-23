@@ -11,7 +11,6 @@ replace_text() {
     #echo "Passed $nargin arguments and $nparameters parameter"
 
     for ((p=1;p<=$nparameters;p++))
-#    for p in {1 .. $nparameters}
     do
         local iname=$((2*p-1))
         local ivalue=$(($iname+1))
@@ -22,8 +21,7 @@ replace_text() {
         #echo "Replace \${$name} -> ${value} in $lfilepath"
 
         # Execute Replacement
-        #sed -e "s/\${$name}/$value/" $lfilepath
-        sed -Ei "s|\${name}|$value|g" $lfilepath
+        sed -Ei "s|\\$\{name\}|$value|g" $lfilepath
     done
 }
 
