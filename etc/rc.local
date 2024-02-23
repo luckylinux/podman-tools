@@ -19,6 +19,18 @@ bash import_pool.sh "zdata" "clevis"
 # Automatically mount NFS shares
 mount /tools_nfs
 
+# Mount all ZFS datasets
+zfs mount -a
+
+# Wait a bit
+sleep 1
+
+# Mount all FSTAB entries
+mount -a
+
+# Wait a bit
+sleep 1
+
 # !! ONLY NEEDED IF ~/.config/systemd/* is also NOT available on boot and is part of an encrypted mount-point (e.g. LUKS) that will be mounted later on                             !!
 # !! If that is the case, without the following code, the containers will fail to restart automatically upon reboot                                                                 !!
 # !! The preferred solution is to only mount ~/.config/containers/ from the encrypted mount-point (e.g. LUKS) and leave ~/.config/* (including ~/.config/systemd/ always available) !!
@@ -32,6 +44,9 @@ mount /tools_nfs
 #    service=$(basename $filename)
 #    runuser -l podman -c "systemctl --user restart $service"
 #done
+
+# Wait a bit
+sleep 1
 
 # Return Status
 exit 0

@@ -1,0 +1,9 @@
+[Unit]
+Description=Traefik Monitoring and Restarting Tool
+
+[Service]
+ExecStart=/bin/bash -c '~/bin/monitor-traefik.sh'
+#ExecStop=/bin/bash -c '~/bin/monitor-traefik-stop.sh'
+
+[Install]
+WantedBy=default.target
