@@ -16,6 +16,9 @@ schedulemode=${2:-'cron'}
 # Get homedir
 homedir=$(get_homedir "$targetuser")
 
+# Get Systemdconfigdir
+systemdconfigdir=$((get_systemdconfigdir "$targetuser"))
+
 if [[ "$schedulemode" == "cron" ]]
 then
    # Setup CRON to automatically generate updated Systemd Service files
@@ -27,7 +30,7 @@ elif [[ "$schedulemode" == "systemd" ]]
 then
    # Copy Systemd Service File
    filename="podman-setup-service-autostart.service"
-   destination="$homedir/$filename"
+   destination="$systemdconfigdir/$filename"
    cp "systemd/services/$filename" "$destination"
    chmod +x "$destination"
    replace_text "$destination" "toolpath" "$toolpath" "user" "$targetuser"
@@ -36,8 +39,8 @@ then
    runuser -l $targetuser -c "systemctl --user restart $filename"
 
    # Copy Systemd Timer File
-   filename="podman-setup-service-autostart.timer""
-   destination="$homedir/$filename"
+   filename="podman-setup-service-autostart.timer"
+   destination="$systemdconfigdir/$filename"
    cp "systemd/timers/$filename" "$destination"
    chmod +x "$destination"
    replace_text "$destination" "toolpath" "$toolpath" "user" "$targetuser"

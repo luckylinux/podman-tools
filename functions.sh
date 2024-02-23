@@ -42,3 +42,19 @@ get_homedir() {
    # Return result
    echo $homedir
 }
+
+# Get Systemdconfig
+get_systemdconfigdir() {
+   local user=$1
+
+   if [[ "$user" == "root" ]]
+   then
+       local systemdconfigdir="/etc/systemd/system"
+   else
+       local userhomedir=$(get_homedir "$user")
+       local systemdconfigdir="$userhomedir/.config/systemd/user"
+   fi
+
+   # Return result
+   echo $systemdconfigdir
+}
