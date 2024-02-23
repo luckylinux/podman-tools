@@ -17,7 +17,7 @@ schedulemode=${2:-'cron'}
 homedir=$(get_homedir "$targetuser")
 
 # Get Systemdconfigdir
-systemdconfigdir=$((get_systemdconfigdir "$targetuser"))
+systemdconfigdir=$(get_systemdconfigdir "$targetuser")
 
 if [[ "$schedulemode" == "cron" ]]
 then

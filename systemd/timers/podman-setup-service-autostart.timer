@@ -13,6 +13,9 @@ AccuracySec=1
 # Run Every Day at 20:00:00
 OnCalendar=*-*-* 20:00:00
 
+# Run when enabled
+OnActiveSec=5s
+
 # File describing job to execute
 Unit=podman-setup-service-autostart.service
 

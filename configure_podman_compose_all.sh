@@ -20,4 +20,4 @@ done
 cd $currentpath
 
 # Setup autostart for all containers
-bash "./setup_podman_service_autostart_all.sh"
+bash "./configure_podman_service_autostart_all.sh"
