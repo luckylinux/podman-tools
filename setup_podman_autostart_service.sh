@@ -27,13 +27,13 @@ elif [[ "$schedulemode" == "systemd" ]]
 then
    # Copy Systemd Service File
    destination="$homedir/podman-setup-service-autostart.service"
-   cp systemd/service/podman-setup-service-autostart.service "$destination"
+   cp systemd/services/podman-setup-service-autostart.service "$destination"
    chmod +x "$destination"
    replace_rext "$destination" "toolpath" "$toolpath" "user" "$targetuser"
 
    # Copy Systemd Timer File
    destination="$homedir/podman-setup-service-autostart.timer"
-   cp systemd/timer/podman-setup-service-autostart.service "$destination"
+   cp systemd/timers/podman-setup-service-autostart.service "$destination"
    chmod +x "$destination"
    replace_rext "$destination" "toolpath" "$toolpath" "user" "$targetuser"
 else

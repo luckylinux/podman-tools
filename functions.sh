@@ -21,7 +21,7 @@ replace_text() {
         #echo "Replace {{$name}} -> ${value} in $lfilepath"
 
         # Execute Replacement
-        sed -Ei "s|\{\{name\}\}|$value|g" "$lfilepath"
+        sed -Ei "s|\{\{$name\}\}|$value|g" "$lfilepath"
     done
 }
 
