@@ -430,3 +430,6 @@ chmod +x /etc/cron.d/podman-service-autostart
 
 # Setup CRON to automatically detect traefik changes and restart traefik to apply them
 ./setup_podman_traefik_monitor_service.sh
+
+# Setup CRON to automatically install images updates
+./setup_podman_auto_update.sh
