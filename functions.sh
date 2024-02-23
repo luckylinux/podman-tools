@@ -18,10 +18,10 @@ replace_text() {
         local value=${ARGV[$ivalue]}
 
         # Debug
-        #echo "Replace \${$name} -> ${value} in $lfilepath"
+        #echo "Replace {{$name}} -> ${value} in $lfilepath"
 
         # Execute Replacement
-        sed -Ei "s|\\$\{name\}|$value|g" $lfilepath
+        sed -Ei "s|\{\{name\}\}|$value|g" "$lfilepath"
     done
 }
 
