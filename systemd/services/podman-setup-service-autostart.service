@@ -1,0 +1,9 @@
+[Unit]
+Description=Automatically Setup Autostart Service Files for Podman Containers
+
+[Service]
+ExecStart=/bin/bash -c '${toolpath}/setup_podman_service_autostart_all.sh'
+#ExecStop=
+
+[Install]
+WantedBy=default.target

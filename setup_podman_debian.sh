@@ -369,23 +369,6 @@ systemctl disable podman.socket
 systemctl disable podman-auto-update
 
 # Enable user-level services
-#sudo -u $user systemctl --user enable podman.socket
-#sudo -u $user systemctl --user start podman.socket
-
-#sudo -u $user systemctl --user enable podman.service
-#sudo -u $user systemctl --user start podman.service
-
-#sudo -u $user systemctl --user enable podman-restart.service
-#sudo -u $user systemctl --user start podman-restart.service
-
-#sudo -u $user systemctl --user enable podman-auto-update.service
-#sudo -u $user systemctl --user start podman-auto-update.service
-
-#sudo -u $user systemctl --user status podman.socket podman.service podman-restart.service podman-auto-update.service
-
-
-
-
 runuser -l $user -c "systemctl --user enable podman.socket"
 runuser -l $user -c "systemctl --user start podman.socket"
 
@@ -402,10 +385,6 @@ runuser -l $user -c "systemctl --user status podman.socket podman.service podman
 
 runuser -l $user -c "systemctl --user daemon-reexec"
 runuser -l $user -c "systemctl --user daemon-reload"
-
-
-
-
 
 # https://github.com/containers/podman/issues/3024#issuecomment-1742105831 ,  https://github.com/containers/podman/issues/3024#issuecomment-1762708730
 mkdir -p /etc/systemd/system/user@.service.d
@@ -425,11 +404,10 @@ aptitude -y install podman-compose
 ./enable_rc_local.sh
 
 # Setup CRON to automatically generate updated Systemd Service files
-cp cron/podman-service-autostart /etc/cron.d/
-chmod +x /etc/cron.d/podman-service-autostart
+./setup_podman_autostart_service.sh
 
 # Setup CRON to automatically detect traefik changes and restart traefik to apply them
 ./setup_podman_traefik_monitor_service.sh
 
 # Setup CRON to automatically install images updates
-./setup_podman_auto_update.sh
+./setup_podman_autoupdate_service.sh

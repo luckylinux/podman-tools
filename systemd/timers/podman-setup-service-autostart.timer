@@ -1,0 +1,20 @@
+[Unit]
+Description=Automatically Setup Autostart Service Files for Podman Containers
+RefuseManualStart=no
+RefuseManualStop=no
+
+[Timer]
+# Execute job if it missed a run due to machine being off
+Persistent=true
+
+# Set the timer accuracy to 1 second instead of the default 1 minute
+AccuracySec=1
+
+# Run Every Day at 20:00:00
+OnCalendar=*-*-* 20:00:00
+
+# File describing job to execute
+Unit=podman-setup-service-autostart.service
+
+[Install]
+WantedBy=timers.target
