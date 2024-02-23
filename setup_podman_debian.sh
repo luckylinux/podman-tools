@@ -96,6 +96,7 @@ zsizes+=("256G") # STORAGE
 zsizes+=("256G") # VOLUMES
 zsizes+=("128G") # CACHE
 zsizes+=("128G") # LOCAL
+zsizes+=("128G") # SECRETS
 
 # Setup container user
 touch /etc/{subgid,subuid}
@@ -122,8 +123,6 @@ then
     # Enable mounting of ZFS datasets
     zfs set canmount=on ${storage}
 fi
-
-
 
 # Setup FSTAB
 echo "# ${user} BIND Mounts" >> /etc/fstab
@@ -423,5 +422,11 @@ cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
 aptitude -y install podman-compose
 
 # Enable rc.local service and make sure ZFS dataset are mounted BEFORE everything else
-cd ../Debian
 ./enable_rc_local.sh
+
+# Setup CRON to automatically generate updated Systemd Service files
+cp cron/podman-service-autostart /etc/cron.d/
+chmod +x /etc/cron.d/podman-service-autostart
+
+# Setup CRON to automatically detect traefik changes and restart traefik to apply them
+./setup_podman_traefik_monitor_service.sh
