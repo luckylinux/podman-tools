@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# Determine toolpath if not set already
+relativepath="./" # Define relative path to go from this script to the root level of the tool
+if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
+
+# Load functions
+source functions.sh
+
+# Get homedir
+homedir=$(get_homedir "$user")
+
+# Get Systemdconfigdir
+systemdconfigdir=$(get_systemdconfigdir "$user")
+
 # Exit in case of error
 #set -e
 
@@ -129,8 +142,6 @@ echo "# ${user} BIND Mounts" >> /etc/fstab
 
 if [ "$mode" == "zfs" ] || [ "$mode" == "zvol" ]
 then
-    #echo "/home/${user}/config /home/${user}/.config/containers none defaults,rbind 0 0" >> /etc/fstab
-    #echo "/${storage}/CONFIG /home/${user}/.config none defaults,rbind 0 0" >> /etc/fstab
     echo "/${storage}/CONFIG /home/${user}/.config/containers none defaults,rbind 0 0" >> /etc/fstab
 else
     echo "/home/${user}/config /home/${user}/.config/containers none defaults,rbind 0 0" >> /etc/fstab
@@ -353,22 +364,13 @@ systemctl disable podman.socket
 systemctl disable podman-auto-update
 
 # Enable user-level services
-runuser -l $user -c "systemctl --user enable podman.socket"
-runuser -l $user -c "systemctl --user start podman.socket"
-
-runuser -l $user -c "systemctl --user enable podman.service"
-runuser -l $user -c "systemctl --user start podman.service"
-
-runuser -l $user -c "systemctl --user enable podman-restart.service"
-runuser -l $user -c "systemctl --user start podman-restart.service"
-
-runuser -l $user -c "systemctl --user enable podman-auto-update.service"
-runuser -l $user -c "systemctl --user start podman-auto-update.service"
-
-runuser -l $user -c "systemctl --user status podman.socket podman.service podman-restart.service podman-auto-update.service"
-
-runuser -l $user -c "systemctl --user daemon-reexec"
-runuser -l $user -c "systemctl --user daemon-reload"
+systemd_enable_run "$user" "podman.socket"
+systemd_enable_run "$user" "podman.service"
+systemd_enable_run "$user" "podman-restart.service"
+systemd_enable_run "$user" "podman-auto-update.service"
+systemd_status "$user" "podman.socket podman.service podman-restart.service podman-auto-update.service"
+systemd_reexec
+systemd_reload
 
 # https://github.com/containers/podman/issues/3024#issuecomment-1742105831 ,  https://github.com/containers/podman/issues/3024#issuecomment-1762708730
 mkdir -p /etc/systemd/system/user@.service.d
