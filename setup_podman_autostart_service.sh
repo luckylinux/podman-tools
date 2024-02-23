@@ -26,16 +26,24 @@ then
 elif [[ "$schedulemode" == "systemd" ]]
 then
    # Copy Systemd Service File
-   destination="$homedir/podman-setup-service-autostart.service"
-   cp "systemd/services/podman-setup-service-autostart.service" "$destination"
+   filename="podman-setup-service-autostart.service"
+   destination="$homedir/$filename"
+   cp "systemd/services/$filename" "$destination"
    chmod +x "$destination"
    replace_text "$destination" "toolpath" "$toolpath" "user" "$targetuser"
+   runuser -l $targetuser -c "systemctl --user daemon-reload"
+   runuser -l $targetuser -c "systemctl --user enable $filename"
+   runuser -l $targetuser -c "systemctl --user restart $filename"
 
    # Copy Systemd Timer File
-   destination="$homedir/podman-setup-service-autostart.timer"
-   cp "systemd/timers/podman-setup-service-autostart.timer" "$destination"
+   filename="podman-setup-service-autostart.timer""
+   destination="$homedir/$filename"
+   cp "systemd/timers/$filename" "$destination"
    chmod +x "$destination"
    replace_text "$destination" "toolpath" "$toolpath" "user" "$targetuser"
+   runuser -l $targetuser -c "systemctl --user daemon-reload"
+   runuser -l $targetuser -c "systemctl --user enable $filename"
+   runuser -l $targetuser -c "systemctl --user restart $filename"
 else
    #echo "Scheduling Mode <$schedulemode> is NOT supported. Possible choices are <cron> or <systemd>. Aborting !"
    schedule_mode_not_supported "$schedulemode"
