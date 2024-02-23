@@ -14,7 +14,7 @@ userhomedir=$( getent passwd "$user" | cut -d: -f6 )
 echo "Setup Traefik Monitoring Service for User <$user>"
 
 # Copy Traefik Monitoring Script to Podman User Folder
-mkdir -p ~/bin
+mkdir -p $userhomedir/bin
 cp $toolpath/bin/monitor-traefik.sh $userhomedir/bin/monitor-traefik.sh
 
 # Give Script Execution Permissions
