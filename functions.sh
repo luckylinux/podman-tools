@@ -45,6 +45,7 @@ get_homedir() {
 
 # Get Systemdconfig
 get_systemdconfigdir() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
 
    if [[ "$user" == "root" ]]
@@ -59,8 +60,11 @@ get_systemdconfigdir() {
    echo $systemdconfigdir
 }
 
+
+
 # Shortcut to Systemd daemon-reload + enable + restart service
 systemd_reload_enable() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
    local service=$2
 
@@ -103,8 +107,75 @@ systemd_reload_enable() {
    fi
 }
 
+# Execute Systemd Command
+systemd_cmd() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local user=$1
+   local command=$2
+   local service=$3
+
+   executingUser=$(whoami)
+
+   if [[ "$user" == "root" ]]
+   then
+      # Run without runuser and without --user
+
+      # Run Command System-Wide
+      systemctl $command $service
+   else
+      if [[ "$executingUser" == "root" ]]
+      then
+          # Run with runuser and with --user
+
+          # Run Command as root user and target a different non-root User
+          runuser -l $user -c "systemctl --user $command $service"
+      elif [[ "$user" == "$executingUser" ]]
+      then
+          # Run without runuser and with --user
+
+          # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
+          systemctl --user $command $service
+      fi
+   fi
+}
+
 # Status of service(s)
 systemd_status() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local user=$1
+   local service=$2
+
+   # Run Command using Wrapper
+   systemd_cmd "$user" status "$service"
+}
+
+
+systemd_restart() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local user=$1
+   local service=$2
+
+   # Run Command using Wrapper
+   systemd_cmd "$user" restart "$service"
+
+
+   if [[ "$user" == "root" ]]
+   then
+      # Run without runuser and without --user
+
+      # Restart Service
+      systemctl restart $service
+
+   else
+      # Run with runuser and with --user
+
+      # Restart Service
+      runuser -l $user -c "systemctl --user restart $service"
+   fi
+}
+
+systemd_stop() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
    local service=$2
 
@@ -112,18 +183,40 @@ systemd_status() {
    then
       # Run without runuser and without --user
 
-      # Verify the Status is OK
-      systemctl status "$service"
+      # Stop Service
+      systemctl restart $service
 
    else
       # Run with runuser and with --user
 
-      # Verify the Status is OK
-      runuser -l $user -c "systemctl --user status $service"
+      # Stop Service
+      runuser -l $user -c "systemctl --user restart $service"
    fi
 }
 
+systemd_start() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local user=$1
+   local service=$2
+
+   if [[ "$user" == "root" ]]
+   then
+      # Run without runuser and without --user
+
+      # Start Service
+      systemctl start $service
+
+   else
+      # Run with runuser and with --user
+
+      # Start Service
+      runuser -l $user -c "systemctl --user start $service"
+   fi
+}
+
+
 systemd_reload() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
    local service=$2
 
@@ -143,8 +236,10 @@ systemd_reload() {
 }
 
 systemd_reexec() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
    local service=$2
+
 
    if [[ "$user" == "root" ]]
    then
@@ -158,5 +253,25 @@ systemd_reexec() {
 
       # Reexecute Systemd
       runuser -l $user -c "systemctl --user daemon-reexec"
+   fi
+}
+
+systemd_log() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local user=$1
+   local service=$2
+
+   if [[ "$user" == "root" ]]
+   then
+      # Run without runuser and without --user
+
+      # Show Systemd Log
+      journalctl --user -xeu $service
+
+   else
+      # Run with runuser and with --user
+
+      # Show Systemd Log
+      runuser -l $user -c "journalctl --user -xeu $service"
    fi
 }
