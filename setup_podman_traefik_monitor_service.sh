@@ -4,8 +4,21 @@
 relativepath="./" # Define relative path to go from this script to the root level of the tool
 if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
 
+# Load functions
+source functions.sh
+
 # Define user
-user=${1:-'podman'}
+user=${1]
+if [[ -z user ]]
+then
+   user=$(whoami)
+fi
+
+# Define mode
+if [[ ! -v schedulemode ]]
+then
+   schedulemode=${2:-'cron'}
+fi
 
 # Get user home folder
 userhomedir=$( getent passwd "$user" | cut -d: -f6 )
