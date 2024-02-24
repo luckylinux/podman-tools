@@ -9,7 +9,7 @@ source $toolpath/functions.sh
 
 # Define user
 user=$1
-if [[ -z user ]]
+if [[ -v user ]]
 then
    user=$(whoami)
 fi

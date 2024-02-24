@@ -76,20 +76,20 @@ generic_cmd() {
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      $command $action $service
+      "$command" "$action" "$service"
    else
       if [[ "$executingUser" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l $user -c "$command --user $action $service"
+          runuser -l "$user" -c "$command --user \"$action\" \"$service\""
       elif [[ "$user" == "$executingUser" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          $command --user $action $service
+          "$command" --user "$action" "$service"
       fi
    fi
 }
@@ -108,20 +108,20 @@ systemd_cmd() {
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      systemctl $action $service
+      systemctl "$action" "$service"
    else
       if [[ "$executingUser" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l $user -c "systemctl --user $action $service"
+          runuser -l "$user" -c "systemctl --user \"$action\" \"$service\""
       elif [[ "$user" == "$executingUser" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          systemctl --user $action $service
+          systemctl --user "$action" "$service"
       fi
    fi
 }
@@ -141,20 +141,20 @@ journald_cmd() {
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      journalctl $action $service
+      journalctl "$action" "$service"
    else
       if [[ "$executingUser" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l $user -c "journalctl --user $action $service"
+          runuser -l $user -c "journalctl --user \"$action\" \"$service\""
       elif [[ "$user" == "$executingUser" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          journalctl --user $action $service
+          journalctl --user "$action" "$service"
       fi
    fi
 }
@@ -167,7 +167,7 @@ systemd_enable() {
    local service=$2
 
    # Run Command using Wrapper
-   systemd_cmd "$user" enable "$service"
+   systemd_cmd "$user" "enable" "$service"
 }
 
 # Status of service(s)
@@ -177,7 +177,7 @@ systemd_status() {
    local service=$2
 
    # Run Command using Wrapper
-   systemd_cmd "$user" status "$service"
+   systemd_cmd "$user" "status" "$service"
 }
 
 systemd_restart() {
@@ -186,7 +186,7 @@ systemd_restart() {
    local service=$2
 
    # Run Command using Wrapper
-   systemd_cmd "$user" restart "$service"
+   systemd_cmd "$user" "restart" "$service"
 }
 
 systemd_stop() {
@@ -195,7 +195,7 @@ systemd_stop() {
    local service=$2
 
    # Run Command using Wrapper
-   systemd_cmd "$user" stop "$service"
+   systemd_cmd "$user" "stop" "$service"
 }
 
 systemd_start() {
@@ -204,7 +204,7 @@ systemd_start() {
    local service=$2
 
    # Run Command using Wrapper
-   systemd_cmd "$user" start "$service"
+   systemd_cmd "$user" "start" "$service"
 }
 
 
@@ -214,7 +214,7 @@ systemd_reload() {
    local service=$2
 
    # Run Command using Wrapper
-   systemd_cmd "$user" daemon-reload
+   systemd_cmd "$user" "daemon-reload"
 }
 
 systemd_reexec() {
@@ -223,7 +223,7 @@ systemd_reexec() {
    local service=$2
 
    # Run Command using Wrapper
-   systemd_cmd "$user" daemon-reload
+   systemd_cmd "$user" "daemon-reexec"
 }
 
 journald_log() {
@@ -232,7 +232,7 @@ journald_log() {
    local service=$2
 
    #  Run Command using Wrapper
-   journald_cmd "$user" "-xeu" $service
+   journald_cmd "$user" "-xeu" "$service"
 }
 
 # Shortcut to Systemd daemon-reload + enable + restart service
