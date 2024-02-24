@@ -100,6 +100,7 @@ systemd_reload_enable() {
 
       # Check the logs from time to time and in case of issues
       runuser -l $user -c "journalctl --user -xeu $service"
+   fi
 }
 
 # Status of service(s)
@@ -119,6 +120,7 @@ systemd_status() {
 
       # Verify the Status is OK
       runuser -l $user -c "systemctl --user status $service"
+   fi
 }
 
 systemd_reload() {
@@ -137,6 +139,7 @@ systemd_reload() {
 
       # Reload Systemd Service Files
       runuser -l $user -c "systemctl --user daemon-reload"
+   fi
 }
 
 systemd_reexec() {
@@ -155,4 +158,5 @@ systemd_reexec() {
 
       # Reexecute Systemd
       runuser -l $user -c "systemctl --user daemon-reexec"
+   fi
 }
