@@ -21,10 +21,10 @@ then
 fi
 
 # Get user home folder
-userhomedir=$( getent passwd "$user" | cut -d: -f6 )
+userhomedir=$( get_homedir "$user" )
 
 # Get Systemd Config Folder
-systemdconfigfolder=$( get_systemdconfigfolder "$user" )
+systemdconfigfolder=$( get_systemdconfigdir "$user" )
 
 # Echo
 echo "Setup Traefik Monitoring Service for User <$user>"
