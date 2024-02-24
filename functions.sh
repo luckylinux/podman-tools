@@ -76,20 +76,20 @@ generic_cmd() {
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      "$command" "$action" "$service"
+      $command $action $service
    else
       if [[ "$executingUser" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l "$user" -c "$command --user \"$action\" \"$service\""
+          runuser -l $user -c "$command --user $action $service"
       elif [[ "$user" == "$executingUser" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          "$command" --user "$action" "$service"
+          $command --user $action $service
       fi
    fi
 }
@@ -111,20 +111,20 @@ systemd_cmd() {
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      systemctl "$action" "$service"
+      systemctl $action $service
    else
       if [[ "$executingUser" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l "$user" -c "systemctl --user \"$action\" \"$service\""
+          runuser -l "$user" -c "systemctl --user $action $service"
       elif [[ "$user" == "$executingUser" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          systemctl --user "$action" "$service"
+          systemctl --user $action $service
       fi
    fi
 }
