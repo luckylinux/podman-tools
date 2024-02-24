@@ -103,6 +103,9 @@ systemd_cmd() {
 
    executingUser=$(whoami)
 
+   # Debug
+   #echo "Execute systemd command targeting user <$user> with action <$action> for service <$service>"
+
    if [[ "$user" == "root" ]]
    then
       # Run without runuser and without --user
@@ -135,6 +138,9 @@ journald_cmd() {
    local service=$3
 
    executingUser=$(whoami)
+
+   # Debug
+   #echo "Execute journald command targeting user <$user> with action <$action> for service <$service>"
 
    if [[ "$user" == "root" ]]
    then

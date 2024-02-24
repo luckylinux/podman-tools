@@ -26,6 +26,9 @@ userhomedir=$( get_homedir "$user" )
 # Get Systemd Config Folder
 systemdconfigfolder=$( get_systemdconfigdir "$user" )
 
+# Define service name
+service="monitor-traefik.service"
+
 # Echo
 echo "Setup Traefik Monitoring Service for User <$user>"
 
@@ -38,11 +41,11 @@ chown -R $user:$user $userhomedir/bin/monitor-traefik.sh
 chmod +x $userhomedir/bin/monitor-traefik.sh
 
 # Echo
-echo "Installing Systemd Service file in <$userhomedir/.config/systemd/user/monitor-traefik.service>"
+echo "Installing Systemd Service file in <$systemdconfigfolder/$service>"
 
 # Copy Traefik Monitoring Service File to Podman Systemd Service Folder
-cp $toolpath/systemd/services/monitor-traefik.service $systemdconfigfolder/monitor-traefik.service
-chown $user:$user $systemdconfigfolder/monitor-traefik.service
+cp $toolpath/systemd/services/$service $systemdconfigfolder/$service
+chown $user:$user $systemdconfigfolder/$service
 
 # Enable & Start Systemd file
 systemd_reload_enable "$user" "$service"
