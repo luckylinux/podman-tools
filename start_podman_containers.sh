@@ -27,8 +27,8 @@ systemdconfigdir=$(get_systemdconfigdir "$user")
 cd $systemdconfigdir
 for service in "container-*.service"
 do
-    # Restart container
-    systemd_restart "$user" "$service"
+    # Start container
+    systemd_start "$user" "$service"
 done
 
 # Change back to currentpath

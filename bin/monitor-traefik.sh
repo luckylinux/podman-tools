@@ -21,29 +21,35 @@ do
 
    for container in "${list[@]}"
    do
-       # Echo
-       #echo "Processing container <$container>"
-
-       # Get past epoch Time in which the container was started (constant value)
-       container_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=^$container\$)
-       #started=${container_startedat}
-
-       # Get container running duration
-       container_duration_s=$((now-container_startedat))
-
-       # Compare against traefik started time
-       #echo "if [[ ${traefik_startedat} -lt ${container_startedat} ]]"
-       if [[ ${traefik_startedat} -lt ${container_startedat} ]]
+       if [[ "$container" == "traefik" ]]
        then
-          echo "Container $container was started AFTER traefik Proxy Server. Restarting Traefik Necessary"
-          traefik_restart=1
+           # Echo
+           #echo "Skipping container <$container>"
+       else
+           # Echo
+           #echo "Processing container <$container>"
+
+           # Get past epoch Time in which the container was started (constant value)
+           container_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=^$container\$)
+           #started=${container_startedat}
+
+           # Get container running duration
+           container_duration_s=$((now-container_startedat))
+
+           # Compare against traefik started time
+           #echo "if [[ ${traefik_startedat} -lt ${container_startedat} ]]"
+           if [[ ${traefik_startedat} -lt ${container_startedat} ]]
+           then
+              echo "Container $container was started AFTER traefik Proxy Server. Restarting Traefik Necessary"
+              traefik_restart=1
+           fi
+
+           # Transformer into hours
+           #container_duration_h=$(echo "scale=0; ${container_duration_s}/3600" | bc)
+
+           # Format it
+           #formatted="${formatted}${container}|${container_duration_s} s|${container_duration_h} h \n"
        fi
-
-       # Transformer into hours
-       #container_duration_h=$(echo "scale=0; ${container_duration_s}/3600" | bc)
-
-       # Format it
-       #formatted="${formatted}${container}|${container_duration_s} s|${container_duration_h} h \n"
    done
 
    #echo ${formatted} | column -t -s$'\t'
