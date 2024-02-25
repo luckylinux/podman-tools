@@ -10,6 +10,13 @@ if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" 
 # Load functions
 source $toolpath/functions.sh
 
+# Define user
+user=$1
+if [[ -v user ]]
+then
+   user=$(whoami)
+fi
+
 # Get user homedir
 userhomedir=$(get_homedir "$user")
 
