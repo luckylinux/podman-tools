@@ -17,7 +17,7 @@ userhomedir=$(get_homedir "$user")
 systemdconfigdir=$(get_systemdconfigdir "$user")
 
 # Prune old images
-podman image prune
+podman image prune -f
 
 # List all images
 mapfile -t images < <( podman images --all --format="{{.Names}}" )
@@ -26,7 +26,7 @@ mapfile -t images < <( podman images --all --format="{{.Names}}" )
 for image in "${images[@]}"
 do
     # Remove Square brackets []
-    source=$(echo $image | | sed 's/[][]//g')
+    source=$(echo $image | sed 's/[][]//g')
 
     # If source is non-null then try to pull image
     if [[ -v source ]]
