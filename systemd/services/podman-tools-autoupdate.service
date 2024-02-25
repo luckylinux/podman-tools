@@ -1,0 +1,9 @@
+[Unit]
+Description=Automatically Update Podman Tools from Git Repository
+
+[Service]
+ExecStart=/bin/bash -c 'cd {{toolpath}} && git pull'
+#ExecStop=
+
+[Install]
+WantedBy=default.target
