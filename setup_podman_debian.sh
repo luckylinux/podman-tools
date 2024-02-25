@@ -68,14 +68,26 @@ get_homedir() {
 # User name
 user=${1:-'podman'}
 
-# Storage Path
-storage=${2:-'zdata/PODMAN'}
-
 # Mode (zfs / zvol / dir)
-mode=${3:-'zfs'}
+mode=${2:-'zfs'}
+
+# Storage Path
+if [[ "$mode" == "dir" ]]
+then
+   storage=${3:-'/home/podman/containers'}
+elif [[ "$mode" == "zfs" ]]
+then
+   storage=${3:-'zdata/PODMAN'}
+elif [[ "$mode" == "zvol" ]]
+then
+   storage=${3:-'zdata/PODMAN'}
+else
+   echo "Storage mode <$mode> NOT supported. Aborting !"
+   exit 2
+fi
 
 # ZVOL FS (if type=zfs)
-#fs=${3:-'ext4'}
+#fs=${4:-'ext4'}
 
 # Define datasets
 datasets=()
@@ -144,7 +156,7 @@ if [ "$mode" == "zfs" ] || [ "$mode" == "zvol" ]
 then
     echo "/${storage}/CONFIG /home/${user}/.config/containers none defaults,rbind 0 0" >> /etc/fstab
 else
-    echo "/home/${user}/config /home/${user}/.config/containers none defaults,rbind 0 0" >> /etc/fstab
+    echo "/home/${user}/containers/config /home/${user}/.config/containers none defaults,rbind 0 0" >> /etc/fstab
 fi
 
 
