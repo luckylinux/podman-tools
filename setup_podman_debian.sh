@@ -401,11 +401,14 @@ aptitude -y install podman-compose
 # Enable rc.local service and make sure ZFS dataset are mounted BEFORE everything else
 ./enable_rc_local.sh
 
-# Setup CRON to automatically generate updated Systemd Service files
+# Setup CRON/Systemd to automatically generate updated Systemd Service files
 ./setup_podman_autostart_service.sh
 
-# Setup CRON to automatically detect traefik changes and restart traefik to apply them
+# Setup CRON/Systemd to automatically detect traefik changes and restart traefik to apply them
 ./setup_podman_traefik_monitor_service.sh
 
-# Setup CRON to automatically install images updates
+# Setup CRON/Systemd to automatically install images updates
 ./setup_podman_autoupdate_service.sh
+
+# Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
+./setup_tools_autoupdate_service.sh
