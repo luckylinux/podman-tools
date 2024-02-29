@@ -412,3 +412,7 @@ aptitude -y install podman-compose
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
 ./setup_tools_autoupdate_service.sh
+
+# Increase Limits on Maximum Number of Open Files
+sudo sh -c "echo '* soft     nofile         65535
+* hard     nofile         65535' > /etc/security/limits.d/30-max-number-open-files.conf"
