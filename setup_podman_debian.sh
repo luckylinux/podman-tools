@@ -7,12 +7,6 @@ if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" 
 # Load functions
 source functions.sh
 
-# Get homedir
-homedir=$(get_homedir "$user")
-
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "$user")
-
 # Exit in case of error
 #set -e
 
@@ -70,6 +64,12 @@ user=${1:-'podman'}
 
 # Mode (zfs / zvol / dir)
 mode=${2:-'zfs'}
+
+# Get homedir
+homedir=$(get_homedir "$user")
+
+# Get Systemdconfigdir
+systemdconfigdir=$(get_systemdconfigdir "$user")
 
 # Storage Path
 if [[ "$mode" == "dir" ]]

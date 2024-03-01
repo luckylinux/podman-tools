@@ -20,7 +20,7 @@ fi
 # Define mode
 if [[ ! -v schedulemode ]]
 then
-   if [[ "$user" == "root" ]
+   if [[ "$user" == "root" ]]
    then
         schedulemode=${2:-'cron'}
    else
