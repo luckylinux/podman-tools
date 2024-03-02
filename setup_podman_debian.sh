@@ -60,10 +60,24 @@ get_homedir() {
 
 # Define user
 # User name
-user=${1:-'podman'}
+user=${1}
+#user=${1:-'podman'}
+
+if [[ ! -v user ]]
+then
+    echo "User must be specified"
+    exit 11
+fi
 
 # Mode (zfs / zvol / dir)
-mode=${2:-'zfs'}
+mode=${2}
+#mode=${2:-'zfs'}
+
+if [[ ! -v mode ]]
+then
+    echo "Mode must be specified and be one of <dir> or <zfs> or <zvol>"
+    exit 12
+fi
 
 # Get homedir
 homedir=$(get_homedir "$user")
