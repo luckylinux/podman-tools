@@ -342,10 +342,10 @@ echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/$user/.bash_profile
 
 # Change some configuration
 sed -Ei "s|^#? ?runroot = \".*\"|runroot = \"/run/user/${userid}\"|g" storage.conf
-sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"/home/${user}/storage\"|g" storage.conf
-sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"/home/${user}/storage\"|g" storage.conf
-sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"/home/${user}/images\"|g" storage.conf
-sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"/home/${user}/volumes\"|g" storage.conf
+sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"${destination}/storage\"|g" storage.conf
+sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${destination}/storage\"|g" storage.conf
+sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${destination}/images\"|g" storage.conf
+sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"${destination}/volumes\"|g" storage.conf
 sed -Ei "s|^#? ?mount_program = \".*\"|mount_program = \"/usr/bin/fuse-overlayfs\"|g" storage.conf
 
 # Enable cgroups v2
