@@ -88,13 +88,16 @@ systemdconfigdir=$(get_systemdconfigdir "$user")
 # Storage Path
 if [[ "$mode" == "dir" ]]
 then
-   storage=${3:-'/home/podman/containers'}
+   storage=${3:-"/home/$user/containers"}
+   destination=$storage
 elif [[ "$mode" == "zfs" ]]
 then
    storage=${3:-'zdata/PODMAN'}
+   destination=${4:-"/home/$user/containers"}
 elif [[ "$mode" == "zvol" ]]
 then
    storage=${3:-'zdata/PODMAN'}
+   destination=${4:-"/home/$user/containers"}
 else
    echo "Storage mode <$mode> NOT supported. Aborting !"
    exit 2
@@ -213,7 +216,7 @@ do
 	     zfs create -o compression=lz4 ${name}
 
 	     # Add FSTAB entry
-	     echo "/${name} /home/${user}/${lname} none defaults,rbind 0 0" >> /etc/fstab
+	     echo "/${name} ${destination}/${lname} none defaults,rbind 0 0" >> /etc/fstab
 
              # Mount dataset
              zfs mount ${name}
@@ -238,11 +241,11 @@ do
 	     sleep 1
 
 	     # Add FSTAB entry
-             echo "/dev/zvol/${name} /home/${user}/${lname} ext4 defaults,nofail,x-systemd.automount 0 0" >> /etc/fstab
+             echo "/dev/zvol/${name} ${destination}/${lname} ext4 defaults,nofail,x-systemd.automount 0 0" >> /etc/fstab
         elif [ "$mode" == "dir" ]
 	then
 	     # Ensure that mountpoint can contain files since nothing will be mounted there in this mode (user folder)
-             chattr -i /home/${user}/${lname}/
+             chattr -i ${destination}/${lname}/
 
 	else
 	     echo "MODE is invalid. It should either be <zfs> or <zvol>. Current value is <$mode>"
@@ -256,20 +259,20 @@ do
 	# Mount according to FSTAB
         if [ "$mode" == "zfs" ] || [ "$mode" == "zvol" ]
         then
-	    mount /home/${user}/${lname}/
+	    mount ${destination}/${lname}/
         fi
 
 	# Ensure proper permissions
-	chown -R $user:$user /home/${user}/${lname}/
+	chown -R $user:$user ${destination}/${lname}/
 
         # Increment counter
         counter=$((counter+1))
 done
 
 # Create symbolic links for "legacy" versions of podmans (e.g. not supporting "volumepath" or "imagestore" configuration directives)
-rm -f /home/${user}/storage/volumes
-ln -s /home/${user}/volumes /home/${user}/storage/volumes
-chown $user:$user /home/${user}/storage/volumes
+rm -f ${destination}/storage/volumes
+ln -s ${destination}/volumes ${destination}/storage/volumes
+chown $user:$user ${destination}/storage/volumes
 
 # Save Current Path
 scriptspath=$(pwd)
