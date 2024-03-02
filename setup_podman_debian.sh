@@ -393,10 +393,18 @@ systemctl disable podman.socket
 systemctl disable podman-auto-update
 
 # Enable user-level services
-systemd_enable_run "$user" "podman.socket"
-systemd_enable_run "$user" "podman.service"
-systemd_enable_run "$user" "podman-restart.service"
-systemd_enable_run "$user" "podman-auto-update.service"
+systemd_enable "$user" "podman.socket"
+systemd_restart "$user" "podman.socket"
+
+systemd_enable "$user" "podman.service"
+systemd_restart "$user" "podman.service"
+
+systemd_enable "$user" "podman-restart.service"
+systemd_restart "$user" "podman-restart.service"
+
+systemd_enable "$user" "podman-auto-update.service"
+systemd_restart "$user" "podman-auto-update.service"
+
 systemd_status "$user" "podman.socket podman.service podman-restart.service podman-auto-update.service"
 systemd_reexec
 systemd_reload
