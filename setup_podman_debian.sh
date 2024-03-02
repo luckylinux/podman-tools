@@ -60,8 +60,8 @@ get_homedir() {
 
 # Define user
 # User name
-user=${1}
-#user=${1:-'podman'}
+export user=${1}
+#export user=${1:-'podman'}
 
 if [[ ! -v user ]]
 then
@@ -70,8 +70,8 @@ then
 fi
 
 # Mode (zfs / zvol / dir)
-mode=${2}
-#mode=${2:-'zfs'}
+export mode=${2}
+#export mode=${2:-'zfs'}
 
 if [[ ! -v mode ]]
 then
