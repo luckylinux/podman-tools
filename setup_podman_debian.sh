@@ -199,15 +199,15 @@ do
         name="${storage}/${dataset}"
 
 	# Create storage for image directory
-	mkdir -p /home/${user}/${lname}/
-	umount_if_mounted /home/${user}/${lname}/
-	chattr -i /home/${user}/${lname}/
-	chown -R $user:$user /home/${user}/${lname}/
+	mkdir -p ${destination}/${lname}/
+	umount_if_mounted ${destination}/${lname}/
+	chattr -i ${destination}/${lname}/
+	chown -R $user:$user ${destination}/${lname}/
 
 	if [ "$mode" == "zfs"  ]
 	then
 	     # Ensure that mountpoint cannot contain files UNLESS dataset is mounted (user folder)
-             chattr +i /home/${user}/${lname}/
+             chattr +i ${destination}/${lname}/
 
 	     # Ensure that mountpoint cannot contain files UNLESS dataset is mounted (pool folder)
              chattr +i "/${name}"
@@ -226,7 +226,7 @@ do
         elif [ "$mode" == "zvol" ]
 	then
 	     # Ensure that mountpoint cannot contain files UNLESS dataset is mounted (user folder)
-             chattr +i /home/${user}/${lname}/
+             chattr +i ${destination}/${lname}/
 
 	     # Get ZVOL size
              zsize="${zsizes[$counter]}"
