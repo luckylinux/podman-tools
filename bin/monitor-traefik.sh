@@ -25,6 +25,7 @@ do
        then
            # Echo
            #echo "Skipping container <$container>"
+           skip=1
        else
            # Echo
            #echo "Processing container <$container>"
