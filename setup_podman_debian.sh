@@ -275,17 +275,17 @@ chown $user:$user /home/${user}/storage/volumes
 scriptspath=$(pwd)
 
 # Install requirements
-apt install --yes sudo
+apt-get install --yes sudo aptitude
 
 # Enable Backports Repository
 # Copy Debian Backports Repository Configuration
 cp repositories/debian/bookworm/sources.list.d/debian-backports.list /etc/apt/sources.list.d/debian-backports.list
 
 # Install podman
-apt -y install podman
+apt-get -y install podman
 
 # Install podman-compose
-apt -y install python3 python3-pip
+apt-get -y install python3 python3-pip
 #pip3 install podman-compose # Use latest version
 #pip3 install https://github.com/containers/podman-compose/archive/refs/tags/v0.1.10.tar.gz # Use legacy version
 
@@ -308,8 +308,11 @@ else
 fi
 
 # Automatically mount ZFS datasets
-zfs mount -a
-sleep 2
+if [ "$mode" == "zfs" ] || [ "$mode" == "zvol" ]
+then
+   zfs mount -a
+   sleep 2
+fi
 
 # Automatically bind-mount remaining datasets
 mount -a
@@ -321,7 +324,7 @@ chown -R $user:$user /var/run/user/${userid}
 #su $user
 
 # Populate config directory
-mkdir -p /home/${user}/.config/containers
+mount /home/${user}/.config/containers
 cd /home/${user}/.config/containers
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/storage.conf -O storage.conf
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/registries.conf -O registries.conf
@@ -365,7 +368,7 @@ sed -Ei "s|^#DefaultStartLimitBurst\s*=.*|DefaultStartLimitBurst=500|g" /etc/sys
 loginctl enable-linger ${userid}
 
 # Upgrade other parts of the system
-apt --yes dist-upgrade
+apt-get --yes dist-upgrade
 
 # Rebuild initramfs
 update-initramfs -k all  -u
@@ -382,7 +385,7 @@ sudo -u $user cp /lib/systemd/user/podman-auto-update.service /home/$user/.confi
 sudo -u $user cp /lib/systemd/user/podman-restart.service /home/$user/.config/systemd/user/
 
 # Install additionnal packages
-apt --yes install uidmap fuse-overlayfs slirp4netns
+apt-get --yes install uidmap fuse-overlayfs slirp4netns
 
 # Disable root-level services
 systemctl disable podman-restart.service
