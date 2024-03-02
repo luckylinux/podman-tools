@@ -10,13 +10,15 @@ source $toolpath/functions.sh
 # Define user
 if [[ ! -v user ]]
 then
-   user=${1:-'podman'}
+#   user=${1:-'podman'}
+   user=$(whoami)
 fi
 
 # Define mode
 if [[ ! -v schedulemode ]]
 then
-   schedulemode=${2:-'cron'}
+#   schedulemode=${2:-'cron'}
+   schedulemode='systemd'
 fi
 
 # Get homedir

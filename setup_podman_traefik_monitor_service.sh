@@ -17,7 +17,8 @@ fi
 # Define mode
 if [[ ! -v schedulemode ]]
 then
-   schedulemode=${2:-'cron'}
+#   schedulemode=${2:-'cron'}
+   schedulemode='systemd'
 fi
 
 # Get user home folder

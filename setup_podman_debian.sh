@@ -344,7 +344,7 @@ echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/$user/.bash_profile
 sed -Ei "s|^#? ?runroot = \".*\"|runroot = \"/run/user/${userid}\"|g" storage.conf
 sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"/home/${user}/storage\"|g" storage.conf
 sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"/home/${user}/storage\"|g" storage.conf
-sed -Ei "s|^#? ?imagestore = \".*\"|imagestore = \"/home/${user}/images\"|g" storage.conf
+sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"/home/${user}/images\"|g" storage.conf
 sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"/home/${user}/volumes\"|g" storage.conf
 sed -Ei "s|^#? ?mount_program = \".*\"|mount_program = \"/usr/bin/fuse-overlayfs\"|g" storage.conf
 
@@ -409,8 +409,8 @@ systemd_enable "$user" "podman-auto-update.service"
 systemd_restart "$user" "podman-auto-update.service"
 
 systemd_status "$user" "podman.socket podman.service podman-restart.service podman-auto-update.service"
-systemd_reexec
-systemd_reload
+systemd_reexec "$user"
+systemd_reload "$user"
 
 # https://github.com/containers/podman/issues/3024#issuecomment-1742105831 ,  https://github.com/containers/podman/issues/3024#issuecomment-1762708730
 mkdir -p /etc/systemd/system/user@.service.d
@@ -427,19 +427,19 @@ cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
 aptitude -y install podman-compose
 
 # Enable rc.local service and make sure ZFS dataset are mounted BEFORE everything else
-./enable_rc_local.sh
+source enable_rc_local.sh
 
 # Setup CRON/Systemd to automatically generate updated Systemd Service files
-./setup_podman_autostart_service.sh
+source setup_podman_autostart_service.sh
 
 # Setup CRON/Systemd to automatically detect traefik changes and restart traefik to apply them
-./setup_podman_traefik_monitor_service.sh
+source setup_podman_traefik_monitor_service.sh
 
 # Setup CRON/Systemd to automatically install images updates
-./setup_podman_autoupdate_service.sh
+source setup_podman_autoupdate_service.sh
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
-./setup_tools_autoupdate_service.sh
+source setup_tools_autoupdate_service.sh
 
 # Increase Limits on Maximum Number of Open Files
 sudo sh -c "echo '* soft     nofile         65535
