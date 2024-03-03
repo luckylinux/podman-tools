@@ -33,7 +33,7 @@ EOF
 # Setup podman to install from debian-testing
 tee /etc/apt/preferences.d/podman << EOF
 # Allow upgrading only my-specific-software from the testing release
-Package: podman-compose podman conmon crun runc golang-github-containers-common containers-storage docker-compose aardvark-dns buildah fuse-overlayfs fuse3 libfuse3-3
+Package: podman-compose podman conmon crun runc golang-github-containers-common containers-storage docker-compose aardvark-dns buildah fuse-overlayfs fuse3 libfuse3-3 libglib2.0-0
 # Might also be useful:  slirp4netns passt
 Pin: release a=testing
 Pin-Priority: 600
