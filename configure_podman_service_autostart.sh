@@ -1,10 +1,17 @@
 #!/bin/bash
 
-# List Containers
-podman ps --all
+# Attempt to use Argument for Container Name
+name=${1-""}
 
-# Ask user input
-read -p "Container Name to Create Systemd Service for:" name
+# Ask user input if Container Name was not Provided
+if [[ -n "$name" ]]
+then
+   # List Containers
+   podman ps --all
+
+   # Ask User Input
+   read -p "Container Name to Create Systemd Service for:" name
+fi
 
 # Generate Service File
 podman generate systemd --name $name --new > ~/.config/systemd/user/container-$name.service
