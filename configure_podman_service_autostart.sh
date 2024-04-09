@@ -4,7 +4,7 @@
 name=${1-""}
 
 # Ask user input if Container Name was not Provided
-if [[ -n "$name" ]]
+if [[ -z "$name" ]]
 then
    # List Containers
    podman ps --all
