@@ -276,21 +276,43 @@ cd /home/${user}/.config/containers
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/storage.conf -O storage.conf
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/registries.conf -O registries.conf
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/default-policy.json -O default-policy.json
+wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/containers.conf -O containers.conf
 
 # Setup folders and set correct permissions
 chown -R $user:$user /home/$user
 
 # Set
-echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/$user/.bashrc
-echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/$user/.bash_profile
+tee ${homedir}/.bash_profile
+# Include Generic Profile
+source /etc/skel/.bashrc
 
-# Change some configuration
+# Include .bashrc
+if [ -f ~/.bashrc ]; then
+   . ~/.bashrc
+fi
+
+# Podman Configuration
+export XDG_RUNTIME_DIR=/run/user/${userid}
+export XDG_CONFIG_HOME="/home/podman/.config"
+#export CONTAINERS_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/containers.conf"
+#export CONTAINERS_STORAGE_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/storage.conf"
+#export CONTAINERS_REGISTRIES_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/registries.conf"
+EOF
+
+# Not needed anymore since now .bash_profile will also load .bashrc (if that file exists)
+#echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/$user/.bashrc
+
+
+# Change some configuration in storage.conf
 sed -Ei "s|^#? ?runroot = \".*\"|runroot = \"/run/user/${userid}\"|g" storage.conf
 sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"${destination}/storage\"|g" storage.conf
 sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${destination}/storage\"|g" storage.conf
 sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${destination}/images\"|g" storage.conf
-sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"${destination}/volumes\"|g" storage.conf
 sed -Ei "s|^#? ?mount_program = \".*\"|mount_program = \"/usr/bin/fuse-overlayfs\"|g" storage.conf
+
+# Change some configuration in containers.conf
+sed -Ei "s|^#? ?volume_path = \".*\"|volume_path = \"${destination}/volumes\"|g" containers.conf
+sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"${destination}/volumes\"|g" containers.conf
 
 # Enable cgroups v2
 #sed -i 's/#CGROUP_MODE=hybrid/CGROUP_MODE=hybrid/g' /etc/rc.conf
