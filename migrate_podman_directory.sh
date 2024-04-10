@@ -101,7 +101,8 @@ do
         # ...
 
         # Make changes to containers.conf
-        sed -Ei "s|^#? ?volumepath = \".*\"|#volumepath = \"${destinationdir}/${lname}\"|g" ${configrealpath}/storage.conf
+        sed -Ei "s|^#? ?volume_path = \".*\"|#volume_path = \"${destinationdir}/${lname}\"|g" ${configrealpath}/storage.conf
+        #sed -Ei "s|^#? ?volumepath = \".*\"|#volumepath = \"${destinationdir}/${lname}\"|g" ${configrealpath}/storage.conf
 done
 
 # Remount all mountpoints
