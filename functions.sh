@@ -83,7 +83,7 @@ generic_cmd() {
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l $user -c "$command --user $action $service"
+          runuser -l $user -c "$command $action $service"
       elif [[ "$user" == "$executingUser" ]]
       then
           # Run without runuser and with --user

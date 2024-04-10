@@ -96,5 +96,20 @@ do
         sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"${destinationdir}/${lname}\"|g" ${configrealpath}/storage.conf
         sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${destinationdir}/${lname}\"|g" ${configrealpath}/storage.conf
         sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${destinationdir}/{$lname}\"|g" ${configrealpath}/storage.conf
+
+        # Make changes to registries.conf
+        # ...
+
+        # Make changes to containers.conf
         sed -Ei "s|^#? ?volumepath = \".*\"|#volumepath = \"${destinationdir}/${lname}\"|g" ${configrealpath}/storage.conf
 done
+
+# Remount all mountpoints
+zfs mount -a
+mount -a
+
+# Reset podman as user
+generic_cmd "$user" "podman" "system" "reset"
+
+# Remove remaining stuff in storage
+rm -rf ${sourcedir}/storage/*
