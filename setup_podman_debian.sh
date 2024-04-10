@@ -4,8 +4,11 @@
 relativepath="./" # Define relative path to go from this script to the root level of the tool
 if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
 
-# Load functions
-source functions.sh
+# Load Configuration
+source $toolpath/config.sh
+
+# Load Functions
+source $toolpath/functions.sh
 
 # Exit in case of error
 #set -e
@@ -28,31 +31,6 @@ umount_if_mounted() {
     then
 	umount ${mp}
     fi
-}
-
-# List subuid / subgid
-list_subuid_subgid() {
-     local SUBUID=/etc/subuid
-     local SUBGID=/etc/subgid
-
-     for i in $SUBUID $SUBGID; do [[ -f "$i" ]] || { echo "ERROR: $i does not exist, but is required."; exit 1; }; done
-     [[ -n "$1" ]] && USERS=$1 || USERS=$(awk -F : '{x=x " " $1} END{print x}' $SUBUID)
-     for i in $USERS; do
-        awk -F : "\$1 ~ /$i/ {printf(\"%-16s sub-UIDs: %6d..%6d (%6d)\", \$1 \",\", \$2, \$2+\$3, \$3)}" $SUBUID
-        awk -F : "\$1 ~ /$i/ {printf(\", sub-GIDs: %6d..%6d (%6d)\", \$2, \$2+\$3, \$3)}" $SUBGID
-        echo ""
-     done
-}
-
-# Get Homedir
-get_homedir() {
-   local user=$1
-
-   # Get homedir
-   local homedir=$(getent passwd "$user" | cut -d: -f6)
-
-   # Return result
-   echo $homedir
 }
 
 # Generate next subuid
@@ -105,40 +83,6 @@ fi
 
 # ZVOL FS (if type=zfs)
 #fs=${4:-'ext4'}
-
-# Define datasets
-datasets=()
-datasets+=("BUILD")
-datasets+=("CERTIFICATES")
-datasets+=("COMPOSE")
-datasets+=("CONFIG")
-datasets+=("LOG")
-datasets+=("ROOT")
-datasets+=("DATA")
-datasets+=("IMAGES")
-datasets+=("STORAGE")
-datasets+=("VOLUMES")
-datasets+=("CACHE")
-datasets+=("LOCAL")
-datasets+=("SECRETS")
-
-
-# Define ZVOL sizes in GB if applicable
-# Be VERY generous with the allocations since no reservation of space is made
-zsizes=()
-zsizes+=("128G") # BUILD
-zsizes+=("16G")  # CERTIFICATES
-zsizes+=("16G")  # COMPOSE
-zsizes+=("16G")  # CONFIG
-zsizes+=("128G") # LOG
-zsizes+=("128G") # ROOT
-zsizes+=("256G") # DATA
-zsizes+=("128G") # IMAGES
-zsizes+=("256G") # STORAGE
-zsizes+=("256G") # VOLUMES
-zsizes+=("128G") # CACHE
-zsizes+=("128G") # LOCAL
-zsizes+=("128G") # SECRETS
 
 # Setup container user
 touch /etc/{subgid,subuid}
