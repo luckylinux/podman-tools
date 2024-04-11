@@ -41,29 +41,34 @@ systemdconfigdir=$(get_systemdconfigdir "$user")
 # Modify all Containers based on Podman Compose file Structure
 for containerpath in $basedir/compose/*
 do
-   # Get only container name
-   container=$(basename $containerpath)
-
-   echo "Reconfigure Pull policy to <${pullpolicy}> for <${container}>"
-
-   # Change Directory
-   cd $basedir/compose/$container
-
-   if [[ -f "compose.yml" ]]
+   # If it's a directory
+   if [[ -d "${containerpath}" ]]
    then
-       # Replace pull_policy string
-       echo "Replace pull_policy in <$basedir/compose/$container/compose.yml>"
 
-       #sed -Ei "s|^#(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml         # This pull_policy is anyways DISABLED so no need to replace it
-       sed -Ei "s|^(\s*)pull_policy\s*?=\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml           # Fix error in previos versions (= -> :) 
-       sed -Ei "s|^(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml           # This pull_policy is ENABLED so it MUST be replaced
-   else
-       # File does not exist
-       echo "File <$basedir/compose/$container/compose.yml>. No replacement performed."
+       # Get only container name
+       container=$(basename $containerpath)
+
+       echo "Reconfigure Pull policy to <${pullpolicy}> for <${container}>"
+
+       # Change Directory
+       cd $basedir/compose/$container
+
+       if [[ -f "compose.yml" ]]
+       then
+           # Replace pull_policy string
+           echo "Replace pull_policy in <$basedir/compose/$container/compose.yml>"
+
+           #sed -Ei "s|^#(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml         # This pull_policy is anyways DISABLED so no need to replace it
+           sed -Ei "s|^(\s*)pull_policy\s*?=\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml           # Fix error in previos versions (= -> :) 
+           sed -Ei "s|^(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml           # This pull_policy is ENABLED so it MUST be replaced
+       else
+           # File does not exist
+           echo "File <$basedir/compose/$container/compose.yml>. No replacement performed."
+       fi
+
+       # Brind Podman Container down
+       #podman-compose down
    fi
-
-   # Brind Podman Container down
-   #podman-compose down
 done
 
 
