@@ -23,9 +23,9 @@ pullpolicy=$3
 #pullpolicy=${3-"missing"}
 
 # Check if pull_policy is valid
-if [[ "${pullpolicy}" ~= "always" ]] && [[ "${pullpolicy}" ~= "missing" ]]
+if [[ "${pullpolicy}" != "always" ]] && [[ "${pullpolicy}" != "missing" ]]
 then
-   echo "ERROR: pull_policy must be one of: <always>, <missing>. Aborting."
+   echo "ERROR: pull_policy must be one of: <always>, <missing>. Entered value was <${pullpolicy}>. Aborting."
    exit 9
 fi
 
