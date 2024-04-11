@@ -62,10 +62,10 @@ do
    echo "Run podman-compose down & podman-compose up -d <${container}> which is currently running"
 
    # Get compose file location from Container Properties
-   composedir=$(podman inspect $container | jq '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+   composedir=$(podman inspect $container | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
 
    # Get systemd service name
-   service=$(podman inspect $container | jq '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
+   service=$(podman inspect $container | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
 
    # Disable Service Temporarily
    systemd_disable "$user" "$service"
