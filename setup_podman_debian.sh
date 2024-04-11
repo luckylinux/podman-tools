@@ -354,7 +354,7 @@ sudo -u $user cp /lib/systemd/user/podman-auto-update.service /home/$user/.confi
 sudo -u $user cp /lib/systemd/user/podman-restart.service /home/$user/.config/systemd/user/
 
 # Install additionnal packages
-apt-get --yes install uidmap fuse-overlayfs slirp4netns
+apt-get --yes install uidmap fuse-overlayfs slirp4netns containernetworking-plugins
 
 # Disable root-level services
 systemctl disable podman-restart.service
