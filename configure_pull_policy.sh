@@ -22,9 +22,6 @@ basedir=$2
 pullpolicy=$3
 #pullpolicy=${3-"missing"}
 
-# Relative Path compared to Homedir
-relativepath=$(realpath --canonicalize-missing ${sourcedir/$homedir/""})
-
 # Save current path
 currentpath=$(pwd)
 
@@ -45,9 +42,17 @@ do
    # Change Directory
    cd $basedir/compose/$container
 
-   # Replace pull_policy string
-   #sed -Ei "s|^#(\s*)pull_policy ?= ?\".*\"|\1pull_policy = \"${pullpolicy}\"|g" compose.yml       # This pull_policy is anyways DISABLED so no need to replace it
-   sed -Ei "s|^(\s*)pull_policy ?= ?\".*\"|\1pull_policy = \"${pullpolicy}\"|g" compose.yml         # This pull_policy is ENABLED so it MUST be replaced
+   if [[ -f "compose.yml" ]]
+   then
+       # Replace pull_policy string
+       echo "Replace pull_policy in <$basedir/compose/$container/compose.yml>"
+
+       #sed -Ei "s|^#(\s*)pull_policy ?= ?\".*\"|\1pull_policy = \"${pullpolicy}\"|g" compose.yml       # This pull_policy is anyways DISABLED so no need to replace it
+       sed -Ei "s|^(\s*)pull_policy\s*?=\*?\".*\\s*"|\1pull_policy = \"${pullpolicy}\"|g" compose.yml         # This pull_policy is ENABLED so it MUST be replaced
+   else
+       # File does not exist
+       echo "File <$basedir/compose/$container/compose.yml>. No replacement performed."
+   fi
 
    # Brind Podman Container down
    #podman-compose down
