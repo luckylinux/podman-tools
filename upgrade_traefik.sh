@@ -24,7 +24,7 @@ systemctl --user stop container-traefik.service
 if [[ -d "$basefolder/compose" ]] && [[ -d "$basefolder/compose/traefik" ]]
 then
    # Change Folder
-   cd $basefolder/compose
+   cd $basefolder/compose/traefik
 
    # Run podman compose
    podman-compose down
