@@ -222,7 +222,7 @@ chown $user:$user ${destination}/storage/volumes
 scriptspath=$(pwd)
 
 # Install requirements
-apt-get install --yes sudo aptitude
+apt-get install --yes sudo aptitude jq
 
 # Enable Backports Repository
 # Copy Debian Backports Repository Configuration

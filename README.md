@@ -16,6 +16,7 @@ podman system connection add ...
 
 Command(s) to run on the Source Host in order to perform Transfer:
 ```
+# Define Parameters
 container="traefik"
 destination="192.168.8.15"
 user="podman"
@@ -30,6 +31,7 @@ Manual Method by saving/exporting a .tar archive on the Source Host, transfer it
 
 Command(s) to run on the Source Host in order to Save and Transfer the Image:
 ```
+# Define Parameters
 container="traefik"
 destination="192.168.8.15"
 user="podman"
