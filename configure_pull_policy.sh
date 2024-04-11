@@ -47,8 +47,9 @@ do
        # Replace pull_policy string
        echo "Replace pull_policy in <$basedir/compose/$container/compose.yml>"
 
-       #sed -Ei "s|^#(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy = \"missing\"\2|g" compose.yml         # This pull_policy is anyways DISABLED so no need to replace it
-       sed -Ei "s|^(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy = \"missing\"\2|g" compose.yml           # This pull_policy is ENABLED so it MUST be replaced
+       #sed -Ei "s|^#(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml         # This pull_policy is anyways DISABLED so no need to replace it
+       sed -Ei "s|^(\s*)pull_policy\s*?=\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml           # Fix error in previos versions (= -> :) 
+       sed -Ei "s|^(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml           # This pull_policy is ENABLED so it MUST be replaced
    else
        # File does not exist
        echo "File <$basedir/compose/$container/compose.yml>. No replacement performed."
