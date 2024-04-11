@@ -64,13 +64,15 @@ mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 
 for container in "${list[@]}"
 do
-   echo "Run podman-compose down & podman-compose up -d <${container}> which is currently running"
-
    # Get compose file location from Container Properties
    composedir=$(podman inspect $container | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
 
    # Get systemd service name
    service=$(podman inspect $container | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
+
+   echo -e "Run podman-compose down & podman-compose up -d <${container}> which is currently running"
+   echo -e "\t Compose Directory: ${composedir}"
+   echo -e "\t Systemd Service: ${service}"
 
    # Disable Service Temporarily
    systemd_disable "$user" "$service"
