@@ -35,12 +35,12 @@ homedir=$(get_homedir "$user")
 systemdconfigdir=$(get_systemdconfigdir "$user")
 
 # Modify all Containers based on Podman Compose file Structure
-for container in $sourcedir/compose/*
+for container in $basedir/compose/*
 do
    echo "Reconfigure Pull policy to <${pullpolicy}> for <${container}>"
 
    # Change Directory
-   cd $sourcedir/compose/$container
+   cd $basedir/compose/$container
 
    # Replace pull_policy string
    #sed -Ei "s|^#(\s*)pull_policy ?= ?\".*\"|\1pull_policy = \"${pullpolicy}\"|g" compose.yml       # This pull_policy is anyways DISABLED so no need to replace it

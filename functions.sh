@@ -177,7 +177,7 @@ systemd_enable() {
 }
 
 # Disable service(s)
-systemd_enable() {
+systemd_disable() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
    local service=$2
