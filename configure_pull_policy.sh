@@ -35,8 +35,11 @@ homedir=$(get_homedir "$user")
 systemdconfigdir=$(get_systemdconfigdir "$user")
 
 # Modify all Containers based on Podman Compose file Structure
-for container in $basedir/compose/*
+for containerpath in $basedir/compose/*
 do
+   # Get only container name
+   container=$(basename $containerpath)
+
    echo "Reconfigure Pull policy to <${pullpolicy}> for <${container}>"
 
    # Change Directory
