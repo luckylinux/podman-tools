@@ -15,17 +15,17 @@ user=$1
 #user=${1-"podman"}
 
 # Source Directory
-sourcedir=$1
-#sourcedir=${1-"/home/podman"}
+sourcedir=$2
+#sourcedir=${2-"/home/podman"}
 
 # Destination Directory
-destinationdir=$2
-#destinationdir=${2-"/home/podman/containers"}
+destinationdir=$3
+#destinationdir=${3-"/home/podman/containers"}
 
 # Storage.conf File Location
 # MUST still be available after all things have been unmounted
-configrealpath=$3
-#configrealpath=${3-"/zdata/PODMAN/CONFIG"} # Contains storage.conf
+configrealpath=$4
+#configrealpath=${4-"/zdata/PODMAN/CONFIG"} # Contains storage.conf
 
 # Relative Path compared to Homedir
 relativepath=$(realpath --canonicalize-missing ${sourcedir/$homedir/""})
