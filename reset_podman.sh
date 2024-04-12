@@ -34,9 +34,13 @@ done
 for filename in $basepath/compose/*
 do
     container=$(basename $filename)
-    cd "$basepath/compose/$container"
-#    runuser -l podman -c "podman-compose down -d"
-    podman-compose down
+
+    if [[ -d "$basepath/compose/$container" ]]
+    then
+        cd "$basepath/compose/$container"
+        #runuser -l podman -c "podman-compose down -d"
+        podman-compose down
+    fi
 done
 
 # Switch back to current path
@@ -47,7 +51,7 @@ cd $currentpath
 mapfile -t storages < <( podman ps --all --storage --format="{{.Names}}" )
 for storage in "${storages[@]}"
 do
-    podman rm --storage $storage
+    podman rm --force --storage $storage
 done
 
 # Perform a system reset
