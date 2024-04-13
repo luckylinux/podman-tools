@@ -24,7 +24,7 @@ then
    then
         schedulemode=${2:-'cron'}
    else
-        schedulemode=${2:-'systemd'}
+        schedulemode='systemd'
    fi
 fi
 
