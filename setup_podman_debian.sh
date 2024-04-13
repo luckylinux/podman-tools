@@ -398,8 +398,33 @@ cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
 # Install podman-compose
 aptitude -y install podman-compose
 
+# Increase Limits on Maximum Number of Open Files
+sudo sh -c "echo '* soft     nofile         65535
+* hard     nofile         65535' > /etc/security/limits.d/30-max-number-open-files.conf"
+
 # Enable rc.local service and make sure ZFS dataset are mounted BEFORE everything else
 source enable_rc_local.sh
+
+#################################################
+################### User Level ##################
+#################################################
+# Setup a copy of the tool for user
+cd $homedir
+if [[ ! -d "tools" ]]
+then
+   git clone https://github.com/luckylinux/podman-tools.git tools
+else
+   git pull
+fi
+
+# Ensure propert Permissions
+chown -R $user:$user "tools/"
+
+# Move to the local copy of the tool for the user
+cd tools
+
+# Setup CRON/Systemd to automatically install images updates
+source setup_podman_autoupdate_service.sh
 
 # Setup CRON/Systemd to automatically generate updated Systemd Service files
 source setup_podman_autostart_service.sh
@@ -407,12 +432,5 @@ source setup_podman_autostart_service.sh
 # Setup CRON/Systemd to automatically detect traefik changes and restart traefik to apply them
 source setup_podman_traefik_monitor_service.sh
 
-# Setup CRON/Systemd to automatically install images updates
-source setup_podman_autoupdate_service.sh
-
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
 source setup_tools_autoupdate_service.sh
-
-# Increase Limits on Maximum Number of Open Files
-sudo sh -c "echo '* soft     nofile         65535
-* hard     nofile         65535' > /etc/security/limits.d/30-max-number-open-files.conf"
