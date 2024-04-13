@@ -278,6 +278,9 @@ wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/registries.
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/default-policy.json -O default-policy.json
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/containers.conf -O containers.conf
 
+# Create registries.conf.d directory for registries
+mkdir -p registries.conf.d
+
 # Setup folders and set correct permissions
 chown -R $user:$user /home/$user
 
