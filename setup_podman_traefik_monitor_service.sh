@@ -27,6 +27,9 @@ userhomedir=$( get_homedir "$user" )
 # Get Systemd Config Folder
 systemdconfigfolder=$( get_systemdconfigdir "$user" )
 
+# Make sure that the Traefik Systemd Service has already been set up
+$toolpath/configure_podman_service_autostart.sh "traefik"
+
 # Define service name
 service="monitor-traefik.service"
 
