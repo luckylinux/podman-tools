@@ -285,7 +285,7 @@ mkdir -p registries.conf.d
 chown -R $user:$user /home/$user
 
 # Set
-tee ${homedir}/.bash_profile
+tee ${homedir}/.bash_profile << EOF
 # Include Generic Profile
 source /etc/skel/.bashrc
 
