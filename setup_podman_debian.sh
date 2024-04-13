@@ -313,6 +313,9 @@ sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${desti
 sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${destination}/images\"|g" storage.conf
 sed -Ei "s|^#? ?mount_program = \".*\"|mount_program = \"/usr/bin/fuse-overlayfs\"|g" storage.conf
 
+# Disable "/usr/lib/containers/storage" as additionalimagestores for Debian
+sed -Ei "s|^\"/usr/lib/containers/storage\",\s*?|#\"/usr/lib/containers/storage\",|g" storage.conf
+
 # Change some configuration in containers.conf
 sed -Ei "s|^#? ?volume_path = \".*\"|volume_path = \"${destination}/volumes\"|g" containers.conf
 sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"${destination}/volumes\"|g" containers.conf
