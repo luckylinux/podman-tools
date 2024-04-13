@@ -41,6 +41,7 @@ then
    destination="$systemdconfigdir/$filename"
    cp "systemd/services/$filename" "$destination"
    chmod +x "$destination"
+   chown "$user:$user" "$destination"
    replace_text "$destination" "toolpath" "$toolpath" "user" "$user"
    systemd_reload_enable "$user" "$filename"
 
@@ -49,6 +50,7 @@ then
    destination="$systemdconfigdir/$filename"
    cp "systemd/timers/$filename" "$destination"
    chmod +x "$destination"
+   chown "$user:$user" "$destination"
    replace_text "$destination" "toolpath" "$toolpath" "user" "$user"
    systemd_reload_enable "$user" "$filename"
 else

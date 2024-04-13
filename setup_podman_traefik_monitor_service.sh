@@ -39,7 +39,7 @@ echo "Setup Traefik Monitoring Service for User <$user>"
 # Copy Traefik Monitoring Script to Podman User Folder
 mkdir -p $userhomedir/bin
 cp $toolpath/bin/monitor-traefik.sh $userhomedir/bin/monitor-traefik.sh
-chown -R $user:$user $userhomedir/bin/monitor-traefik.sh
+chown $user:$user $userhomedir/bin/monitor-traefik.sh
 
 # Give Script Execution Permissions
 chmod +x $userhomedir/bin/monitor-traefik.sh
