@@ -30,6 +30,7 @@ destinationdir=$3
 
 # Create Destination Directory if Not Existing Yet
 mkdir -p ${destinationdir}
+chattr -i ${destinationdir}/*
 chown -R $user:$user ${destinationdir}
 
 # Storage.conf File Location
