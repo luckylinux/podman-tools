@@ -150,7 +150,7 @@ do
             rmdir ${destinationpath}
 
             # Check Return Code
-            if [[ "$?" -neq 0 ]]
+            if [[ "$?" -ne 0 ]]
             then
                 echo "FAILED to remove Destination folder <${destinationpath}>. Error code of `rmdir` was $?. Possible NON-EMPTY Directory !"
             fi
