@@ -598,6 +598,28 @@ disable_autostart_container() {
    fi
 }
 
+# List Containers
+list_containers() {
+   # The User is passed as Optional Argument
+   local luser=${1-""}
+   if [[ -z "$luser" ]]
+   then
+      luser=$(whoami)
+   fi
+
+   # List using podman Command
+   echo "================================================================="
+   echo "================ Containers Currently Running ==================="
+   echo "================================================================="
+   generic_cmd "${luser}" "podman" "ps" 
+
+   # List Systemd Services
+   echo "================================================================="
+   echo "=============== Containers Systemd Configuration ================"
+   echo "================================================================="
+   systemd_cmd "${luser}" "list-units" "--type=service | grep \"container-\""
+}
+
 # Stop Container
 stop_container() {
     # The Container Name is passed as an Argument
