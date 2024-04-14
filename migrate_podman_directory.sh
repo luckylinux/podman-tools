@@ -130,19 +130,19 @@ else
 fi
 
 # Make changes to storage.conf
-sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"${storagepath}\"|g" ${configrealpath}/storage.conf
-sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${storagepath}\"|g" ${configrealpath}/storage.conf
+sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"${storagepath}\"|g" "${configrealpath}/storage.conf"
+sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${storagepath}\"|g" "${configrealpath}/storage.conf"
 
 # Using Imagestore gives problems so make sure to Disable it in the Process !
-sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${imagespath}\"|g" ${configrealpath}/storage.conf
+sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${imagespath}\"|g" "${configrealpath}/storage.conf"
 
 # Make changes to registries.conf
 # ...
 
 # Make changes to containers.conf
 # Also fix wrong "volumepath" syntax to the correct "volume_path"
-sed -Ei "s|^#? ?volumepath = \".*\"|volume_path = \"${volumespath}\"|g" ${configrealpath}/storage.conf
-sed -Ei "s|^#? ?volume_path = \".*\"|volume_path = \"${volumespath}\"|g" ${configrealpath}/storage.conf
+sed -Ei "s|^#? ?volumepath = \".*\"|volume_path = \"${volumespath}\"|g" "${configrealpath}/storage.conf"
+sed -Ei "s|^#? ?volume_path = \".*\"|volume_path = \"${volumespath}\"|g" "${configrealpath}/storage.conf"
 
 # Unmount all mountpoints
 zfs umount -a
@@ -200,7 +200,7 @@ do
         chattr +i ${destinationpath}
 
         # Make changes to /etc/fstab
-        sed -Ei "s|${sourcepath}|${destinationpath}|g" /etc/fstab.conf
+        sed -Ei "s|${sourcepath}|${destinationpath}|g" "/etc/fstab"
 done
 
 # Load new FSTAB Configuration
