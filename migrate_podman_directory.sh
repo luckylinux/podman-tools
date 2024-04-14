@@ -46,10 +46,10 @@ relativepath=$(realpath --canonicalize-missing ${sourcedir/$homedir/""})
 currentpath=$(pwd)
 
 # Get homedir
-homedir=$(get_homedir "$user")
+homedir=$(get_homedir "${user}")
 
 # Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "$user")
+systemdconfigdir=$(get_systemdconfigdir "${user}")
 
 # Stop all Running Containers based only on Podman Running Status
 mapfile -t list < <( podman ps --all --format="{{.Names}}" )
@@ -62,22 +62,22 @@ do
    servicename="container-${container}"
 
    # Disable Service Temporarily
-   systemd_disable "$user" "$service"
+   systemd_disable "${user}" "${service}"
 
    # Stop Service
-   systemd_stop "$user" "$service"
+   systemd_stop "${user}" "${service}"
 done
 
 # Stop all Containers based on Podman Compose file Structure
-for filepath in $sourcedir/compose/*
+for filepath in ${sourcedir}/compose/*
 do
    # Container is only the basename
-   container=$(basename $filepath)
+   container=$(basename ${filepath})
 
    echo "Run podman-compose down for <${container}>"
 
    # Change Directory
-   cd $sourcedir/compose/$container
+   cd ${sourcedir}/compose/${container}
 
    # Brind Podman Container down
    podman-compose down
@@ -136,6 +136,25 @@ do
 
         # Make it editable
         chattr -i ${sourcepath}
+
+        # If folder has already been created on destination, attempt to remove it (if empty only !)
+        if [[ -d "${destinationpath}" ]]
+        then
+            # Echo
+            echo "Destination folder <${destinationpath}> already exists. Attempting to remove (only if EMPTY !)"
+
+            # Make it editable
+            chattr -i ${destinationpath}
+
+            # Attempt to Remove it
+            rmdir ${destinationpath}
+
+            # Check Return Code
+            if [[ $? -neq 0 ]]
+            then
+                echo "FAILED to remove Destination folder <${destinationpath}>. Error code of `rmdir` was $?. Possible NON-EMPTY Directory !"
+            fi
+        fi
 
         # Move mountpoint
         mv ${sourcepath} ${destinationpath}
