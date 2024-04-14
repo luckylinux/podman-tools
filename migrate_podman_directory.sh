@@ -105,7 +105,7 @@ do
         sourcepath="${sourcedir}/${lname}"
 
         # Destination Path
-        destionationpath="${destinationdir}/${lname}"
+        destinationpath="${destinationdir}/${lname}"
 
         # If dataset does not exist yet, create it
         if [[ ! -d "${sourcepath}" ]]
