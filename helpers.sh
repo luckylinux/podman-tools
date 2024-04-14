@@ -25,7 +25,7 @@ update_tools() {
 
    # Reload ~/.bash_profile
    homedir=$(get_homedir "${luser}")
-   generic_cmd "${luser}" "source" "${$homedir}/.bash_profile"
+   generic_cmd "${luser}" "source" "${homedir}/.bash_profile"
 
    # Go back to Current Path
    cd $currentpath
