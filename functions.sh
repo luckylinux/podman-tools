@@ -320,6 +320,18 @@ make_immutable_if_exist() {
     fi
 }
 
+# Move if Exist
+move_if_exist() {
+    local origin=$1
+    local destination=$2
+
+    if [ -d "${origin}" ] || [ -f "${origin}" ]
+    then
+       # Move to Destination
+       mv "${origin}" "${destination}"
+    fi
+}
+
 # Remove empty Folder if Exist
 rmdir_if_exist() {
     local target=$1

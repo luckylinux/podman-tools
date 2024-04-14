@@ -213,13 +213,18 @@ make_mutable_if_exist "${sourcedir}/restoretmp"
 make_mutable_if_exist "${destinationdir}/backup"
 make_mutable_if_exist "${destinationdir}/restortmp"
 
-# Remove Destination Directory if Empty
-rmdir_if_exist "${destinationdir}/backup"
-rmdir_if_exist "${destinationdir}/restoretmp"
+# Remove Directories in Source Folder if they still exist
+rmdir_if_exist "${sourcedir}/backup"
+rmdir_if_exist "${sourcedir}/restoretmp"
 
-# Move Directories to Target Folder
-mv "${sourcedir}/backup" "${destinationdir}/"
-mv "${sourcedir}/restoretmp" "${destinationdir}/"
+# Create Destination Directory if not exist already
+mkdir -p "${destinationdir}/backup"
+mkdir -p "${destinationdir}/restoretmp"
+
+
+# Make them Immutable again
+make_immutable_if_exist "${destinationdir}/backup"
+make_immutable_if_exist "${destinationdir}/restoretmp"
 
 # Make changes to /etc/fstab
 sed -Ei "s|${sourcedir}/backup|${destinationdir}/backup|g" "/etc/fstab"
