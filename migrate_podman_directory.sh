@@ -306,14 +306,35 @@ do
         #sed -Ei "s|^(\s*)\-\s*?~/${originrelativepath}/(.*)|      - ~/${originrelativepath}/\2|g" "${composefile}"
         #sed -Ei "s|^(\s*)\-\s*?${originabsolutepath}/(.*)|      - ${originabsolutepath}/\2|g" "${composefile}"
 
-        # Replace Volumes Section
+
+        ### Replace Volumes Section
+
+        # Simple Strings
         sed -Ei "s|^(\s*)\-\s*?~/${originrelativepath}/(.*)$|\1- ~/${destinationrelativepath}/\2|g" "${composefile}"
         sed -Ei "s|^(\s*)\-\s*?${originabsolutepath}/(.*)$|\1- ${destinationabsolutepath}/\2|g" "${composefile}"
 
+        # Within Single Quotes
+        sed -Ei "s|^(\s*)\-\s*?'~/${originrelativepath}/(.*)'(.*?)$|\1- '~/${destinationrelativepath}/\2'\3|g" "${composefile}"
+        sed -Ei "s|^(\s*)\-\s*?'${originabsolutepath}/(.*)'(.*?)$|\1- '${destinationabsolutepath}/\2'\3|g" "${composefile}"
 
-        # Replace Secrets Section
+        # Within Double Quotes
+        sed -Ei "s|^(\s*)\-\s*?\"~/${originrelativepath}/(.*)\"(.*?)$|\1- \"~/${destinationrelativepath}/\2\"\3|g" "${composefile}"
+        sed -Ei "s|^(\s*)\-\s*?\"${originabsolutepath}/(.*)\"(.*?)$|\1- \"${destinationabsolutepath}/\2\"\3|g" "${composefile}"
+
+        #### Replace Secrets Section
+
+        # Simple Strings
         sed -Ei "s|^(\s*)file:\s*?~/${originrelativepath}/(.*)$|\1file: ~/${destinationrelativepath}/\2|g" "${composefile}"
         sed -Ei "s|^(\s*)file:\s*?${originabsolutepath}/(.*)$|\1file: ${destinationabsolutepath}/\2|g" "${composefile}"
+
+        # Within Single Quotes
+        sed -Ei "s|^(\s*)file:\s*?'~/${originrelativepath}/(.*)'(.*?)$|\1file: '~/${destinationrelativepath}/\2'\3|g" "${composefile}"
+        sed -Ei "s|^(\s*)file:\s*?'${originabsolutepath}/(.*)'(.*?)$|\1file: '${destinationabsolutepath}/\2'\3|g" "${composefile}"
+
+        # Within Double Quotes
+        sed -Ei "s|^(\s*)file:\s*?\"~/${originrelativepath}/(.*)\"(.*?)$|\1file: \"~/${destinationrelativepath}/\2\"\3|g" "${composefile}"
+        sed -Ei "s|^(\s*)file:\s*?\"${originabsolutepath}/(.*)\"(.*?)$|\1file: \"${destinationabsolutepath}/\2\"\3|g" "${composefile}"
+
    done
 done
 
