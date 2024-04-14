@@ -251,9 +251,20 @@ mount -a
 # Now All compose.yml files need to be updated
 mapfile -t composefilelist < <( find ${destinationdir}/compose -type f \( -name "compose.yml" -o -name "docker-compose.yml" -o -name "container-compose.yml" \) )
 
+# Also add backup & restoretmp to the list
+mapfile+=("backup")
+mapfile+=("restoretmp")
+
+# Generate Timestamp
+timestamp=$(date +"%Y%m%d-%H%M%S")
+
 # For each Compose File
 for composefile in "${composefilelist[@]}"
 do
+   # Create backup before replacement
+   echo "Create Backup of ${composefile} in ${composefile}.backup.${timestamp}"
+   cp "${composefile}" "${composefile}.backup.${timestamp}"
+
    # For each Dataset
    for dataset in "${datasets[@]}"
    do
@@ -262,29 +273,49 @@ do
 
         # Absolute Path
         originabsolutepath="${sourcedir}/${lname}"
-        destinationabsolutepath="${sourcedir}/${lname}"
+        destinationabsolutepath="${destinationdir}/${lname}"
 
-        # Relative Path compared to Homedir
-        originrelativepath=$(realpath --canonicalize-missing ${originabsolutepath/$homedir/""})
-        destinationrelativepath=$(realpath --canonicalize-missing ${destinationabsolutepath/$homedir/""})
+        # With trailing /
+        originabsolutepathwithtrailingslash="${originabsolutepath}/"
+        destinationabsolutepathwithtrailingslash="${destinationabsolutepath}/"
 
         # Echo
-        echo "Replace ~/${originrelativepath}/(.*):(*.) -> ~/${destinationrelativepath}/(.*):(*.)"
-        echo "Replace ~/${originabsolutepath}/(.*):(*.) -> ~/${destinationabsolutepath}/(.*):(*.)"
+        #echo "Absolute Paths: ${originabsolutepath} -> ${destinationabsolutepath}"
+        #echo "Absolute Paths with Trailing Slash: ${originabsolutepathwithtrailingslash} -> ${destinationabsolutepathwithtrailingslash}"
+        #echo "Homedir: ${homedir}"
+
+        # Relative Path compared to Homedir
+        originrelativepath=$(realpath --canonicalize-missing ${originabsolutepathwithtrailingslash/$homedir/""})
+        destinationrelativepath=$(realpath --canonicalize-missing ${destinationabsolutepathwithtrailingslash/$homedir/""})
+
+        # Strip the additional slash
+        originrelativepath=$(remove_leading_trailing_slashes "$originrelativepath")
+        destinationrelativepath=$(remove_leading_trailing_slashes "$destinationrelativepath")
+
+        #echo "Relative Paths: ${originrelativepath} -> ${destinationrelativepath}"
+
+        # Echo
+        echo "Replace ~/${originrelativepath}/(.*) -> ~/${destinationrelativepath}/(.*)"
+        echo "Replace ${originabsolutepath}/(.*) -> ${destinationabsolutepath}/(.*)"
 
         # We must both support:
         # - ~/<dataset>:SOMETHING
         # - /home/${user}:SOMETHING
 
-        # Replace Volumes Section
+        # Temporary Fix: Fix wrong Indentation due to previous Error in sed expression
+        #sed -Ei "s|^(\s*)\-\s*?~/${originrelativepath}/(.*)|      - ~/${originrelativepath}/\2|g" "${composefile}"
+        #sed -Ei "s|^(\s*)\-\s*?${originabsolutepath}/(.*)|      - ${originabsolutepath}/\2|g" "${composefile}"
 
-        #sed -Ei "s|~/${relativepath}//imagestore = \".*\"|#imagestore = \"${imagespath}\"|g" "${composefile}"
+        # Replace Volumes Section
+        sed -Ei "s|^(\s*)\-\s*?~/${originrelativepath}/(.*)$|\1- ~/${destinationrelativepath}/\2|g" "${composefile}"
+        sed -Ei "s|^(\s*)\-\s*?${originabsolutepath}/(.*)$|\1- ${destinationabsolutepath}/\2|g" "${composefile}"
+
 
         # Replace Secrets Section
-        
+        sed -Ei "s|^(\s*)file:\s*?~/${originrelativepath}/(.*)$|\1file: ~/${destinationrelativepath}/\2|g" "${composefile}"
+        sed -Ei "s|^(\s*)file:\s*?${originabsolutepath}/(.*)$|\1file: ${destinationabsolutepath}/\2|g" "${composefile}"
    done
 done
-
 
 # Reset podman as user
 generic_cmd "$user" "podman" "system" "reset"
