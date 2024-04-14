@@ -45,6 +45,12 @@ configrealpath=$4
 # If UNSET, the LOWERCASE Dataset values will be used (storage, images, volumes, ...)
 pathsforuseinconfigfiles=${5-""}
 
+
+# Make sure that all mountpoints are mounted prior to performing migration
+zfs mount -a
+mount -a
+
+
 # Relative Path compared to Homedir
 relativepath=$(realpath --canonicalize-missing ${sourcedir/$homedir/""})
 
