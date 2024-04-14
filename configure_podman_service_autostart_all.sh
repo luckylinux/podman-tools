@@ -43,38 +43,36 @@ then
       # Echo
       echo "Generate & Enable & Start Systemd Autostart Service for <${container}>"
 
-      # Define where service file would be located
-      servicename="container-${container}"
-      servicepath="$HOME/.config/systemd/user/${servicename}.service"
-
-      if [[ -f "${servicepath}" ]]
-      then
-          # Update Service File if Required
-          podman generate systemd --name $container --new > $servicepath
-
-          # Reload Systemd Configuration
-          systemd_reload "${user}"
-      else
-          # Generate New Service File
-          podman generate systemd --name $container --new > $servicepath
-
-          # Enable & Restart Service
-          systemd_reload "${user}"
-          systemd_enable "${user}" "${servicename}"
-          systemd_restart "${user}" "${servicename}"
-      fi
+      # Enable Autostart Container Service
+      enable_autostart_container "${container}" "${user}"
    done
 else
-    # List Systemd Services
+    # List running Containers
+    mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+
+    for container in "${list[@]}"
+    do
+       # Echo
+       echo "Disable & Stop & Remove Systemd Autostart Service for <${container}>"
+
+       # Disable Autostart Container Service
+       disable_autostart_container "${container}" "${user}"
+    done
+
+    # List (remaing) Systemd Services
     mapfile -t list < <( ls -1 ${systemdconfigdir}/container-* )
 
     # Stop These Services which might be deprecated anyways
     for servicepath in "${list[@]}"
     do
        # Need only the basename
-       service=$(basename ${servicepath})
+       servicefile=$(basename ${servicepath})
 
-       # Echo
+       # Extract Container Name from Service File
+       container=$(get_container)
+
+       # Disable Autostart Container Service
+
        echo "Disable & Stop & Remove Systemd Autostart Service <${service}>"
 
        # Disable Service
@@ -84,7 +82,7 @@ else
        systemd_stop "${user}" "${service}"
 
        # Remove Service
-       rm -f $servicepath
+       rm -f ${servicepath}
 
        # Reload Systemd Daemon
        systemd_reload "${user}"

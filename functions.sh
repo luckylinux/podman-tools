@@ -66,8 +66,7 @@ generic_cmd() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
    local command=$2
-   local action=$3
-   local service=$4
+   local arguments="${@:3}"
 
    executingUser=$(whoami)
 
@@ -76,20 +75,20 @@ generic_cmd() {
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      $command $action $service
+      $command $action $arguments
    else
       if [[ "$executingUser" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l $user -c "$command $action $service"
+          runuser -l $user -c $command $arguments
       elif [[ "$user" == "$executingUser" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          $command --user $action $service
+          $command $arguments
       fi
    fi
 }
@@ -352,12 +351,377 @@ rmdir_if_exist() {
 # Remove leading and/or trailing Slashes ("/")
 remove_leading_trailing_slashes() {
     # Init Variable
-    local sanitized=$1
+    local lsanitized=$1
 
     # Remove leading and trailing Slashes
-    sanitized=${sanitized%/};
-    sanitized=${sanitized#/}
+    lsanitized=${lsanitized%/};
+    lsanitized=${lsanitized#/}
 
     # Echo & Return
-    echo $sanitized
+    echo $lsanitized
 }
+
+# Get Containers Associated with Compose File
+get_containers_from_compose_dir() {
+   # The compose Directory is passed as an Argument
+   local lcomposedir=$1
+
+   # Extract from the File itself:
+   mapfile -t list < <( grep -r -h "container_name:" ${lcomposedir}/compose.yml | sed -E "s|^\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g" )
+
+   # Loop
+   for container in "${list[@]}"
+   do
+       echo $container
+   done
+}
+
+# Get Systemd Service File from Container Name
+get_systemd_file_from_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=$1
+
+    # Define Service File
+    servicefile="container-${lcontainer}.service"
+
+    # Return
+    echo $servicefile
+}
+
+# Get Container Name from Systemd Service File
+get_container_from_systemd_file() {
+    # The Service Name is passed as an Argument
+    local lservice=$1
+
+    # Strip "container-" from string
+    container="$lservice"
+    container=${container/"container-"/"""}
+    container=${container/".service"/"""}
+
+    # Return
+    echo $container
+}
+
+# Get Systemd File
+#get_systemd_file_from_container() {
+#    # The Container Name is passed as an Argument
+#    local lname=$1
+#
+#    # Extract Systemd File from Container
+#    servicefile=$(podman inspect $lname | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
+#
+#    # Return
+#    echo $servicefile
+#}
+
+# Get Container Compose File
+get_compose_dir_from_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=$1
+
+    # Extract compodir from Container
+    composedir=$(podman inspect $lcontainer | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+
+    # Return
+    echo $composedir
+}
+
+# Update Compose
+compose_update() {
+   # Compose Directory is Current Directory
+   local lcomposedir=$(pwd)
+
+   # The User is passed as Optional Argument
+   local luser=${1-""}
+   if [[ -z "$luser" ]]
+   then
+      luser=$(whoami)
+   fi
+
+   # Run compose_down
+   compose_down "${luser}"
+
+   # Run compose_up
+   compose_up "${luser}"
+}
+
+# Compose Down
+compose_down() {
+   # Compose Directory is Current Directory
+   local lcomposedir=$(pwd)
+
+   # The User is passed as Optional Argument
+   local luser=${1-""}
+   if [[ -z "$luser" ]]
+   then
+      luser=$(whoami)
+   fi
+
+   # Get List of Containers Associated with Compose File
+   mapfile -t list_containers < <( get_containers_from_compose_dir )
+
+   # Loop over Containers
+   for container in "${list_containers}"
+   do
+       # Echo
+       echo "Updating Container <${container}>"
+
+       # Stop Container
+       stop_container "${container}" "${luser}"
+   done
+
+   # Run podman-compose down
+   generic_cmd "${luser}" "podman-compose" "down"
+}
+
+# Compose Up
+compose_up() {
+   # Compose Directory is Current Directory
+   local lcomposedir=$(pwd)
+
+   # The User is passed as Optional Argument
+   local luser=${1-""}
+   if [[ -z "$luser" ]]
+   then
+      luser=$(whoami)
+   fi
+
+   # Always run compose_down first to make sure that the don't have some Systemd Service still running or restarting
+   compose_down "${luser}"
+
+   # Run podman-compose up
+   generic_cmd "${luser}" "podman-compose" "up -d"
+
+   # Get List of Containers Associated with Compose File
+   mapfile -t list_containers < <( get_containers_from_compose_dir )
+
+   # Loop over Containers
+   for container in "${list_containers}"
+   do
+       # Echo
+       echo "Updating Container <${container}>"
+
+       # Start Container
+       # No need - Container is already Started from podman-compose up -d
+       #start_container "${container}" "${luser}"
+
+       # Update Systemd Service File
+       enable_autostart_container "${container}" "${luser}"
+   done
+}
+
+
+
+
+# Enable Container Autostart
+enable_autostart_container() {
+   # The Container Name is passed as an Argument
+   local lcontainer=$1
+
+   # The User is passed as Optional Argument
+   local luser=${2-""}
+   if [[ -z "$luser" ]]
+   then
+      luser=$(whoami)
+   fi
+
+   # Get Systemd Configuration Folder
+   systemdfolder=$(get_systemdconfigdir $luser)
+
+   # Define Service File
+   servicefile="container-${container}.service"
+
+   #if [[ -f "${servicepath}" ]]
+   #then
+   #    # Update Service File if Required
+   #    generic_cmd "${luser}" "podman" generate systemd --name $container --new > ${systemdfolder}/$servicefile
+   #
+   #    # Reload Systemd Configuration
+   #    systemd_reload "${user}"
+   #else
+   #    # Generate New Service File
+   #    generic_cmd "${luser}" "podman" generate systemd --name $container --new > ${systemdfolder}/$servicefile
+   #
+   #    # Enable & Restart Service
+   #    systemd_reload "${user}"
+   #    systemd_enable "${user}" "${servicename}"
+   #    systemd_restart "${user}" "${servicename}"
+   #fi
+
+
+   # Generate Service File
+   generic_cmd "${luser}" "podman" generate systemd --name $container --new > ${systemdfolder}/$servicefile
+
+   # Enable & Restart Service
+   systemd_reload "${luser}"
+   systemd_enable "${luser}" "${servicefile}"
+   systemd_restart "${luser}" "${servicefile}"
+}
+
+# Disable Container Autostart
+disable_autostart_container() {
+   # The Container Name is passed as an Argument
+   local lcontainer=$1
+
+   # The User is passed as Optional Argument
+   local luser=${2-""}
+   if [[ -z "$luser" ]]
+   then
+      luser=$(whoami)
+   fi
+
+   # Get Systemd Configuration Folder
+   systemdfolder=$(get_systemdconfigdir $luser)
+
+   # Define Service File
+   servicefile="container-${container}.service"
+
+   # Define Service Path
+   servicepath="${systemdfolder}/${servicefile}"
+
+   if [[ -f "$servicepath" ]]
+   then
+      # Disable & Stop Service
+      systemd_disable "${luser}" "${servicefile}"
+      systemd_stop "${luser}" "${servicefile}"
+      systemd_reload "${luser}"
+
+      # Remove Service File
+      rm -f $systemdfolder/$servicefile
+
+      # Reload Systemd again
+      systemd_reload "${luser}"
+   fi
+}
+
+# Stop Container
+stop_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=$1
+
+    # The User is passed as Optional Argument
+    local luser=${2-""}
+    if [[ -z "$luser" ]]
+    then
+       luser=$(whoami)
+    fi
+
+    # Get Systemd Service File Name
+    servicefile=$(get_systemd_file_from_container "$container")
+
+    if [[ ! -z "$servicefile" ]]
+    then
+       # Stop Systemd Service First of All
+       systemd_stop "${luser}" "${servicefile}"
+    else
+       # Stop using podman command
+       generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
+    fi
+}
+
+# (Re)start Container
+restart_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=$1
+
+    # The User is passed as Optional Argument
+    local luser=${2-""}
+    if [[ -z "$luser" ]]
+    then
+       luser=$(whoami)
+    fi
+
+    # Get Systemd Service File Name
+    servicefile=$(get_systemd_file_from_container "${lcontainer}")
+
+    if [[ ! -z "$servicefile" ]]
+    then
+       # Restart Systemd Service First of All
+       systemd_restart "${luser}" "${servicefile}"
+    else
+       # Restart using podman command
+       generic_cmd "${luser}" "podman" "restart" "${lcontainer}"
+    fi
+}
+
+# Start Container
+start_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=$1
+
+    # The User is passed as Optional Argument
+    local luser=${2-""}
+    if [[ -z "$luser" ]]
+    then
+       luser=$(whoami)
+    fi
+
+    # Get Systemd Service File Name
+    servicefile=$(get_systemd_file_from_container "${lcontainer}")
+
+    if [[ ! -z "$servicefile" ]]
+    then
+       # Stop Systemd Service First of All
+       systemd_stop "${luser}" "${servicefile}"
+    else
+       # Stop using podman command
+       generic_cmd "${luser}" "podman" "restart" "${lcontainer}"
+    fi
+}
+
+# Remove Container
+remove_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=$1
+
+    # The User is passed as Optional Argument
+    local luser=${2-""}
+    if [[ -z "$luser" ]]
+    then
+       luser=$(whoami)
+    fi
+
+    # Get Systemd Service File Name
+    servicefile=$(get_systemd_file_from_container "${lcontainer}")
+
+    # Disable Container Autostart Service
+    disable_autostart_container "${luser}" "${lcontainer}"
+
+    # Stop Container
+    stop_container "${lcontainer}" "${luser}"
+}
+
+# Check if Container Exists
+exists_container() {
+   # The Container Name is passed as an Argument
+   local lquerycontainer=$1
+
+   # Get List of Running/Stopped Containers
+   mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+
+   # Default to false
+   found=0
+
+   # Loop over existing Containers
+   for container in "${list[@]}"
+   do
+      if [[ "${container}" == "${lquerycontainer}" ]]
+      then
+         found=1
+      fi
+   done
+
+   # Return Value
+   #echo $found
+
+   # Check the status of the Variable
+   if [[ ${found} -eq 1 ]]
+   then
+      echo "Container <${lquerycontainer}> exists"
+      exit 0
+   else
+      echo "Container <${lquerycontainer}> does NOT exist"
+      exit 1
+   fi
+}
+
