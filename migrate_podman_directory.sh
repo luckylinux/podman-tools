@@ -31,6 +31,14 @@ chown -R $user:$user ${destinationdir}
 configrealpath=$4
 #configrealpath=${4-"/zdata/PODMAN/CONFIG"} # Contains storage.conf
 
+# Paths for use in config files
+# It's better to avoid using --rbind paths such as /home/podman/containers/storage for graphRoot and similar.
+# Less issues when accessing directly /zdata/PODMAN/*
+# The mountpoints is still available though
+# If SET, the UPPERCASE Dataset values will be used (STORAGE, IMAGES, VOLUMES, ...)
+# If UNSET, the LOWERCASE Dataset values will be used (storage, images, volumes, ...)
+pathsforuseinconfigfiles=${5-""}
+
 # Relative Path compared to Homedir
 relativepath=$(realpath --canonicalize-missing ${sourcedir/$homedir/""})
 
@@ -75,20 +83,32 @@ do
    podman-compose down
 done
 
+# Determine which Paths to use in storage.conf files
+if [[ -z "${pathsforuseinconfigfiles}" ]]
+then
+   storagepath="${destinationdir}/storage"
+   imagespath="${destinationdir}/images"
+   volumespath="${destinationdir}/volumes"
+else
+   storagepath="${pathsforuseinconfigfiles}/STORAGE"
+   imagespath="${pathsforuseinconfigfiles}/IMAGES"
+   volumespath="${pathsforuseinconfigfiles}/VOLUMES"
+fi
+
 # Make changes to storage.conf
-sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"${destinationdir}/storage\"|g" ${configrealpath}/storage.conf
-sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${destinationdir}/storage\"|g" ${configrealpath}/storage.conf
+sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"${storagepath}\"|g" ${configrealpath}/storage.conf
+sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${storagepath}\"|g" ${configrealpath}/storage.conf
 
 # Using Imagestore gives problems so make sure to Disable it in the Process !
-sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${destinationdir}/images\"|g" ${configrealpath}/storage.conf
+sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${imagespath}\"|g" ${configrealpath}/storage.conf
 
 # Make changes to registries.conf
 # ...
 
 # Make changes to containers.conf
 # Also fix wrong "volumepath" syntax to the correct "volume_path"
-sed -Ei "s|^#? ?volumepath = \".*\"|volume_path = \"${destinationdir}/volumes\"|g" ${configrealpath}/storage.conf
-sed -Ei "s|^#? ?volume_path = \".*\"|volume_path = \"${destinationdir}/volumes\"|g" ${configrealpath}/storage.conf
+sed -Ei "s|^#? ?volumepath = \".*\"|volume_path = \"${volumespath}\"|g" ${configrealpath}/storage.conf
+sed -Ei "s|^#? ?volume_path = \".*\"|volume_path = \"${volumespath}\"|g" ${configrealpath}/storage.conf
 
 # Unmount all mountpoints
 zfs umount -a
