@@ -10,6 +10,12 @@ source $toolpath/config.sh
 # Load Functions
 source $toolpath/functions.sh
 
+# Abort if Script is NOT being Executed as Root
+if [ "$EUID" -ne 0 ]
+  then echo "Script MUST be run as root"
+  exit
+fi
+
 # User Name
 user=$1
 #user=${1-"podman"}
@@ -52,14 +58,15 @@ homedir=$(get_homedir "${user}")
 systemdconfigdir=$(get_systemdconfigdir "${user}")
 
 # Stop all Running Containers based only on Podman Running Status
-mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+mapfile -t runninglist < <( podman ps --all --format="{{.Names}}" )
 
-for container in "${list[@]}"
+for container in "${runninglist[@]}"
 do
    echo "Disable & Stop Systemd Autostart Service for <${container}>"
 
    # Define where service file would be located
-   servicename="container-${container}"
+   #service="container-${container}"
+   service=$(podman inspect $container | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
 
    # Disable Service Temporarily
    systemd_disable "${user}" "${service}"
@@ -76,12 +83,32 @@ do
 
    echo "Run podman-compose down for <${container}>"
 
+   # Determine Compose Directory
+   composedir=$(podman inspect $container | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+
    # Change Directory
    cd ${sourcedir}/compose/${container}
 
-   # Brind Podman Container down
-   podman-compose down
+   # Bring Podman Container down
+   generic_cmd "$user" "podman-compose" "down"
+
+   # Another Attempt
+   cd ${composedir}
+   generic_cmd "$user" "podman-compose" "down"
 done
+
+# Stop simply using "podman" command if there are Containers which do NOT have a Systemd Service (yet) and were NOT generated using podman-compose
+mapfile -t remaininglist < <( podman ps --all --format="{{.Names}}" )
+
+for container in "${remaininglist[@]}"
+do
+   echo "Stop Podman Container <${container}> using `podman` Command"
+
+   # Stop Container
+   generic_cmd "${user}" "podman" "stop" "${service}"
+done
+
+
 
 # Determine which Paths to use in storage.conf files
 if [[ -z "${pathsforuseinconfigfiles}" ]]
@@ -172,6 +199,9 @@ done
 # Load new FSTAB Configuration
 systemctl daemon-reload
 
+# Load new FSTAB Configuration as User
+systemd_reload "${user}"
+
 # Remount all mountpoints
 zfs mount -a
 mount -a
@@ -182,6 +212,9 @@ generic_cmd "$user" "podman" "system" "reset"
 # Remove remaining stuff in storage and images
 rm -rf ${sourcedir}/storage/*
 rm -rf ${sourcedir}/images/*
+
+# Regenerate Entries
+systemd_reload "${user}"
 
 # Shoud Reboot
 echo "You should now Reboot !"

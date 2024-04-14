@@ -227,7 +227,6 @@ systemd_start() {
 systemd_reload() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
-   local service=$2
 
    # Run Command using Wrapper
    systemd_cmd "$user" "daemon-reload"
@@ -236,7 +235,6 @@ systemd_reload() {
 systemd_reexec() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local user=$1
-   local service=$2
 
    # Run Command using Wrapper
    systemd_cmd "$user" "daemon-reexec"
