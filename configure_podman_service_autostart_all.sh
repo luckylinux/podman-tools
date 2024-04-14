@@ -40,6 +40,7 @@ then
 
    for container in "${list[@]}"
    do
+      # Echo
       echo "Generate & Enable & Start Systemd Autostart Service for <${container}>"
 
       # Define where service file would be located
@@ -52,15 +53,15 @@ then
           podman generate systemd --name $container --new > $servicepath
 
           # Reload Systemd Configuration
-          systemctl --user daemon-reload
+          systemd_reload "${user}"
       else
           # Generate New Service File
           podman generate systemd --name $container --new > $servicepath
 
           # Enable & Restart Service
-          systemctl --user daemon-reload
-          systemctl --user enable $servicename
-          systemctl --user restart $servicename
+          systemd_reload "${user}"
+          systemd_enable "${user}" "${servicename}"
+          systemd_restart "${user}" "${servicename}"
       fi
    done
 else
@@ -73,10 +74,19 @@ else
        # Need only the basename
        service=$(basename ${servicepath})
 
+       # Echo
+       echo "Disable & Stop & Remove Systemd Autostart Service <${container}>"
+
        # Disable Service
        systemd_disable "${user}" "${service}"
 
        # Stop Service
        systemd_stop "${user}" "${service}"
+
+       # Remove Service
+       rm -f $servicepath
+
+       # Reload Systemd Daemon
+       systemd_reload "${user}"
     done
 fi
