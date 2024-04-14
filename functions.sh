@@ -395,8 +395,8 @@ get_container_from_systemd_file() {
 
     # Strip "container-" from string
     container="$lservice"
-    container=${container/"container-"/"""}
-    container=${container/".service"/"""}
+    container=${container/"container-"/""}
+    container=${container/".service"/""}
 
     # Return
     echo $container
