@@ -52,17 +52,16 @@ zfs mount -a
 mount -a
 
 
-# Relative Path compared to Homedir
-relativepath=$(realpath --canonicalize-missing ${sourcedir/$homedir/""})
-
-# Save current path
-currentpath=$(pwd)
-
 # Get homedir
 homedir=$(get_homedir "${user}")
 
 # Get Systemdconfigdir
 systemdconfigdir=$(get_systemdconfigdir "${user}")
+
+# Save current path
+currentpath=$(pwd)
+
+
 
 # Stop all Running Containers based only on Podman Running Status
 mapfile -t runninglist < <( podman ps --all --format="{{.Names}}" )
@@ -248,6 +247,44 @@ systemd_reload "${user}"
 # Remount all mountpoints
 zfs mount -a
 mount -a
+
+# Now All compose.yml files need to be updated
+mapfile -t composefilelist < <( find ${destinationdir}/compose -type f \( -name "compose.yml" -o -name "docker-compose.yml" -o -name "container-compose.yml" \) )
+
+# For each Compose File
+for composefile in "${composefilelist[@]}"
+do
+   # For each Dataset
+   for dataset in "${datasets[@]}"
+   do
+        # Convert dataset name to lowercase mountpoint
+        lname=${dataset,,}
+
+        # Absolute Path
+        originabsolutepath="${sourcedir}/${lname}"
+        destinationabsolutepath="${sourcedir}/${lname}"
+
+        # Relative Path compared to Homedir
+        originrelativepath=$(realpath --canonicalize-missing ${originabsolutepath/$homedir/""})
+        destinationrelativepath=$(realpath --canonicalize-missing ${destinationabsolutepath/$homedir/""})
+
+        # Echo
+        echo "Replace ~/${originrelativepath}/(.*):(*.) -> ~/${destinationrelativepath}/(.*):(*.)"
+        echo "Replace ~/${originabsolutepath}/(.*):(*.) -> ~/${destinationabsolutepath}/(.*):(*.)"
+
+        # We must both support:
+        # - ~/<dataset>:SOMETHING
+        # - /home/${user}:SOMETHING
+
+        # Replace Volumes Section
+
+        #sed -Ei "s|~/${relativepath}//imagestore = \".*\"|#imagestore = \"${imagespath}\"|g" "${composefile}"
+
+        # Replace Secrets Section
+        
+   done
+done
+
 
 # Reset podman as user
 generic_cmd "$user" "podman" "system" "reset"

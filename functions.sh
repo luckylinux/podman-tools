@@ -348,3 +348,16 @@ rmdir_if_exist() {
        fi
     fi
 }
+
+# Remove leading and/or trailing Slashes ("/")
+remove_leading_trailing_slashes() {
+    # Init Variable
+    local sanitized=$1
+
+    # Remove leading and trailing Slashes
+    sanitized=${sanitized%/};
+    sanitized=${sanitized#/}
+
+    # Echo & Return
+    echo $sanitized
+}
