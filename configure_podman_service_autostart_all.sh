@@ -75,7 +75,7 @@ else
        service=$(basename ${servicepath})
 
        # Echo
-       echo "Disable & Stop & Remove Systemd Autostart Service <${container}>"
+       echo "Disable & Stop & Remove Systemd Autostart Service <${service}>"
 
        # Disable Service
        systemd_disable "${user}" "${service}"
