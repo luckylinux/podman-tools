@@ -130,6 +130,9 @@ do
         sed -Ei "s|${sourcepath}|${destinationpath}|g" /etc/fstab.conf
 done
 
+# Load new FSTAB Configuration
+systemctl daemon-reload
+
 # Remount all mountpoints
 zfs mount -a
 mount -a
