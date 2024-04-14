@@ -193,8 +193,14 @@ do
             fi
         fi
 
-        # Move mountpoint
-        mv ${sourcepath} ${destinationpath}
+        if [[ -d "${sourcepath}" ]]
+        then
+           # Move mountpoint if it still exists on the source
+           mv ${sourcepath} ${destinationpath}
+        else
+           # Create a new Directory from scratch
+           mkdir -p ${destinationpath}
+        fi
 
         # Give User Ownership
         chown -R $user:$user ${destinationpath}
