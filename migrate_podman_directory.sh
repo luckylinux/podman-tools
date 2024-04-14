@@ -181,7 +181,7 @@ do
             chattr -i ${destinationpath}
 
             # Attempt to Remove it
-            rmdir ${destinationpath}
+            rmdir "${destinationpath}"
 
             # Check Return Code
             if [[ "$?" -ne 0 ]]
@@ -197,11 +197,30 @@ do
         chown -R $user:$user ${destinationpath}
 
         # Require that a partition is mounted there again
-        chattr +i ${destinationpath}
+        chattr +i "${destinationpath}"
 
         # Make changes to /etc/fstab
         sed -Ei "s|${sourcepath}|${destinationpath}|g" "/etc/fstab"
 done
+
+# Special Cases: "backup" and "restoretmp" are NOT using Local Storage
+# Make it modifiable
+make_mutable_if_exist "${sourcedir}/backup"
+make_mutable_if_exist "${sourcedir}/restoretmp"
+make_mutable_if_exist "${destinationdir}/backup"
+make_mutable_if_exist "${destinationdir}/restortmp"
+
+# Remove Destination Directory if Empty
+rmdir_if_exist "${destinationdir}/backup"
+rmdir_if_exist "${destinationdir}/restoretmp"
+
+# Move Directories to Target Folder
+mv "${sourcedir}/backup" "${destinationdir}/"
+mv "${sourcedir}/restoretmp" "${destinationdir}/"
+
+# Make changes to /etc/fstab
+sed -Ei "s|${sourcedir}/backup|${destinationdir}/backup|g" "/etc/fstab"
+sed -Ei "s|${sourcedir}/restoretmp|${destinationdir}/restoretmp|g" "/etc/fstab"
 
 # Load new FSTAB Configuration
 systemctl daemon-reload

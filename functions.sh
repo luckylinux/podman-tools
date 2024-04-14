@@ -297,3 +297,42 @@ get_homedir() {
    # Return result
    echo $homedir
 }
+
+# Make Mutable if Exist
+make_mutable_if_exist() {
+    local target=$1
+
+    if [ -d "${target}" ] || [ -f "${target}" ]
+    then
+       # Remove the Immutable Flag
+       chattr -i "${target}"
+    fi
+}
+
+# Make Immutable if Exist
+make_immutable_if_exist() {
+    local target=$1
+
+    if [ -d "${target}" ] || [ -f "${target}" ]
+    then
+       # Add the Immutable Flag
+       chattr +i "${target}"
+    fi
+}
+
+# Remove empty Folder if Exist
+rmdir_if_exist() {
+    local target=$1
+
+    if [ -d "${target}" ]
+    then
+       # Attempt to remove Empty Folder
+       rmdir "${target}"
+
+       # Check Return Code
+       if [[ "$?" -ne 0 ]]
+       then
+          echo "FAILED to remove Folder <${target}>. Error code of `rmdir` was $?. Possible NON-EMPTY Directory ?"
+       fi
+    fi
+}
