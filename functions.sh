@@ -364,7 +364,11 @@ remove_leading_trailing_slashes() {
 # Get Containers Associated with Compose File
 get_containers_from_compose_dir() {
    # The compose Directory is passed as an Argument
-   local lcomposedir=$1
+   local lcomposedir=${1-""}
+   if [[ -z "${lcomposedir}" ]]
+   then
+       lcomposedir=$(pwd)
+   fi
 
    # Extract from the File itself:
    mapfile -t list < <( grep -r -h "container_name:" ${lcomposedir}/compose.yml | sed -E "s|^\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g" )
@@ -458,7 +462,7 @@ compose_down() {
    fi
 
    # Get List of Containers Associated with Compose File
-   mapfile -t list_containers < <( get_containers_from_compose_dir )
+   mapfile -t list_containers < <( get_containers_from_compose_dir "${lcomposedir}" )
 
    # Loop over Containers
    for container in "${list_containers}"
@@ -493,7 +497,7 @@ compose_up() {
    generic_cmd "${luser}" "podman-compose" "up -d"
 
    # Get List of Containers Associated with Compose File
-   mapfile -t list_containers < <( get_containers_from_compose_dir )
+   mapfile -t list_containers < <( get_containers_from_compose_dir "${lcomposedir}" )
 
    # Loop over Containers
    for container in "${list_containers}"
