@@ -61,12 +61,15 @@ do
 done
 
 # Stop all Containers based on Podman Compose file Structure
-for container in $sourcedir/compose/*
+for filepath in $sourcedir/compose/*
 do
+   # Container is only the basename
+   container=$(basename $filepath)
+
    echo "Run podman-compose down for <${container}>"
 
    # Change Directory
-   cd $sourcedir/compose/*
+   cd $sourcedir/compose/$container
 
    # Brind Podman Container down
    podman-compose down
