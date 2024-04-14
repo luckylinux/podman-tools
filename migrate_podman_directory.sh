@@ -227,6 +227,9 @@ rmdir_if_exist "${sourcedir}/restoretmp"
 mkdir -p "${destinationdir}/backup"
 mkdir -p "${destinationdir}/restoretmp"
 
+# Give User Ownership
+chown -R $user:$user "${destinationdir}/backup"
+chown -R $user:$user "${destinationdir}/restoretmp"
 
 # Make them Immutable again
 make_immutable_if_exist "${destinationdir}/backup"
