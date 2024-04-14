@@ -300,6 +300,12 @@ export XDG_CONFIG_HOME="/home/podman/.config"
 #export CONTAINERS_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/containers.conf"
 #export CONTAINERS_STORAGE_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/storage.conf"
 #export CONTAINERS_REGISTRIES_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/registries.conf"
+
+# Load Helper Functions
+if [ -f ~/tools/helpers.sh ]
+then
+   source ~/tools/helpers.sh
+fi
 EOF
 
 # Not needed anymore since now .bash_profile will also load .bashrc (if that file exists)

@@ -625,6 +625,7 @@ list_containers() {
    mapfile -t list < <( ls -1 ${systemdfolder}/container-* )
 
    # Stop These Services which might be deprecated anyways
+   #echo "Name|"
    for servicepath in "${list[@]}"
    do
       # Need only the basename
