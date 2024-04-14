@@ -607,6 +607,9 @@ list_containers() {
       luser=$(whoami)
    fi
 
+   # Get Systemd Configuration Folder
+   systemdfolder=$(get_systemdconfigdir $luser)
+
    # List using podman Command
    echo "================================================================="
    echo "================ Containers Currently Running ==================="
@@ -617,7 +620,25 @@ list_containers() {
    echo "================================================================="
    echo "=============== Containers Systemd Configuration ================"
    echo "================================================================="
-   systemd_cmd "${luser}" "list-units" "--type=service | grep \"container-\""
+
+   # List Systemd Services
+   mapfile -t list < <( ls -1 ${systemdfolder}/container-* )
+
+   # Stop These Services which might be deprecated anyways
+   for servicepath in "${list[@]}"
+   do
+      # Need only the basename
+      servicefile=$(basename ${servicepath})
+
+      # Extract Container Name from Service File
+      container=$(get_container_from_systemd_file "${servicefile}")
+
+      isenabled=$(systemd_cmd "${luser}" "is-enabled" "${servicefile}")
+      isactive=$(systemd_cmd "${luser}" "is-active" "${servicefile}")
+
+      # Disable Autostart Container Service
+      echo "Container <${container}> Configured in <${servicepath}>: Enabled: ${isenabled} / Active: ${isactive}"
+   done
 }
 
 # Stop Container

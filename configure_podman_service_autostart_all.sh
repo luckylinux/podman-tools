@@ -69,7 +69,7 @@ else
        servicefile=$(basename ${servicepath})
 
        # Extract Container Name from Service File
-       container=$(get_container)
+       container=$(get_container_from_systemd_file "${servicefile}")
 
        # Disable Autostart Container Service
 
