@@ -83,26 +83,29 @@ do
 done
 
 # Stop all Containers based on Podman Compose file Structure
-for filepath in ${sourcedir}/compose/*
-do
-   # Container is only the basename
-   container=$(basename ${filepath})
+if [[ -d "${sourcedir}/compose/" ]]
+then
+   for filepath in ${sourcedir}/compose/*
+   do
+      # Container is only the basename
+      container=$(basename ${filepath})
 
-   echo "Run podman-compose down for <${container}>"
+      echo "Run podman-compose down for <${container}>"
 
-   # Determine Compose Directory
-   composedir=$(podman inspect $container | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+      # Determine Compose Directory
+      composedir=$(podman inspect $container | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
 
-   # Change Directory
-   cd ${sourcedir}/compose/${container}
+      # Change Directory
+      cd ${sourcedir}/compose/${container}
 
-   # Bring Podman Container down
-   generic_cmd "$user" "podman-compose" "down"
+      # Bring Podman Container down
+      generic_cmd "$user" "podman-compose" "down"
 
-   # Another Attempt
-   cd ${composedir}
-   generic_cmd "$user" "podman-compose" "down"
-done
+      # Another Attempt
+      cd ${composedir}
+      generic_cmd "$user" "podman-compose" "down"
+   done
+fi
 
 # Stop simply using "podman" command if there are Containers which do NOT have a Systemd Service (yet) and were NOT generated using podman-compose
 mapfile -t remaininglist < <( podman ps --all --format="{{.Names}}" )
@@ -238,6 +241,8 @@ generic_cmd "$user" "podman" "system" "reset"
 # Remove remaining stuff in storage and images
 rm -rf ${sourcedir}/storage/*
 rm -rf ${sourcedir}/images/*
+rm -rf ${destinationdir}/storage/*
+rm -rf ${destinationdir}/images/*
 
 # Regenerate Entries
 systemd_reload "${user}"
