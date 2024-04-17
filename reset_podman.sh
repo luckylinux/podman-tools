@@ -66,3 +66,9 @@ echo "Removing remaining filees/folder. Needs root privileges !"
 #su -c "bash -c \"rm -rf ${basepath}/images/*\""
 #su -c "bash -c \"rm -rf ${basepath}/storage/*\""
 su -c "bash -c \"rm -rf ${homedir}/.local/share/containers/cache/*; rm -rf ${homedir}/.local/share/containers/storage/*; rm -rf ${homedir}/.cache/containers/*; rm -rf ${basepath}/images/*; rm -rf ${basepath}/storage/*\""
+
+# Remove Dangling Network Configuration
+rm -f ${XDG_RUNTIME_DIR}/networks/aardvark-dns/*
+rm -f ${XDG_RUNTIME_DIR}/networks/aardvark.lock
+rm -f ${XDG_RUNTIME_DIR}/networks/ipam.db
+
