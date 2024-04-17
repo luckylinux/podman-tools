@@ -1,5 +1,27 @@
 #!/bin/bash
 
+# Check if Array Contains Element
+array_contains() {
+    local larr=$1
+    local lsearch=$2
+
+    # Initialize Return Status
+    lstatus=0
+
+    # Loop over elements
+    for item in "${larr[@]}"
+    do
+        if [[ "${item}" == "${lsearch}" ]]
+        then
+            # Found it
+            lstatus=1
+        fi
+    done
+
+    # Return Status
+    echo lstatus
+}
+
 # Replace Text in Template
 replace_text() {
     local lfilepath=$1
@@ -54,6 +76,12 @@ get_systemdconfigdir() {
    else
        local userhomedir=$(get_homedir "$user")
        local systemdconfigdir="$userhomedir/.config/systemd/user"
+   fi
+
+   # Make sure to create it if not existing already
+   if [[ ! -d "${systemdconfigdir}" ]]
+   then
+       mkdir -p "${systemdconfigdir}"
    fi
 
    # Return result
@@ -363,20 +391,40 @@ remove_leading_trailing_slashes() {
 
 # Get Containers Associated with Compose File
 get_containers_from_compose_dir() {
+   # The return Array is passed by nameref
+   declare -n lreturnarray="$1"  # Reference to output array
+
    # The compose Directory is passed as an Argument
-   local lcomposedir=${1-""}
+   local lcomposedir=${2-""}
    if [[ -z "${lcomposedir}" ]]
    then
        lcomposedir=$(pwd)
    fi
 
    # Extract from the File itself:
-   mapfile -t list < <( grep -r -h "container_name:" ${lcomposedir}/compose.yml | sed -E "s|^\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g" )
+   #mapfile list < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g" )
+   mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" )
 
-   # Loop
-   for container in "${list[@]}"
+   # Perform line-by-line matching using sed
+   for item in "${llist[@]}"
    do
-       echo $container
+       #echo $item
+
+       # Perfom Cleaning of the Item String
+       cleanitem=$(echo $item | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
+
+       #echo "Clean Item: <$cleanitem>"
+
+       # Check if it's already in Array
+       chk=$(array_contains locallist "${cleanitem}")
+
+       lreturnarray+=("${cleanitem}")
+
+       # If Status is 0 then add to return array
+       #if [[ $chk -eq 0 ]]
+       #then
+       #    lreturnarray+=("${cleanitem}")
+       #fi
    done
 }
 
@@ -461,11 +509,14 @@ compose_down() {
       luser=$(whoami)
    fi
 
-   # Get List of Containers Associated with Compose File
-   mapfile -t list_containers < <( get_containers_from_compose_dir "${lcomposedir}" )
+   # Declare list_containers as a (global) array that we will pass to get_containers_from_compose_dir by reference
+   declare -a list_containers
+
+   # Get List of Containers Associated with Compose File by passing list_containers by reference
+   get_containers_from_compose_dir list_containers "${lcomposedir}"
 
    # Loop over Containers
-   for container in "${list_containers}"
+   for container in "${list_containers[@]}"
    do
        # Echo
        echo "Updating Container <${container}>"
@@ -496,11 +547,14 @@ compose_up() {
    # Run podman-compose up
    generic_cmd "${luser}" "podman-compose" "up -d"
 
-   # Get List of Containers Associated with Compose File
-   mapfile -t list_containers < <( get_containers_from_compose_dir "${lcomposedir}" )
+   # Declare list_containers as a (global) array that we will pass to get_containers_from_compose_dir by reference
+   declare -a list_containers
+
+   # Get List of Containers Associated with Compose File by passing list_containers by reference
+   get_containers_from_compose_dir list_containers "${lcomposedir}"
 
    # Loop over Containers
-   for container in "${list_containers}"
+   for container in "${list_containers[@]}"
    do
        # Echo
        echo "Updating Container <${container}>"
@@ -530,7 +584,7 @@ enable_autostart_container() {
    fi
 
    # Get Systemd Configuration Folder
-   systemdfolder=$(get_systemdconfigdir $luser)
+   systemdfolder=$(get_systemdconfigdir "${luser}")
 
    # Define Service File
    servicefile="container-${container}.service"
@@ -554,7 +608,7 @@ enable_autostart_container() {
 
 
    # Generate Service File
-   generic_cmd "${luser}" "podman" generate systemd --name $container --new > ${systemdfolder}/$servicefile
+   generic_cmd "${luser}" "podman" generate systemd --name "${container}" --new > "${systemdfolder}/${servicefile}"
 
    # Enable & Restart Service
    systemd_reload "${luser}"
@@ -591,7 +645,7 @@ disable_autostart_container() {
       systemd_reload "${luser}"
 
       # Remove Service File
-      rm -f $systemdfolder/$servicefile
+      rm -f "${systemdfolder}/${servicefile}"
 
       # Reload Systemd again
       systemd_reload "${luser}"
