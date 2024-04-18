@@ -33,6 +33,27 @@ umount_if_mounted() {
     fi
 }
 
+# Set ZFS Property
+set_zfs_property() {
+   # Target (ZFS Dataset or ZFS ZVOL) is the First Argument of the Function
+   local ltarget="$1"
+
+   # Property Name is the Second Argument of the Function
+   local lpropertyname="$2"
+
+   # Property Value is the Third Argument of the Function
+   local lpropertyvalue="$3"
+
+   if [[ "${lpropertyvalue}" == "${zfsdefault}" ]]
+   then
+      # Inherit Property from Parent Dataset or use ZFS Defaults if Parent does NOT have the Property set by the User to a Custom Value
+      zfs inherit -S ${lpropertyname} ${ltarget}
+   else
+      # Set Property
+      zfs set ${lpropertyname}=${lpropertyvalue} ${ltarget}
+   fi
+}
+
 # Generate next subuid
 #generate_next_subuid()
 
@@ -133,6 +154,9 @@ chown -R $user:$user /home/${user}/.config/containers
 # Chattr .config/containers directory
 chattr +i /home/${user}/.config/containers
 
+# Initialize Counter
+counter=0
+
 # Create Datasets
 for dataset in "${datasets[@]}"
 do
@@ -142,6 +166,12 @@ do
         # Get name
         name="${storage}/${dataset}"
 
+        # Get compression value
+        compression="${compressions[$counter]}"
+
+        # Get recordsize value
+        recordsize="${recordsizes[$counter]}"
+
 	# Create storage for image directory
 	mkdir -p ${destination}/${lname}/
 	umount_if_mounted ${destination}/${lname}/
@@ -150,14 +180,20 @@ do
 
 	if [ "$mode" == "zfs"  ]
 	then
-	     # Ensure that mountpoint cannot contain files UNLESS dataset is mounted (user folder)
+	     # Ensure that Mountpoint cannot contain Files UNLESS Dataset is mounted (user Folder)
              chattr +i ${destination}/${lname}/
 
-	     # Ensure that mountpoint cannot contain files UNLESS dataset is mounted (pool folder)
+	     # Ensure that Mountpoint cannot contain Files UNLESS Dataset is mounted (pool Folder)
              chattr +i "/${name}"
 
-	     # Create dataset
-	     zfs create -o compression=lz4 ${name}
+	     # Create Dataset
+             zfs create ${name}
+
+             # Set Compression Property
+             set_zfs_property "${name}" "compression" "${compression}"
+
+             # Set Recordsize Property
+             set_zfs_property "${name}" "recordsize" "${recordsize}"
 
 	     # Add FSTAB entry
 	     echo "/${name} ${destination}/${lname} none defaults,rbind 0 0" >> /etc/fstab
@@ -173,10 +209,16 @@ do
              chattr +i ${destination}/${lname}/
 
 	     # Get ZVOL size
-             zsize="${zsizes[$counter]}"
+             zsize="${sizes[$counter]}"
 
 	     # Create ZVOL
 	     zfs create -s -V ${zsize} ${name}
+
+             # Set Compression Property
+             set_zfs_property "${name}" "compression" "${compression}"
+
+             # Set VolBlocksize Property
+             set_zfs_property "${name}" "volblocksize" "${volblocksize}"
 
 	     # Create EXT4 Filesystem
              mkfs.ext4 /dev/zvol/${name}
