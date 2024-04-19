@@ -16,7 +16,7 @@ mapfile -t list < <( ls -1 "${newbasefolder}" )
 lookfor=""
 for item in "${list[@]}"
 do
-   lookfor="${lookfor}${oldbasefolder}${item}|"
+   lookfor="${lookfor}${oldprefix}${item}|"
 done
 
 # Remove last |
