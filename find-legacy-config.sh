@@ -20,7 +20,7 @@ do
 done
 
 # Remove last |
-lookfor=$(echo "$lookfor" | sed -E 's:\|*$::' )
+lookfor=$(echo "${lookfor}" | sed -E 's:\|*$::' )
 
 # Run Command
 mapfile -t files < <( grep -l -r -E "${lookfor}" "${newbasefolder}/compose" )

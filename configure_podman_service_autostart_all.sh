@@ -2,20 +2,20 @@
 
 # Determine toolpath if not set already
 relativepath="./" # Define relative path to go from this script to the root level of the tool
-if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
+if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing ${scriptpath}/${relativepath}); fi
 
 # Load Configuration
-source $toolpath/config.sh
+source ${toolpath}/config.sh
 
 # Load Functions
-source $toolpath/functions.sh
+source ${toolpath}/functions.sh
 
 # Setting
 setting=${1-"enable"}
 
 # User
 user=${2-""}
-if [[ -z "$user" ]]
+if [[ -z "${user}" ]]
 then
    user=$(whoami)
 fi
@@ -27,13 +27,13 @@ homedir=$(get_homedir "${user}")
 systemdconfigdir=$(get_systemdconfigdir "${user}")
 
 # Validation
-if [ "$setting" != "enable" ] && [ "$setting" != "disable" ]
+if [ "${setting}" != "enable" ] && [ "${setting}" != "disable" ]
 then
    echo "Setting must be one of the following: <enable> or <disable>. Aborting."
    exit 9
 fi
 
-if [ "$setting" == "enable" ]
+if [ "${setting}" == "enable" ]
 then
    # List running Containers
    mapfile -t list < <( podman ps --all --format="{{.Names}}" )

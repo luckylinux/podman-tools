@@ -35,7 +35,7 @@ do
    fi
 
    # Add some Separator Text
-   #add_section "Processing File ${scriptfile}"
+   add_section "#" "1" "Processing File ${scriptfile}"
 
    # Dry Run
    cat "${scriptfile}" | sed -E 's|\$([a-zA-Z0-9]+)|\${\1\}|g' > "${testfolder}/${scriptfile}"
@@ -44,5 +44,8 @@ do
    check_script "${testfolder}/${scriptfile}"
 
    # Perform Replacement for Real
-   #sed -Ei 's|\$([a-zA-Z0-9]+)|\$\{\1\}|g' "${scriptfile}"
+   sed -Ei 's|\$([a-zA-Z0-9]+)|\$\{\1\}|g' "${toolpath}/${scriptfile}"
+
+   # Echo
+   echo -e "\n\n"
 done

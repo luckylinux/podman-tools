@@ -21,17 +21,17 @@ do
 
    for container in "${list[@]}"
    do
-       if [[ "$container" == "traefik" ]]
+       if [[ "${container}" == "traefik" ]]
        then
            # Echo
-           #echo "Skipping container <$container>"
+           #echo "Skipping container <${container}>"
            skip=1
        else
            # Echo
-           #echo "Processing container <$container>"
+           #echo "Processing container <${container}>"
 
            # Get past epoch Time in which the container was started (constant value)
-           container_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=^$container\$)
+           container_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=^${container}\$)
            #started=${container_startedat}
 
            # Get container running duration
@@ -41,7 +41,7 @@ do
            #echo "if [[ ${traefik_startedat} -lt ${container_startedat} ]]"
            if [[ ${traefik_startedat} -lt ${container_startedat} ]]
            then
-              echo "Container $container was started AFTER traefik Proxy Server. Restarting Traefik Necessary"
+              echo "Container ${container} was started AFTER traefik Proxy Server. Restarting Traefik Necessary"
               traefik_restart=1
            fi
 

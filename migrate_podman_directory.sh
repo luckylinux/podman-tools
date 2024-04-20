@@ -2,40 +2,40 @@
 
 # Determine toolpath if not set already
 relativepath="./" # Define relative path to go from this script to the root level of the tool
-if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
+if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing ${scriptpath}/${relativepath}); fi
 
 # Load Configuration
-source $toolpath/config.sh
+source ${toolpath}/config.sh
 
 # Load Functions
-source $toolpath/functions.sh
+source ${toolpath}/functions.sh
 
 # Abort if Script is NOT being Executed as Root
-if [ "$EUID" -ne 0 ]
+if [ "${EUID}" -ne 0 ]
   then echo "Script MUST be run as root"
   exit
 fi
 
 # User Name
-user=$1
+user=${1}
 #user=${1-"podman"}
 
 # Source Directory
-sourcedir=$2
+sourcedir=${2}
 #sourcedir=${2-"/home/podman"}
 
 # Destination Directory
-destinationdir=$3
+destinationdir=${3}
 #destinationdir=${3-"/home/podman/containers"}
 
 # Create Destination Directory if Not Existing Yet
 mkdir -p ${destinationdir}
 chattr -i ${destinationdir}/*
-chown -R $user:$user ${destinationdir}
+chown -R ${user}:${user} ${destinationdir}
 
 # Storage.conf File Location
 # MUST still be available after all things have been unmounted
-configrealpath=$4
+configrealpath=${4}
 #configrealpath=${4-"/zdata/PODMAN/CONFIG"} # Contains storage.conf
 
 # Paths for use in config files
@@ -72,7 +72,7 @@ do
 
    # Define where service file would be located
    #service="container-${container}"
-   service=$(podman inspect $container | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
+   service=$(podman inspect ${container} | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
 
    # Disable Service Temporarily
    systemd_disable "${user}" "${service}"
@@ -92,17 +92,17 @@ then
       echo "Run podman-compose down for <${container}>"
 
       # Determine Compose Directory
-      composedir=$(podman inspect $container | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+      composedir=$(podman inspect ${container} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
 
       # Change Directory
       cd ${sourcedir}/compose/${container} || exit
 
       # Bring Podman Container down
-      generic_cmd "$user" "podman-compose" "down"
+      generic_cmd "${user}" "podman-compose" "down"
 
       # Another Attempt
       cd ${composedir} || exit
-      generic_cmd "$user" "podman-compose" "down"
+      generic_cmd "${user}" "podman-compose" "down"
    done
 fi
 
@@ -167,7 +167,7 @@ do
         if [[ ! -d "${sourcepath}" ]]
         then
            mkdir -p "${sourcepath}"
-           chown -R $user:$user $sourcedir/${lname}
+           chown -R ${user}:${user} ${sourcedir}/${lname}
         fi
 
         # Make it editable
@@ -202,7 +202,7 @@ do
         fi
 
         # Give User Ownership
-        chown -R $user:$user ${destinationpath}
+        chown -R ${user}:${user} ${destinationpath}
 
         # Require that a partition is mounted there again
         chattr +i "${destinationpath}"
@@ -227,8 +227,8 @@ mkdir -p "${destinationdir}/backup"
 mkdir -p "${destinationdir}/restoretmp"
 
 # Give User Ownership
-chown -R $user:$user "${destinationdir}/backup"
-chown -R $user:$user "${destinationdir}/restoretmp"
+chown -R ${user}:${user} "${destinationdir}/backup"
+chown -R ${user}:${user} "${destinationdir}/restoretmp"
 
 # Make them Immutable again
 make_immutable_if_exist "${destinationdir}/backup"
@@ -285,12 +285,12 @@ do
         #echo "Homedir: ${homedir}"
 
         # Relative Path compared to Homedir
-        originrelativepath=$(realpath --canonicalize-missing ${originabsolutepathwithtrailingslash/$homedir/""})
-        destinationrelativepath=$(realpath --canonicalize-missing ${destinationabsolutepathwithtrailingslash/$homedir/""})
+        originrelativepath=$(realpath --canonicalize-missing ${originabsolutepathwithtrailingslash/${homedir}/""})
+        destinationrelativepath=$(realpath --canonicalize-missing ${destinationabsolutepathwithtrailingslash/${homedir}/""})
 
         # Strip the additional slash
-        originrelativepath=$(remove_leading_trailing_slashes "$originrelativepath")
-        destinationrelativepath=$(remove_leading_trailing_slashes "$destinationrelativepath")
+        originrelativepath=$(remove_leading_trailing_slashes "${originrelativepath}")
+        destinationrelativepath=$(remove_leading_trailing_slashes "${destinationrelativepath}")
 
         #echo "Relative Paths: ${originrelativepath} -> ${destinationrelativepath}"
 
@@ -339,7 +339,7 @@ do
 done
 
 # Reset podman as user
-generic_cmd "$user" "podman" "system" "reset"
+generic_cmd "${user}" "podman" "system" "reset"
 
 # Remove remaining stuff in storage and images
 rm -rf ${sourcedir}/storage/*

@@ -2,24 +2,24 @@
 
 # Determine toolpath if not set already
 relativepath="./" # Define relative path to go from this script to the root level of the tool
-if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
+if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing ${scriptpath}/${relativepath}); fi
 
 # Load Configuration
-source $toolpath/config.sh
+source ${toolpath}/config.sh
 
 # Load Functions
-source $toolpath/functions.sh
+source ${toolpath}/functions.sh
 
 # User Name
-user=$1
+user=${1}
 #user=${1-"podman"}
 
 # Base Directory
-basedir=$2
+basedir=${2}
 #basedir=${2-"/home/podman"}
 
 # Set Value ("always" / "missing")
-pullpolicy=$3
+pullpolicy=${3}
 #pullpolicy=${3-"missing"}
 
 # Check if pull_policy is valid
@@ -33,37 +33,37 @@ fi
 currentpath=$(pwd)
 
 # Get homedir
-homedir=$(get_homedir "$user")
+homedir=$(get_homedir "${user}")
 
 # Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "$user")
+systemdconfigdir=$(get_systemdconfigdir "${user}")
 
 # Modify all Containers based on Podman Compose file Structure
-for containerpath in $basedir/compose/*
+for containerpath in ${basedir}/compose/*
 do
    # If it's a directory
    if [[ -d "${containerpath}" ]]
    then
 
        # Get only container name
-       container=$(basename $containerpath)
+       container=$(basename ${containerpath})
 
        echo "Reconfigure Pull policy to <${pullpolicy}> for <${container}>"
 
        # Change Directory
-       cd $basedir/compose/$container || exit
+       cd ${basedir}/compose/${container} || exit
 
        if [[ -f "compose.yml" ]]
        then
            # Replace pull_policy string
-           echo "Replace pull_policy in <$basedir/compose/$container/compose.yml>"
+           echo "Replace pull_policy in <${basedir}/compose/${container}/compose.yml>"
 
            #sed -Ei "s|^#(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml         # This pull_policy is anyways DISABLED so no need to replace it
            sed -Ei "s|^(\s*)pull_policy\s*?=\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml           # Fix error in previos versions (= -> :) 
            sed -Ei "s|^(\s*)pull_policy\s*?:\s*?\".*\"(.*)$|\1pull_policy: \"${pullpolicy}\"\2|g" compose.yml           # This pull_policy is ENABLED so it MUST be replaced
        else
            # File does not exist
-           echo "File <$basedir/compose/$container/compose.yml>. No replacement performed."
+           echo "File <${basedir}/compose/${container}/compose.yml>. No replacement performed."
        fi
 
        # Brind Podman Container down
@@ -78,23 +78,23 @@ mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 for container in "${list[@]}"
 do
    # Get compose file location from Container Properties
-   composedir=$(podman inspect $container | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+   composedir=$(podman inspect ${container} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
 
    # Get systemd service name
-   service=$(podman inspect $container | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
+   service=$(podman inspect ${container} | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
 
    echo -e "Run podman-compose down & podman-compose up -d <${container}> which is currently running"
    echo -e "\t Compose Directory: ${composedir}"
    echo -e "\t Systemd Service: ${service}"
 
    # Disable Service Temporarily
-   systemd_disable "$user" "$service"
+   systemd_disable "${user}" "${service}"
 
    # Stop Service
-   systemd_stop "$user" "$service"
+   systemd_stop "${user}" "${service}"
 
    # Change Directory
-   cd $composedir || exit
+   cd ${composedir} || exit
 
    # Bring Container Down
    podman-compose down
@@ -106,11 +106,11 @@ do
    podman-compose up -d
 
    # Re-enable Service
-   systemd_enable "$user" "$service"
+   systemd_enable "${user}" "${service}"
 
    # Restart Service
-   systemd_restart "$user" "$service"
+   systemd_restart "${user}" "${service}"
 done
 
 # Re-enable all containers
-#source $toolpath/configure_podman_service_autostart_all.sh
+#source ${toolpath}/configure_podman_service_autostart_all.sh

@@ -2,7 +2,7 @@
 
 # Determine toolpath if not set already
 relativepath="./" # Define relative path to go from this script to the root level of the tool
-if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
+if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing ${scriptpath}/${relativepath}); fi
 
 # Include Functions
 source "${toolpath}/functions.sh"
@@ -41,7 +41,7 @@ check_all() {
    local lsearchpath=${1-"${toolpath}"}
 
    ## Get list of Script Files
-   mapfile -t scriptfiles < <( find "${lsearchpath}" -iname "*.sh" | grep -v "$(basename $0)" )
+   mapfile -t scriptfiles < <( find "${lsearchpath}" -iname "*.sh" | grep -v "$(basename ${0})" )
 
    # Check each File
    for scriptfile in "${scriptfiles[@]}"

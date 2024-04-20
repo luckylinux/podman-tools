@@ -6,10 +6,10 @@ read -s -p "Enter Password: " password
 
 echo -e "\n"
 
-htpasswd -bnBC 10 $username $password
+htpasswd -bnBC 10 ${username} ${password}
 
 echo -e "\n"
 
-htpasswd -bnBC 10 "" $password | tr -d ':\n'
+htpasswd -bnBC 10 "" ${password} | tr -d ':\n'
 
 echo -e "\n"

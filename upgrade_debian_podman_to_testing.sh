@@ -4,7 +4,7 @@
 list="podman-compose podman conmon crun runc golang-github-containers-common containers-storage aardvark-dns buildah fuse-overlayfs fuse3 libfuse3-3 passt containernetworking-plugins"
 
 # Remove packages
-apt-get remove $list
+apt-get remove ${list}
 
 # Setup debian-testing reposistories
 tee /etc/apt/sources.list.d/debian-testing.list << EOF
@@ -42,7 +42,7 @@ EOF
 apt-get update
 
 # Reinstall packages
-apt-get install $list
+apt-get install ${list}
 
 # Perform dist-upgrade
 apt-get dist-upgrade

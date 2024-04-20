@@ -5,17 +5,17 @@
 #  local ltest1="${@:2}"
 #  local ltest2="${*:2}"
 #
-#  echo $ltest1
-#  echo $ltest2
+#  echo ${ltest1}
+#  echo ${ltest2}
 #}
 
 # Repeat Character N times
 repeat_character() {
    # Character to repeat
-   local lcharacter=$1
+   local lcharacter=${1}
 
    # Number of Repetitions
-   local lrepetitions=$2
+   local lrepetitions=${2}
 
    # Print using Brace Expansion
    #for i in {1 ... ${lrepetitions}}
@@ -83,7 +83,7 @@ add_description() {
    local llengthseparator=$((lwidth - llengthdescription))
 
    # Divide by two
-   local llengtheachseparator=$(echo "$llengthseparator / ( 2 )" | bc -l)
+   local llengtheachseparator=$(echo "${llengthseparator} / ( 2 )" | bc -l)
 
    # Remainer
    local lremainer=$((llengthseparator % 2))
@@ -98,8 +98,8 @@ add_description() {
 
 # Check if Array Contains Element
 array_contains() {
-    local larr=$1
-    local lsearch=$2
+    local larr=${1}
+    local lsearch=${2}
 
     # Initialize Return Status
     lstatus=0
@@ -120,58 +120,58 @@ array_contains() {
 
 # Replace Text in Template
 replace_text() {
-    local lfilepath=$1
+    local lfilepath=${1}
     local nargin=$#
-    local nparameters=$(($(($nargin-1)) / 2))
+    local nparameters=$(($((${nargin}-1)) / 2))
     local ARGV=("$@")
 
     #Debug
-    #echo "Passed $nargin arguments and $nparameters parameter"
+    #echo "Passed ${nargin} arguments and ${nparameters} parameter"
 
-    for ((p=1;p<=$nparameters;p++))
+    for ((p=1;p<=${nparameters};p++))
     do
         local iname=$((2*p-1))
-        local ivalue=$(($iname+1))
-        local name=${ARGV[$iname]}
-        local value=${ARGV[$ivalue]}
+        local ivalue=$((${iname}+1))
+        local name=${ARGV[${iname}]}
+        local value=${ARGV[${ivalue}]}
 
         # Debug
-        #echo "Replace {{$name}} -> ${value} in $lfilepath"
+        #echo "Replace {{${name}}} -> ${value} in ${lfilepath}"
 
         # Execute Replacement
-        sed -Ei "s|\{\{$name\}\}|$value|g" "$lfilepath"
+        sed -Ei "s|\{\{${name}\}\}|${value}|g" "${lfilepath}"
     done
 }
 
 # Schedule Mode is NOT Supported
 schedule_mode_not_supported() {
-   local schedulemode=$1
-   echo "Scheduling Mode <$schedulemode> is NOT supported. Possible choices are <cron> or <systemd>. Aborting !"
+   local schedulemode=${1}
+   echo "Scheduling Mode <${schedulemode}> is NOT supported. Possible choices are <cron> or <systemd>. Aborting !"
    exit 2
 }
 
 # Get Homedir
 get_homedir() {
-   local user=$1
+   local user=${1}
 
    # Get homedir
-   local homedir=$(getent passwd "$user" | cut -d: -f6)
+   local homedir=$(getent passwd "${user}" | cut -d: -f6)
 
    # Return result
-   echo $homedir
+   echo ${homedir}
 }
 
 # Get Systemdconfig
 get_systemdconfigdir() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
+   local user=${1}
 
-   if [[ "$user" == "root" ]]
+   if [[ "${user}" == "root" ]]
    then
        local systemdconfigdir="/etc/systemd/system"
    else
-       local userhomedir=$(get_homedir "$user")
-       local systemdconfigdir="$userhomedir/.config/systemd/user"
+       local userhomedir=$(get_homedir "${user}")
+       local systemdconfigdir="${userhomedir}/.config/systemd/user"
    fi
 
    # Make sure to create it if not existing already
@@ -181,38 +181,38 @@ get_systemdconfigdir() {
    fi
 
    # Return result
-   echo $systemdconfigdir
+   echo ${systemdconfigdir}
 }
 
 
 # Execute Systemd Command
 generic_cmd() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local command=$2
+   local user=${1}
+   local command=${2}
    local arguments="${@:3}"
 
    executingUser=$(whoami)
 
-   if [[ "$user" == "root" ]]
+   if [[ "${user}" == "root" ]]
    then
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      $command $action $arguments
+      ${command} ${action} ${arguments}
    else
-      if [[ "$executingUser" == "root" ]]
+      if [[ "${executingUser}" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l $user -c $command $arguments
-      elif [[ "$user" == "$executingUser" ]]
+          runuser -l ${user} -c ${command} ${arguments}
+      elif [[ "${user}" == "${executingUser}" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          $command $arguments
+          ${command} ${arguments}
       fi
    fi
 }
@@ -220,34 +220,34 @@ generic_cmd() {
 # Execute Systemd Command
 systemd_cmd() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local action=$2
-   local service=$3
+   local user=${1}
+   local action=${2}
+   local service=${3}
 
    executingUser=$(whoami)
 
    # Debug
-   #echo "Execute systemd command targeting user <$user> with action <$action> for service <$service>"
+   #echo "Execute systemd command targeting user <${user}> with action <${action}> for service <${service}>"
 
-   if [[ "$user" == "root" ]]
+   if [[ "${user}" == "root" ]]
    then
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      systemctl $action $service
+      systemctl ${action} ${service}
    else
-      if [[ "$executingUser" == "root" ]]
+      if [[ "${executingUser}" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l "$user" -c "systemctl --user $action $service"
-      elif [[ "$user" == "$executingUser" ]]
+          runuser -l "${user}" -c "systemctl --user ${action} ${service}"
+      elif [[ "${user}" == "${executingUser}" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          systemctl --user $action $service
+          systemctl --user ${action} ${service}
       fi
    fi
 }
@@ -256,34 +256,34 @@ systemd_cmd() {
 # Execute Systemd Command
 journald_cmd() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local action=$2
-   local service=$3
+   local user=${1}
+   local action=${2}
+   local service=${3}
 
    executingUser=$(whoami)
 
    # Debug
-   #echo "Execute journald command targeting user <$user> with action <$action> for service <$service>"
+   #echo "Execute journald command targeting user <${user}> with action <${action}> for service <${service}>"
 
-   if [[ "$user" == "root" ]]
+   if [[ "${user}" == "root" ]]
    then
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      journalctl "$action" "$service"
+      journalctl "${action}" "${service}"
    else
-      if [[ "$executingUser" == "root" ]]
+      if [[ "${executingUser}" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l $user -c "journalctl --user \"$action\" \"$service\""
-      elif [[ "$user" == "$executingUser" ]]
+          runuser -l ${user} -c "journalctl --user \"${action}\" \"${service}\""
+      elif [[ "${user}" == "${executingUser}" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          journalctl --user "$action" "$service"
+          journalctl --user "${action}" "${service}"
       fi
    fi
 }
@@ -292,106 +292,106 @@ journald_cmd() {
 # Enable service(s)
 systemd_enable() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local user=${1}
+   local service=${2}
 
    # Run Command using Wrapper
-   systemd_cmd "$user" "enable" "$service"
+   systemd_cmd "${user}" "enable" "${service}"
 }
 
 # Disable service(s)
 systemd_disable() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local user=${1}
+   local service=${2}
 
    # Run Command using Wrapper
-   systemd_cmd "$user" "disable" "$service"
+   systemd_cmd "${user}" "disable" "${service}"
 }
 
 # Status of service(s)
 systemd_status() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local user=${1}
+   local service=${2}
 
    # Run Command using Wrapper
-   systemd_cmd "$user" "status" "$service"
+   systemd_cmd "${user}" "status" "${service}"
 }
 
 systemd_restart() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local user=${1}
+   local service=${2}
 
    # Run Command using Wrapper
-   systemd_cmd "$user" "restart" "$service"
+   systemd_cmd "${user}" "restart" "${service}"
 }
 
 systemd_stop() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local user=${1}
+   local service=${2}
 
    # Run Command using Wrapper
-   systemd_cmd "$user" "stop" "$service"
+   systemd_cmd "${user}" "stop" "${service}"
 }
 
 systemd_start() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local user=${1}
+   local service=${2}
 
    # Run Command using Wrapper
-   systemd_cmd "$user" "start" "$service"
+   systemd_cmd "${user}" "start" "${service}"
 }
 
 
 systemd_reload() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
+   local user=${1}
 
    # Run Command using Wrapper
-   systemd_cmd "$user" "daemon-reload"
+   systemd_cmd "${user}" "daemon-reload"
 }
 
 systemd_reexec() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
+   local user=${1}
 
    # Run Command using Wrapper
-   systemd_cmd "$user" "daemon-reexec"
+   systemd_cmd "${user}" "daemon-reexec"
 }
 
 journald_log() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local user=${1}
+   local service=${2}
 
    #  Run Command using Wrapper
-   journald_cmd "$user" "-xeu" "$service"
+   journald_cmd "${user}" "-xeu" "${service}"
 }
 
 # Shortcut to Systemd daemon-reload + enable + restart service
 systemd_reload_enable() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local user=${1}
+   local service=${2}
 
    # Reload Systemd Service Files
-   systemd_reload "$user" "$service"
+   systemd_reload "${user}" "${service}"
 
    # Enable the Service to start automatically at each boot
-   systemd_enable "$user" "$service"
+   systemd_enable "${user}" "${service}"
 
    # Start the Service
-   systemd_restart "$user" "$service"
+   systemd_restart "${user}" "${service}"
 
    # Verify the Status is OK
-   systemd_status "$user" "$service"
+   systemd_status "${user}" "${service}"
 
    # Check the logs from time to time and in case of issues
-   journald_log "$user" "$service"
+   journald_log "${user}" "${service}"
 }
 
 
@@ -401,29 +401,29 @@ list_subuid_subgid() {
      local SUBUID=/etc/subuid
      local SUBGID=/etc/subgid
 
-     for i in $SUBUID $SUBGID; do [[ -f "$i" ]] || { echo "ERROR: $i does not exist, but is required."; exit 1; }; done
-     [[ -n "$1" ]] && USERS=$1 || USERS=$(awk -F : '{x=x " " $1} END{print x}' $SUBUID)
-     for i in $USERS; do
-        awk -F : "\$1 ~ /$i/ {printf(\"%-16s sub-UIDs: %6d..%6d (%6d)\", \$1 \",\", \$2, \$2+\$3, \$3)}" $SUBUID
-        awk -F : "\$1 ~ /$i/ {printf(\", sub-GIDs: %6d..%6d (%6d)\", \$2, \$2+\$3, \$3)}" $SUBGID
+     for i in ${SUBUID} ${SUBGID}; do [[ -f "${i}" ]] || { echo "ERROR: ${i} does not exist, but is required."; exit 1; }; done
+     [[ -n "${1}" ]] && USERS=${1} || USERS=$(awk -F : '{x=x " " ${1}} END{print x}' ${SUBUID})
+     for i in ${USERS}; do
+        awk -F : "\${1} ~ /${i}/ {printf(\"%-16s sub-UIDs: %6d..%6d (%6d)\", \${1} \",\", \${2}, \${2}+\${3}, \${3})}" ${SUBUID}
+        awk -F : "\${1} ~ /${i}/ {printf(\", sub-GIDs: %6d..%6d (%6d)\", \${2}, \${2}+\${3}, \${3})}" ${SUBGID}
         echo ""
      done
 }
 
 # Get Homedir
 get_homedir() {
-   local user=$1
+   local user=${1}
 
    # Get homedir
-   local homedir=$(getent passwd "$user" | cut -d: -f6)
+   local homedir=$(getent passwd "${user}" | cut -d: -f6)
 
    # Return result
-   echo $homedir
+   echo ${homedir}
 }
 
 # Make Mutable if Exist
 make_mutable_if_exist() {
-    local target=$1
+    local target=${1}
 
     if [ -d "${target}" ] || [ -f "${target}" ]
     then
@@ -434,7 +434,7 @@ make_mutable_if_exist() {
 
 # Make Immutable if Exist
 make_immutable_if_exist() {
-    local target=$1
+    local target=${1}
 
     if [ -d "${target}" ] || [ -f "${target}" ]
     then
@@ -445,8 +445,8 @@ make_immutable_if_exist() {
 
 # Move if Exist
 move_if_exist() {
-    local origin=$1
-    local destination=$2
+    local origin=${1}
+    local destination=${2}
 
     if [ -d "${origin}" ] || [ -f "${origin}" ]
     then
@@ -457,7 +457,7 @@ move_if_exist() {
 
 # Remove empty Folder if Exist
 rmdir_if_exist() {
-    local target=$1
+    local target=${1}
 
     if [ -d "${target}" ]
     then
@@ -475,20 +475,20 @@ rmdir_if_exist() {
 # Remove leading and/or trailing Slashes ("/")
 remove_leading_trailing_slashes() {
     # Init Variable
-    local lsanitized=$1
+    local lsanitized=${1}
 
     # Remove leading and trailing Slashes
     lsanitized=${lsanitized%/};
     lsanitized=${lsanitized#/}
 
     # Echo & Return
-    echo $lsanitized
+    echo ${lsanitized}
 }
 
 # Get Containers Associated with Compose File
 get_containers_from_compose_dir() {
    # The return Array is passed by nameref
-   declare -n lreturnarray="$1"  # Reference to output array
+   declare -n lreturnarray="${1}"  # Reference to output array
 
    # The compose Directory is passed as an Argument
    local lcomposedir=${2-""}
@@ -504,12 +504,12 @@ get_containers_from_compose_dir() {
    # Perform line-by-line matching using sed
    for item in "${llist[@]}"
    do
-       #echo $item
+       #echo ${item}
 
        # Perfom Cleaning of the Item String
-       cleanitem=$(echo $item | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
+       cleanitem=$(echo ${item} | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
 
-       #echo "Clean Item: <$cleanitem>"
+       #echo "Clean Item: <${cleanitem}>"
 
        # Check if it's already in Array
        chk=$(array_contains locallist "${cleanitem}")
@@ -517,7 +517,7 @@ get_containers_from_compose_dir() {
        lreturnarray+=("${cleanitem}")
 
        # If Status is 0 then add to return array
-       #if [[ $chk -eq 0 ]]
+       #if [[ ${chk} -eq 0 ]]
        #then
        #    lreturnarray+=("${cleanitem}")
        #fi
@@ -527,51 +527,51 @@ get_containers_from_compose_dir() {
 # Get Systemd Service File from Container Name
 get_systemd_file_from_container() {
     # The Container Name is passed as an Argument
-    local lcontainer=$1
+    local lcontainer=${1}
 
     # Define Service File
     servicefile="container-${lcontainer}.service"
 
     # Return
-    echo $servicefile
+    echo ${servicefile}
 }
 
 # Get Container Name from Systemd Service File
 get_container_from_systemd_file() {
     # The Service Name is passed as an Argument
-    local lservice=$1
+    local lservice=${1}
 
     # Strip "container-" from string
-    container="$lservice"
+    container="${lservice}"
     container=${container/"container-"/""}
     container=${container/".service"/""}
 
     # Return
-    echo $container
+    echo ${container}
 }
 
 # Get Systemd File
 #get_systemd_file_from_container() {
 #    # The Container Name is passed as an Argument
-#    local lname=$1
+#    local lname=${1}
 #
 #    # Extract Systemd File from Container
-#    servicefile=$(podman inspect $lname | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
+#    servicefile=$(podman inspect ${lname} | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
 #
 #    # Return
-#    echo $servicefile
+#    echo ${servicefile}
 #}
 
 # Get Container Compose File
 get_compose_dir_from_container() {
     # The Container Name is passed as an Argument
-    local lcontainer=$1
+    local lcontainer=${1}
 
     # Extract compodir from Container
-    composedir=$(podman inspect $lcontainer | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+    composedir=$(podman inspect ${lcontainer} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
 
     # Return
-    echo $composedir
+    echo ${composedir}
 }
 
 # Update Compose
@@ -581,7 +581,7 @@ compose_update() {
 
    # The User is passed as Optional Argument
    local luser=${1-""}
-   if [[ -z "$luser" ]]
+   if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
    fi
@@ -600,7 +600,7 @@ compose_down() {
 
    # The User is passed as Optional Argument
    local luser=${1-""}
-   if [[ -z "$luser" ]]
+   if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
    fi
@@ -632,7 +632,7 @@ compose_up() {
 
    # The User is passed as Optional Argument
    local luser=${1-""}
-   if [[ -z "$luser" ]]
+   if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
    fi
@@ -670,11 +670,11 @@ compose_up() {
 # Enable Container Autostart
 enable_autostart_container() {
    # The Container Name is passed as an Argument
-   local lcontainer=$1
+   local lcontainer=${1}
 
    # The User is passed as Optional Argument
    local luser=${2-""}
-   if [[ -z "$luser" ]]
+   if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
    fi
@@ -688,13 +688,13 @@ enable_autostart_container() {
    #if [[ -f "${servicepath}" ]]
    #then
    #    # Update Service File if Required
-   #    generic_cmd "${luser}" "podman" generate systemd --name $container --new > ${systemdfolder}/$servicefile
+   #    generic_cmd "${luser}" "podman" generate systemd --name ${container} --new > ${systemdfolder}/${servicefile}
    #
    #    # Reload Systemd Configuration
    #    systemd_reload "${user}"
    #else
    #    # Generate New Service File
-   #    generic_cmd "${luser}" "podman" generate systemd --name $container --new > ${systemdfolder}/$servicefile
+   #    generic_cmd "${luser}" "podman" generate systemd --name ${container} --new > ${systemdfolder}/${servicefile}
    #
    #    # Enable & Restart Service
    #    systemd_reload "${user}"
@@ -715,17 +715,17 @@ enable_autostart_container() {
 # Disable Container Autostart
 disable_autostart_container() {
    # The Container Name is passed as an Argument
-   local lcontainer=$1
+   local lcontainer=${1}
 
    # The User is passed as Optional Argument
    local luser=${2-""}
-   if [[ -z "$luser" ]]
+   if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
    fi
 
    # Get Systemd Configuration Folder
-   systemdfolder=$(get_systemdconfigdir $luser)
+   systemdfolder=$(get_systemdconfigdir ${luser})
 
    # Define Service File
    servicefile="container-${container}.service"
@@ -733,7 +733,7 @@ disable_autostart_container() {
    # Define Service Path
    servicepath="${systemdfolder}/${servicefile}"
 
-   if [[ -f "$servicepath" ]]
+   if [[ -f "${servicepath}" ]]
    then
       # Disable & Stop Service
       systemd_disable "${luser}" "${servicefile}"
@@ -752,13 +752,13 @@ disable_autostart_container() {
 list_containers() {
    # The User is passed as Optional Argument
    local luser=${1-""}
-   if [[ -z "$luser" ]]
+   if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
    fi
 
    # Get Systemd Configuration Folder
-   systemdfolder=$(get_systemdconfigdir $luser)
+   systemdfolder=$(get_systemdconfigdir ${luser})
 
    # List using podman Command
    echo "================================================================="
@@ -795,19 +795,19 @@ list_containers() {
 # Stop Container
 stop_container() {
     # The Container Name is passed as an Argument
-    local lcontainer=$1
+    local lcontainer=${1}
 
     # The User is passed as Optional Argument
     local luser=${2-""}
-    if [[ -z "$luser" ]]
+    if [[ -z "${luser}" ]]
     then
        luser=$(whoami)
     fi
 
     # Get Systemd Service File Name
-    servicefile=$(get_systemd_file_from_container "$container")
+    servicefile=$(get_systemd_file_from_container "${container}")
 
-    if [[ ! -z "$servicefile" ]]
+    if [[ ! -z "${servicefile}" ]]
     then
        # Stop Systemd Service First of All
        systemd_stop "${luser}" "${servicefile}"
@@ -820,11 +820,11 @@ stop_container() {
 # (Re)start Container
 restart_container() {
     # The Container Name is passed as an Argument
-    local lcontainer=$1
+    local lcontainer=${1}
 
     # The User is passed as Optional Argument
     local luser=${2-""}
-    if [[ -z "$luser" ]]
+    if [[ -z "${luser}" ]]
     then
        luser=$(whoami)
     fi
@@ -832,7 +832,7 @@ restart_container() {
     # Get Systemd Service File Name
     servicefile=$(get_systemd_file_from_container "${lcontainer}")
 
-    if [[ ! -z "$servicefile" ]]
+    if [[ ! -z "${servicefile}" ]]
     then
        # Restart Systemd Service First of All
        systemd_restart "${luser}" "${servicefile}"
@@ -845,11 +845,11 @@ restart_container() {
 # Start Container
 start_container() {
     # The Container Name is passed as an Argument
-    local lcontainer=$1
+    local lcontainer=${1}
 
     # The User is passed as Optional Argument
     local luser=${2-""}
-    if [[ -z "$luser" ]]
+    if [[ -z "${luser}" ]]
     then
        luser=$(whoami)
     fi
@@ -857,7 +857,7 @@ start_container() {
     # Get Systemd Service File Name
     servicefile=$(get_systemd_file_from_container "${lcontainer}")
 
-    if [[ ! -z "$servicefile" ]]
+    if [[ ! -z "${servicefile}" ]]
     then
        # Stop Systemd Service First of All
        systemd_stop "${luser}" "${servicefile}"
@@ -870,11 +870,11 @@ start_container() {
 # Remove Container
 remove_container() {
     # The Container Name is passed as an Argument
-    local lcontainer=$1
+    local lcontainer=${1}
 
     # The User is passed as Optional Argument
     local luser=${2-""}
-    if [[ -z "$luser" ]]
+    if [[ -z "${luser}" ]]
     then
        luser=$(whoami)
     fi
@@ -892,7 +892,7 @@ remove_container() {
 # Check if Container Exists
 exists_container() {
    # The Container Name is passed as an Argument
-   local lquerycontainer=$1
+   local lquerycontainer=${1}
 
    # Get List of Running/Stopped Containers
    mapfile -t list < <( podman ps --all --format="{{.Names}}" )
@@ -910,7 +910,7 @@ exists_container() {
    done
 
    # Return Value
-   #echo $found
+   #echo ${found}
 
    # Check the status of the Variable
    if [[ ${found} -eq 1 ]]
