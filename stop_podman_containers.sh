@@ -24,15 +24,18 @@ userhomedir=$(get_homedir "$user")
 systemdconfigdir=$(get_systemdconfigdir "$user")
 
 # Restart Systemd Container Services
-cd $systemdconfigdir
-for service in "container-*.service"
+cd $systemdconfigdir || exit
+for service in container-*.service
 do
+    # Get Service Name (without Path or "./")
+    servicename=$(basename "$service")
+
     # Stop container
-    systemd_stop "$user" "$service"
+    systemd_stop "$user" "$servicename"
 done
 
 # Change back to currentpath
-cd $currentpath
+cd $currentpath || exit
 
 # Stop Podman "standalone" Containers
 mapfile -t list < <( podman ps --all --format="{{.Names}}" )

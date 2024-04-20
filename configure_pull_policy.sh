@@ -51,7 +51,7 @@ do
        echo "Reconfigure Pull policy to <${pullpolicy}> for <${container}>"
 
        # Change Directory
-       cd $basedir/compose/$container
+       cd $basedir/compose/$container || exit
 
        if [[ -f "compose.yml" ]]
        then
@@ -94,7 +94,7 @@ do
    systemd_stop "$user" "$service"
 
    # Change Directory
-   cd $composedir
+   cd $composedir || exit
 
    # Bring Container Down
    podman-compose down

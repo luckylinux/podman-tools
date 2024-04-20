@@ -37,14 +37,14 @@ do
 
     if [[ -d "$basepath/compose/$container" ]]
     then
-        cd "$basepath/compose/$container"
+        cd "$basepath/compose/$container" || exit
         #runuser -l podman -c "podman-compose down -d"
         podman-compose down
     fi
 done
 
 # Switch back to current path
-cd $currentpath
+cd $currentpath || exit
 
 # Force remove storage
 # List storage

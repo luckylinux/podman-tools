@@ -14,9 +14,14 @@ source $toolpath/functions.sh
 user=$1
 #user=${1-"podman"}
 
-# Docker Local Mirror
-reap -p "Enter Docker Local Mirror Domain: " localmirror
-echo -e "\n"
+# Localmirror
+localmirror=${2-""}
+
+if [[ -z "$localmirror" ]]
+then
+   read -p "Enter Docker Local Mirror FQDN: " localmirror
+   echo -e "\n"
+fi
 
 # Home Directory
 homedir=$(get_homedir "$user")
@@ -26,6 +31,6 @@ homedir=$(get_homedir "$user")
 #basedir=${2-"/home/podman"}
 
 # Fix short-aliases in /home/podman/.cache/containers/short-name-aliases.conf
-sed -Ei "s|^(\s*)\"(.*)\"\s*?=\s*?\"docker\.io/(.*)\"(.*)$|\1\"\2\" = \"${localmirror}/\3\"\4|g" ${user}/.cache/containers/short-name-aliases.conf
+sed -Ei "s|^(\s*)\"(.*)\"\s*?=\s*?\"docker\.io/(.*)\"(.*)$|\1\"\2\" = \"${localmirror}/\3\"\4|g" "${user}/.cache/containers/short-name-aliases.conf"
 
 #sed -Ei "s|^(\s*)\"(.*)\"\s*?=\s*?\"(.*)\"(.*)$|\1\"\2\" = \"\3\"\4|g" ${user}/.cache/containers/short-name-aliases.conf

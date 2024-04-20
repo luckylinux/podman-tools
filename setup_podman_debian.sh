@@ -5,6 +5,7 @@ relativepath="./" # Define relative path to go from this script to the root leve
 if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing $scriptpath/$relativepath); fi
 
 # Load Configuration
+# shellcheck source=./config.sh
 source $toolpath/config.sh
 
 # Load Functions
@@ -107,10 +108,10 @@ fi
 
 # Setup container user
 touch /etc/{subgid,subuid}
-useradd -c “Podman” -s /bin/bash $user
-passwd -d $user
-usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $user
-passwd $user
+useradd -c "$user" -s /bin/bash "$user"
+passwd -d "$user"
+usermod --add-subuids 100000-165535 --add-subgids 100000-165535 "$user"
+passwd "$user"
 
 nano /etc/subuid
 nano /etc/subgid
@@ -171,6 +172,9 @@ do
 
         # Get recordsize value
         recordsize="${recordsizes[$counter]}"
+
+        # The volblocksize value is the same as recordsize (only keep one Array for Configuration)
+        volblocksize="${recordsize}"
 
 	# Create storage for image directory
 	mkdir -p ${destination}/${lname}/
@@ -314,7 +318,7 @@ chown -R $user:$user /var/run/user/${userid}
 
 # Populate config directory
 mount /home/${user}/.config/containers
-cd /home/${user}/.config/containers
+cd /home/${user}/.config/containers || exit
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/storage.conf -O storage.conf
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/registries.conf -O registries.conf
 wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/default-policy.json -O default-policy.json
@@ -434,12 +438,12 @@ systemd_reload "$user"
 
 # https://github.com/containers/podman/issues/3024#issuecomment-1742105831 ,  https://github.com/containers/podman/issues/3024#issuecomment-1762708730
 mkdir -p /etc/systemd/system/user@.service.d
-cd /etc/systemd/system/user@.service.d
+cd /etc/systemd/system/user@.service.d || exit
 echo "[Service]" > override.conf
 echo "OOMScoreAdjust=" >> override.conf
 
 # Prevent Systemd from auto restarting Podman Containers too quickly and timing out
-cd $scriptspath
+cd $scriptspath || exit
 mkdir -p /etc/systemd/user.conf.d/
 cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
 
@@ -457,7 +461,7 @@ source enable_rc_local.sh
 ################### User Level ##################
 #################################################
 # Setup a copy of the tool for user
-cd $homedir
+cd $homedir || exit
 if [[ ! -d "tools" ]]
 then
    git clone https://github.com/luckylinux/podman-tools.git tools
@@ -469,7 +473,7 @@ fi
 chown -R $user:$user "tools/"
 
 # Move to the local copy of the tool for the user
-cd tools
+cd tools || exit
 
 # Setup CRON/Systemd to automatically install images updates
 source setup_podman_autoupdate_service.sh

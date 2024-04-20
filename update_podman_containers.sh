@@ -44,15 +44,18 @@ do
 done
 
 # Restart Systemd Container Services
-cd $systemdconfigdir
-for service in "container-*.service"
+cd $systemdconfigdir || exit
+for service in container-*.service
 do
+    # Get Service Name (without Path or "./")
+    servicename=$(basename "$service")
+
     # Restart container
-    systemd_restart "$user" "$service"
+    systemd_restart "$user" "$servicename"
 done
 
 # Change back to currentpath
-cd $currentpath
+cd $currentpath || exit
 
 # Restart the podman-auto-update.service Systemd Service
 # This forces old images to be purges and news ones to be fetched

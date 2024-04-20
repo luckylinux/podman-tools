@@ -95,13 +95,13 @@ then
       composedir=$(podman inspect $container | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
 
       # Change Directory
-      cd ${sourcedir}/compose/${container}
+      cd ${sourcedir}/compose/${container} || exit
 
       # Bring Podman Container down
       generic_cmd "$user" "podman-compose" "down"
 
       # Another Attempt
-      cd ${composedir}
+      cd ${composedir} || exit
       generic_cmd "$user" "podman-compose" "down"
    done
 fi

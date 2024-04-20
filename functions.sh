@@ -1,5 +1,101 @@
 #!/bin/bash
 
+# Test BASH Variable Expansion
+#test_expansion() {
+#  local ltest1="${@:2}"
+#  local ltest2="${*:2}"
+#
+#  echo $ltest1
+#  echo $ltest2
+#}
+
+# Repeat Character N times
+repeat_character() {
+   # Character to repeat
+   local lcharacter=$1
+
+   # Number of Repetitions
+   local lrepetitions=$2
+
+   # Print using Brace Expansion
+   #for i in {1 ... ${lrepetitions}}
+   for i in $(seq 1 1 ${lrepetitions})
+   do
+       echo -n "${lcharacter}"
+   done
+}
+
+# Add Line Separator
+add_separator() {
+   local lcharacter=${1-"#"}
+   local lrows=${2-"1"}
+
+   # Get width of Terminal
+   local lwidth=$(tput cols)
+
+   # Repeat Character
+   for r in $(seq 1 1 ${lrows})
+   do
+      repeat_character "${lcharacter}" "${lwidth}"
+   done
+}
+
+# Add Line Separator with Description
+add_section() {
+   local lcharacter=${1-"#"}
+   local lrows=${2-"1"}
+   local ldescription=${3-""}
+
+   # Determine number of Separators BEFORE and AFTER the Description
+   #local lrowsseparatorsbefore=$(echo "${lrows-1} / ( 2 )" | bc -l)
+   #local lrowsseparatorafter="${lrowsseparatorsbefore}"
+   local lrowsbefore="${lrows}"
+   local lrowsafter="${lrows}"
+
+   # Add Separator
+   add_separator "${lcharacter}" "${lrowsbefore}"
+
+   # Add Header with Description
+   add_description "${lcharacter}" "${ldescription}"
+
+   # Add Separator
+   add_separator "${lcharacter}" "${lrowsafter}"
+}
+
+add_description() {
+   # User Inputs
+   local lcharacter=${1-"#"}
+   local ldescription=${2-""}
+
+   # Add one Space before and after the original String
+   ldescription=" ${ldescription} "
+
+   # Get width of Terminal
+   local lwidth=$(tput cols)
+
+   # Get length of Description
+   local llengthdescription=${#ldescription}
+
+   # Get width of Terminal
+   local lwidth=$(tput cols)
+
+   # Subtract Description from Terminal Width
+   local llengthseparator=$((lwidth - llengthdescription))
+
+   # Divide by two
+   local llengtheachseparator=$(echo "$llengthseparator / ( 2 )" | bc -l)
+
+   # Remainer
+   local lremainer=$((llengthseparator % 2))
+   local lextrastr=$(repeat_character "${lcharacter}" "${lremainer}")
+
+   # Get String of Characters for BEFORE and AFTER the Description
+   local lseparator=$(repeat_character "${lcharacter}" "${llengtheachseparator}")
+
+   # Print Description Line
+   echo "${lseparator}${ldescription}${lextrastr}${lseparator}"
+}
+
 # Check if Array Contains Element
 array_contains() {
     local larr=$1
@@ -826,4 +922,3 @@ exists_container() {
       exit 1
    fi
 }
-

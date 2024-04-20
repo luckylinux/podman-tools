@@ -18,7 +18,7 @@ update_tools() {
    currentpath=$(pwd)
 
    # Change Directory to Toolpath
-   cd $toolpath
+   cd $toolpath || exit
 
    # Do a git pull
    generic_cmd "${luser}" "git" "pull"
@@ -28,5 +28,5 @@ update_tools() {
    generic_cmd "${luser}" "source" "${homedir}/.bash_profile"
 
    # Go back to Current Path
-   cd $currentpath
+   cd $currentpath || exit
 }
