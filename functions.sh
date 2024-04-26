@@ -223,6 +223,7 @@ systemd_cmd() {
    local user=${1}
    local action=${2}
    local service=${3}
+   local options=${*:2}
 
    executingUser=$(whoami)
 
@@ -234,20 +235,20 @@ systemd_cmd() {
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      systemctl ${action} ${service}
+      systemctl ${action} ${service} ${options}
    else
       if [[ "${executingUser}" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l "${user}" -c "systemctl --user ${action} ${service}"
+          runuser -l "${user}" -c "systemctl --user ${action} ${service}" "${options}"
       elif [[ "${user}" == "${executingUser}" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          systemctl --user ${action} ${service}
+          systemctl --user ${action} ${service} ${options}
       fi
    fi
 }
@@ -259,6 +260,7 @@ journald_cmd() {
    local user=${1}
    local action=${2}
    local service=${3}
+   local options=${*:2}
 
    executingUser=$(whoami)
 
@@ -270,20 +272,20 @@ journald_cmd() {
       # Run without runuser and without --user
 
       # Run Command System-Wide
-      journalctl "${action}" "${service}"
+      journalctl "${action}" "${service}" ${options}
    else
       if [[ "${executingUser}" == "root" ]]
       then
           # Run with runuser and with --user
 
           # Run Command as root user and target a different non-root User
-          runuser -l ${user} -c "journalctl --user \"${action}\" \"${service}\""
+          runuser -l ${user} -c "journalctl --user \"${action}\" \"${service}\"" ${options}
       elif [[ "${user}" == "${executingUser}" ]]
       then
           # Run without runuser and with --user
 
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          journalctl --user "${action}" "${service}"
+          journalctl --user "${action}" "${service}" ${options}
       fi
    fi
 }
@@ -316,7 +318,7 @@ systemd_status() {
    local service=${2}
 
    # Run Command using Wrapper
-   systemd_cmd "${user}" "status" "${service}"
+   systemd_cmd "${user}" "status" "${service}" --no-pager
 }
 
 systemd_restart() {
@@ -579,18 +581,24 @@ compose_update() {
    # Compose Directory is Current Directory
    local lcomposedir=$(pwd)
 
+   # Compose Arguments
+   local lcomposeargs=${1-"-d"}
+
+   # Podman Arguments
+   local lpodmanargs=${2-""}
+
    # The User is passed as Optional Argument
-   local luser=${1-""}
+   local luser=${3-""}
    if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
    fi
 
    # Run compose_down
-   compose_down "${luser}"
+   compose_down "${lcomposeargs}" "${lpodmanargs}" "${luser}"
 
    # Run compose_up
-   compose_up "${luser}"
+   compose_up "${lcomposeargs}" "${lpodmanargs}" "${luser}"
 }
 
 # Compose Down
@@ -598,8 +606,14 @@ compose_down() {
    # Compose Directory is Current Directory
    local lcomposedir=$(pwd)
 
+   # Compose Arguments
+   local lcomposeargs=${1-"-d"}
+
+   # Podman Arguments
+   local lpodmanargs=${2-""}
+
    # The User is passed as Optional Argument
-   local luser=${1-""}
+   local luser=${3-""}
    if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
@@ -630,8 +644,14 @@ compose_up() {
    # Compose Directory is Current Directory
    local lcomposedir=$(pwd)
 
+   # Compose Arguments
+   local lcomposeargs=${1-"-d"}
+
+   # Podman Arguments
+   local lpodmanargs=${2-""}
+
    # The User is passed as Optional Argument
-   local luser=${1-""}
+   local luser=${3-""}
    if [[ -z "${luser}" ]]
    then
       luser=$(whoami)
@@ -641,7 +661,7 @@ compose_up() {
    compose_down "${luser}"
 
    # Run podman-compose up
-   generic_cmd "${luser}" "podman-compose" "up -d"
+   generic_cmd "${luser}" "podman-compose" --podman-args="${lpodmanargs}" "up" "${lcomposeargs}"
 
    # Declare list_containers as a (global) array that we will pass to get_containers_from_compose_dir by reference
    declare -a list_containers
@@ -790,6 +810,60 @@ list_containers() {
       # Disable Autostart Container Service
       echo "Container <${container}> Configured in <${servicepath}>: Enabled: ${isenabled} / Active: ${isactive}"
    done
+}
+
+# Status Container
+status_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=${1}
+
+    # The User is passed as Optional Argument
+    local luser=${2-""}
+    if [[ -z "${luser}" ]]
+    then
+       luser=$(whoami)
+    fi
+
+    # Get Systemd Service File Name
+    servicefile=$(get_systemd_file_from_container "${container}")
+
+    # Get Container Status
+    systemd_status "${luser}" "${servicefile}"
+}
+
+# Journal Container
+journal_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=${1}
+
+    # The User is passed as Optional Argument
+    local luser=${2-""}
+    if [[ -z "${luser}" ]]
+    then
+       luser=$(whoami)
+    fi
+
+    # Get Systemd Service File Name
+    servicefile=$(get_systemd_file_from_container "${container}")
+
+    # Show Journal
+    journald_cmd "${luser}" "-xeu" "${servicefile}" --no-pager
+}
+
+# Logs Container
+logs_container() {
+    # The Container Name is passed as an Argument
+    local lcontainer=${1}
+
+    # The User is passed as Optional Argument
+    local luser=${2-""}
+    if [[ -z "${luser}" ]]
+    then
+       luser=$(whoami)
+    fi
+
+    # Just show the Journal
+    journal_container "${lcontainer}" "${luser}"
 }
 
 # Stop Container
