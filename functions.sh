@@ -743,9 +743,9 @@ compose_update() {
 
    # Check if it's a valid Compose Directory
    # Abort on Error
-   set -e
+   #set -e
    compose_check_dir
-   set +e
+   #set +e
 
    # Run compose_down
    compose_down "${lcomposeargs}" "${lpodmanargs}" "${luser}"
@@ -774,9 +774,9 @@ compose_down() {
 
    # Check if it's a valid Compose Directory
    # Abort on Error
-   set -e
+   #set -e
    compose_check_dir
-   set +e
+   #set +e
 
    # Declare list_containers as a (global) array that we will pass to get_containers_from_compose_dir by reference
    declare -a list_containers
@@ -819,9 +819,9 @@ compose_up() {
 
    # Check if it's a valid Compose Directory
    # Abort on Error
-   set -e
+   #set -e
    compose_check_dir
-   set +e
+   #set +e
 
    # Always run compose_down first to make sure that the don't have some Systemd Service still running or restarting
    compose_down "${luser}"
