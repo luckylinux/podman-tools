@@ -130,6 +130,16 @@ array_contains() {
 
     # Return Status
     echo lstatus
+
+    # Exit Code
+    if [[ "${lstatus}" == "1" ]]
+    then
+       # Exit Normally
+       exit 0
+    else
+       # Issue a Warning when quitting
+       exit 1
+    fi
 }
 
 # Replace Text in Template
@@ -675,10 +685,11 @@ get_compose_dir_from_container() {
 
     # Check if Container Exists first of all
     local lexists=$(exists_container "${lcontainer}" "${luser}")
-    debug_message "Last Exit Code was <$?>"
+    local lexistscode=$?
+    debug_message "Last Exit Code was <${lexistscode}>"
 
     # If Container exists
-    if [[ ${lexists} -eq 0 ]]
+    if [[ ${lexistscode} -eq 0 ]]
     then
        # Extract compodir from Container
        local lcomposedir=$(generic_cmd "${luser}" "podman" inspect ${lcontainer} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
@@ -1075,8 +1086,9 @@ stop_container() {
 
     # Check if podman container exists
     local lexists=$(exists_container "${lcontainer}" "${luser}")
-    debug_message "Last Exit Code was <$?>"
-    if [[ ${lexists} -eq 0 ]]
+    local lexistscode=$?
+    debug_message "Last Exit Code was <${lexistscode}>"
+    if [[ ${lexistscode} -eq 0 ]]
     then
        # If exist code is 0, then the container exists
        generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
@@ -1109,9 +1121,10 @@ restart_container() {
        systemd_restart "${luser}" "${lservicefile}"
     else
        local lexists=$(exists_container "${lcontainer}" "${luser}")
-       debug_message "Last Exit Code was <$?>"
+       local lexistscode=$?
+       debug_message "Last Exit Code was <${lexistscode}>"
 
-       if [[ ${lexists} -eq 0 ]]
+       if [[ ${lexistscode} -eq 0 ]]
        then
           # Restart using podman command
           generic_cmd "${luser}" "podman" "restart" "${lcontainer}"
@@ -1145,9 +1158,10 @@ start_container() {
        systemd_restart "${luser}" "${lservicefile}"
     else
        local lexists=$(exists_container "${lcontainer}" "${luser}")
-       debug_message "Last Exit Code was <$?>"
+       local lexistscode=$?
+       debug_message "Last Exit Code was <${lexistscode}>"
 
-       if [[ ${lexists} -eq 0 ]]
+       if [[ ${lexistscode} -eq 0 ]]
        then
           # Restart using podman command
           generic_cmd "${luser}" "podman" "restart" "${lcontainer}"
@@ -1182,9 +1196,10 @@ remove_container() {
 
     # Remove Container
     local lexists=$(exists_container "${lcontainer}" "${luser}")
-    debug_message "Last Exit Code was <$?>"
+    local lexistscode=$?
+    debug_message "Last Exit Code was <${lexistscode}>"
 
-    if [[ ${lexists} -eq 0 ]]
+    if [[ ${lexistscode} -eq 0 ]]
     then
        # Remove using podman command
        generic_cmd "${luser}" "podman" "rm" "${lcontainer}"
@@ -1239,14 +1254,14 @@ exists_container() {
    local lexists=$(generic_cmd "${luser}" "podman" container exists "${lquerycontainer}")
 
    # Store exitcode (needed otherwise the exitcode of the function would be the exitcode of "echo" function)
-   local lexitcode=$?
+   local lexistscode=$?
 
    # Debug
-   debug_message "Checking if Container ${lquerycontainer} Exists returned Exit Code <${lexitcode}>."
+   debug_message "Checking if Container ${lquerycontainer} Exists returned Exit Code <${lexistscode}>."
 
    # Print Exit Code
-   echo ${lexitcode}
+   #echo ${lexitcode}
 
    # Return Exit Code
-   exit ${lexitcode}
+   exit ${lexistscode}
 }
