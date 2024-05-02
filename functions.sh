@@ -9,6 +9,19 @@
 #  echo ${ltest2}
 #}
 
+# Print Debug Message if Environment DEBUG_CONTAINER is set to something
+debug_message() {
+   # Debug Message processes all arguments
+   local lmessage="${*}"
+
+   # Check if Environment Variable is Set
+   if [[ -n "${DEBUG_CONTAINER}" ]]
+   then
+      # Show the Debug Message
+      echo "${lmessage}"
+   fi
+}
+
 # Repeat Character N times
 repeat_character() {
    # Character to repeat
@@ -126,7 +139,7 @@ replace_text() {
     local lnparameters=$(($((${lnargin}-1)) / 2))
     local lARGV=("$@")
     #Debug
-    #echo "Passed ${lnargin} arguments and ${lnparameters} parameter"
+    debug_message echo "Passed ${lnargin} arguments and ${lnparameters} parameter"
 
     # Initialize Variables
     local p=1
@@ -139,7 +152,7 @@ replace_text() {
         local lvalue=${lARGV[${livalue}]}
 
         # Debug
-        #echo "Replace {{${lname}}} -> ${lvalue} in ${lfilepath}"
+        debug_message "Replace {{${lname}}} -> ${lvalue} in ${lfilepath}"
 
         # Execute Replacement
         sed -Ei "s|\{\{${lname}\}\}|${lvalue}|g" "${lfilepath}"
@@ -235,7 +248,7 @@ systemd_cmd() {
    local lexecutingUser=$(whoami)
 
    # Debug
-   #echo "Execute systemd command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
+   debug_message "Execute systemd command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
 
    if [[ "${luser}" == "root" ]]
    then
@@ -274,7 +287,7 @@ journald_cmd() {
    local lexecutingUser=$(whoami)
 
    # Debug
-   #echo "Execute journald command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
+   debug_message "Execute journald command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
 
    if [[ "${luser}" == "root" ]]
    then
@@ -562,13 +575,13 @@ get_containers_from_compose_dir() {
    for litem in "${llist[@]}"
    do
        # Debug
-       #echo ${litem}
+       debug_message "Processing Item ${litem}"
 
        # Perfom Cleaning of the Item String
        lcleanitem=$(echo ${litem} | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
 
        # Debug
-       #echo "Clean Item: <${lcleanitem}>"
+       debug_message "Cleaned Item: <${lcleanitem}>"
 
        # Check if it's already in Array
        lchk=$(array_contains locallist "${lcleanitem}")
@@ -718,7 +731,7 @@ compose_down() {
    for lcontainer in "${list_containers[@]}"
    do
        # Echo
-       echo "Stop Container <${lcontainer}>"
+       debug_message "Stop Container <${lcontainer}>"
 
        # Stop Container
        stop_container "${lcontainer}" "${luser}"
@@ -769,7 +782,7 @@ compose_up() {
    for lcontainer in "${list_containers[@]}"
    do
        # Echo
-       echo "Start Container <${lcontainer}>"
+       debug_message "Start Container <${lcontainer}>"
 
        # Start Container
        # No need - Container is already Started from podman-compose up -d
@@ -914,7 +927,6 @@ list_containers() {
    mapfile -t list < <( ls -1 ${lsystemdfolder}/container-* )
 
    # Stop These Services which might be deprecated anyways
-   #echo "Name|"
    local lservicepath=""
    for lservicepath in "${list[@]}"
    do
@@ -1002,12 +1014,13 @@ stop_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    echo "Container: ${lcontainer}"
-    echo "Systemd Service File: ${lservicefile}"
+    debug_message "Container: ${lcontainer}"
+    debug_message "Systemd Service File: ${lservicefile}"
 
     if [[ ! -z "${lservicefile}" ]]
     then
        # Stop Systemd Service First of All
+       debug_message "Stop Systemd Service"
        systemd_stop "${luser}" "${lservicefile}"
     else
        # Stop using podman command
@@ -1040,8 +1053,8 @@ restart_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    echo "Container: ${lcontainer}"
-    echo "Systemd Service File: ${lservicefile}"
+    debug_message "Container: ${lcontainer}"
+    debug_message "Systemd Service File: ${lservicefile}"
 
     # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
@@ -1070,8 +1083,8 @@ start_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    echo "Container: ${lcontainer}"
-    echo "Systemd Service File: ${lservicefile}"
+    debug_message "Container: ${lcontainer}"
+    debug_message "Systemd Service File: ${lservicefile}"
 
     # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
@@ -1100,8 +1113,8 @@ remove_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    echo "Container: ${lcontainer}"
-    echo "Systemd Service File: ${lservicefile}"
+    debug_message "Container: ${lcontainer}"
+    debug_message "Systemd Service File: ${lservicefile}"
 
     # Disable Container Autostart Service
     disable_autostart_container "${luser}" "${lcontainer}"
@@ -1116,33 +1129,33 @@ exists_container() {
    local lquerycontainer=${1}
 
    # Get List of Running/Stopped Containers
-   mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+   #mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 
    # Default to false
    local lfound=0
 
    # Loop over existing Containers
-   local lcontainer=""
-   for lcontainer in "${list[@]}"
-   do
-      if [[ "${lcontainer}" == "${lquerycontainer}" ]]
-      then
-         lfound=1
-      fi
-   done
+   #local lcontainer=""
+   #for lcontainer in "${list[@]}"
+   #do
+   #   if [[ "${lcontainer}" == "${lquerycontainer}" ]]
+   #   then
+   #      lfound=1
+   #   fi
+   #done
 
    # Return Value
    #echo ${lfound}
 
    # Check the status of the Variable
-   if [[ ${lfound} -eq 1 ]]
-   then
-      echo "Container <${lquerycontainer}> exists"
-      exit 0
-   else
-      echo "Container <${lquerycontainer}> does NOT exist"
-      exit 1
-   fi
+   #if [[ ${lfound} -eq 1 ]]
+   #then
+   #   debug_message "Container <${lquerycontainer}> exists"
+   #   exit 0
+   #else
+   #   debug_message "Container <${lquerycontainer}> does NOT exist"
+   #   exit 1
+   #fi
 
    # Alternative
    local lexist=$(podman )
