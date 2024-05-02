@@ -226,17 +226,24 @@ get_systemdconfigdir() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
 
+   # Initialize Variable
+   local lsystemdconfigdir=""
+
    if [[ "${luser}" == "root" ]]
    then
-       local lsystemdconfigdir="/etc/systemd/system"
+       lsystemdconfigdir="/etc/systemd/system"
    else
        local luserhomedir=$(get_homedir "${luser}")
-       local lsystemdconfigdir="${luserhomedir}/.config/systemd/user"
+       lsystemdconfigdir="${luserhomedir}/.config/systemd/user"
    fi
 
    # Make sure to create it if not existing already
    if [[ ! -d "${lsystemdconfigdir}" ]]
    then
+       # Debug
+       debub_message "Folder <${lsystemdconfigdir}> does NOT Currently Exist."
+       debub_message "Creating Folder <${lsystemdconfigdir}> now."
+
        mkdir -p "${lsystemdconfigdir}"
    fi
 
@@ -260,6 +267,7 @@ generic_cmd() {
    # Debug
    debug_message "Execute generic command targeting user <${luser}> with command <${lcommand}> arguments <${larguments}>"
 
+   # Check who is the target User
    if [[ "${luser}" == "root" ]]
    then
       # Run without runuser and without --user
