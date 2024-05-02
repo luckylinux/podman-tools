@@ -212,6 +212,9 @@ generic_cmd() {
 
    local lexecutingUser=$(whoami)
 
+   # Debug
+   debug_message "Execute generic command targeting user <${luser}> with command&arguments <${larguments}>"
+
    if [[ "${luser}" == "root" ]]
    then
       # Run without runuser and without --user
