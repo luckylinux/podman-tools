@@ -364,14 +364,24 @@ systemd_reload() {
 
    if [[ -z "${lservice}" ]]
    then
-      # Just run systemd_daemon_reload
+      # Just run systemd_daemon_reload since no service was specified
       systemd_daemon_reload "${luser}"
    else
-      # Run Command using Wrapper
-      systemd_cmd "${luser}" "reload" "${lservice}"
+      # Check if Service provides a <reload> method
+      local lcanreload=$(systemctl show "${lservice}" --property=CanReload --value)
 
-      # Also Reset Errors for that Service
-      systemd_reset "${luser}" "${lservice}"
+      if [[ "${}" == "yes" ]]
+      then
+          # If yes, execute reload of the service only
+          # Run Command using Wrapper
+          systemd_cmd "${luser}" "reload" "${lservice}"
+
+          # Also Reset Errors for that Service
+          systemd_reset "${luser}" "${lservice}"
+      else
+          # Just run systemd_daemon_reload since the service doesn't provide a <reload> method
+          systemd_daemon_reload "${luser}"
+      fi
    fi
 }
 
@@ -1005,9 +1015,13 @@ stop_container() {
        local ldummy=1
     fi
 
-    # Stop using podman command in *any* case
-    generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
-
+    # Check if podman container exists
+    local lexist=$(container_exists "${lcontainer}")
+    if [[ $? -eq 0 ]]
+    then
+       # If exist code is 0, then the container exists
+       generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
+    fi
 }
 
 # (Re)start Container
@@ -1129,4 +1143,9 @@ exists_container() {
       echo "Container <${lquerycontainer}> does NOT exist"
       exit 1
    fi
+
+   # Alternative
+   local lexist=$(podman )
+   echo $?
+
 }
