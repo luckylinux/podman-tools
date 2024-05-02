@@ -707,7 +707,7 @@ journald_log() {
    if [[ ${lexistscode} -eq 0 ]]
    then
       #  Run Command using Wrapper
-      journald_cmd "${luser}" "-xeu" "${lservice}"
+      journald_cmd "${luser}" "-xeu" "${lservice}" "--no-pager"
    fi
 }
 
