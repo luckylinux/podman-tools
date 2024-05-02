@@ -22,7 +22,8 @@ debug_message() {
    local lmessage="${*}"
 
    # Calling Stack
-   local lcallingstack=("${FUNCNAME[@]:1}")
+   #local lcallingstack=("${FUNCNAME[@]:1}")
+   local lstack=${FUNCNAME}
 
    # Print Stack
    echo "Calling Debug from <${FUNCNAME[1]}>" >&2
@@ -34,7 +35,7 @@ debug_message() {
       if [[ -n "${DEBUG_CONTAINER_STACK}" ]]
       then
          # Show the Debug Stack
-         debug_stack ${lcallingstack[@]}
+         debug_stack "${lstack[@]:1}"
       fi
 
       # Show the Debug Message
