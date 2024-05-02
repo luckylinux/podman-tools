@@ -417,7 +417,7 @@ journald_cmd() {
    local lexecutingUser=$(whoami)
 
    # Debug
-   debug_message "${FUNCNAME[0]} - Execute journald command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
+   debug_message "${FUNCNAME[0]} - Execute journald command targeting user <${luser}> with action <${laction}> and options <${loptions}> for service <${lservice}>"
 
    if [[ "${luser}" == "root" ]]
    then
