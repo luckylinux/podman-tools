@@ -208,8 +208,9 @@ generic_cmd() {
    local lcommand=${2}
 
    # When used with Systemd: Arguments includes "action", possible options, "service" (e.g. systemd <status> <container-test.service>)
-   local larguments="${@:3}"
+   local larguments=${@:3}
 
+   # Who is executing the Script
    local lexecutingUser=$(whoami)
 
    # Debug
@@ -224,15 +225,11 @@ generic_cmd() {
    else
       if [[ "${lexecutingUser}" == "root" ]]
       then
-          # Run with runuser and with --user
-
           # Run Command as root user and target a different non-root User
           runuser -l ${luser} -c ${lcommand} ${larguments}
       elif [[ "${luser}" == "${lexecutingUser}" ]]
       then
-          # Run without runuser and with --user
-
-          # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
+          # Run Command directly (target user is the same as the user that is executing the script / function)
           ${lcommand} ${larguments}
       fi
    fi
