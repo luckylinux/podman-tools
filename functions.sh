@@ -31,7 +31,7 @@ debug_message() {
       if [[ -n "${DEBUG_CONTAINER_STACK}" ]]
       then
          # Show the Debug Stack
-         debug_stack "${FUNCNAME[@:2]}"
+         debug_stack "${FUNCNAME[@]:2}"
       fi
 
       # Show the Debug Message
