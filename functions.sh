@@ -157,7 +157,7 @@ replace_text() {
     local lARGV=("$@")
 
     #Debug
-    debug_message echo "Passed <${lnargin}> arguments and <${lnparameters}> parameter"
+    debug_message echo "${FUNCNAME[0]} - Passed <${lnargin}> arguments and <${lnparameters}> parameter"
 
     # Initialize Variables
     local p=1
@@ -170,7 +170,7 @@ replace_text() {
         local lvalue=${lARGV[${livalue}]}
 
         # Debug
-        debug_message "Replace <{{${lname}}}> -> <${lvalue}> in <${lfilepath}>"
+        debug_message "${FUNCNAME[0]} - Replace <{{${lname}}}> -> <${lvalue}> in <${lfilepath}>"
 
         # Execute Replacement
         sed -Ei "s|\{\{${lname}\}\}|${lvalue}|g" "${lfilepath}"
@@ -194,7 +194,7 @@ get_homedir() {
    local lhomedir=$(getent passwd "${luser}" | cut -d: -f6)
 
    # Debug
-   debug_message "Local Home Directory of User <${luser}> is <${lhomedir}>."
+   debug_message "${FUNCNAME[0]} - Local Home Directory of User <${luser}> is <${lhomedir}>."
 
    # Return result
    echo ${lhomedir}
@@ -221,7 +221,7 @@ get_localbinpath() {
    fi
 
    # Debug
-   debug_message "Local bin Path of User <${luser}> is <${llocalbinpath}>."
+   debug_message "${FUNCNAME[0]} - Local bin Path of User <${luser}> is <${llocalbinpath}>."
 
    # Return result
    echo ${llocalbinpath}
@@ -244,14 +244,14 @@ get_systemdconfigdir() {
    fi
 
    # Debug
-   debug_message "Systemd Config Directory of User <${luser}> is <${lsystemdconfigdir}>."
+   debug_message "${FUNCNAME[0]} - Systemd Config Directory of User <${luser}> is <${lsystemdconfigdir}>."
 
    # Make sure to create it if not existing already
    if [[ ! -d "${lsystemdconfigdir}" ]]
    then
        # Debug
-       debug_message "Folder <${lsystemdconfigdir}> does NOT Currently Exist."
-       debug_message "Creating Folder <${lsystemdconfigdir}> now."
+       debug_message "${FUNCNAME[0]} - Folder <${lsystemdconfigdir}> does NOT Currently Exist."
+       debug_message "${FUNCNAME[0]} - Creating Folder <${lsystemdconfigdir}> now."
 
        mkdir -p "${lsystemdconfigdir}"
    fi
@@ -274,7 +274,7 @@ generic_cmd() {
    local lexecutingUser=$(whoami)
 
    # Debug
-   debug_message "Execute generic command targeting user <${luser}> with command <${lcommand}> arguments <${larguments}>"
+   debug_message "${FUNCNAME[0]} - Execute generic command targeting user <${luser}> with command <${lcommand}> arguments <${larguments}>"
 
    # Check who is the target User
    if [[ "${luser}" == "root" ]]
@@ -309,7 +309,7 @@ systemd_cmd() {
    local lexecutingUser=$(whoami)
 
    # Debug
-   debug_message "Execute systemd command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
+   debug_message "${FUNCNAME[0]} - Execute systemd command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
 
    if [[ "${luser}" == "root" ]]
    then
@@ -348,7 +348,7 @@ journald_cmd() {
    local lexecutingUser=$(whoami)
 
    # Debug
-   debug_message "Execute journald command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
+   debug_message "${FUNCNAME[0]} - Execute journald command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
 
    if [[ "${luser}" == "root" ]]
    then
@@ -628,6 +628,10 @@ get_containers_from_compose_dir() {
    # Optional Parameter stating if we want all Containers in the Compose file (to bring them DOWN) or just the ones that are enabled in the compose File
    local lwhichcontainers=${3-""}
 
+   # Debug
+   debub_message "Get list of Containers from Compose Directory <${lcomposedir}> based on <compose.yml> File."
+
+
    # Extract from the File itself
    #mapfile list < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g" )
 
@@ -648,13 +652,13 @@ get_containers_from_compose_dir() {
    for litem in "${llist[@]}"
    do
        # Debug
-       debug_message "Processing Item <${litem}>"
+       debug_message "${FUNCNAME[0]} - Processing Item <${litem}>"
 
        # Perfom Cleaning of the Item String
        lcleanitem=$(echo ${litem} | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
 
        # Debug
-       debug_message "Cleaned Item: <${lcleanitem}>"
+       debug_message "${FUNCNAME[0]} - Cleaned Item: <${lcleanitem}>"
 
        # Check if it's already in Array
        lchk=$(array_contains locallist "${lcleanitem}")
@@ -738,7 +742,7 @@ get_compose_dir_from_container() {
     #local lexists=$(exists_container "${lcontainer}" "${luser}")
     exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
-    debug_message "Last Exit Code was <${lexistscode}>"
+    debug_message "${FUNCNAME[0]} - Last Exit Code was <${lexistscode}>"
 
     # If Container exists
     if [[ ${lexistscode} -eq 0 ]]
@@ -763,6 +767,9 @@ get_compose_dir_from_container() {
 compose_check_dir() {
    # Compose Directory is Current Directory
    local lcomposedir=$(pwd)
+
+   # Debug
+   debug_message "${FUNCNAME[0]} - Check if Folder ${lcomposedir} contains a Valid <compose.yml> File."
 
    # Check if we are really in a compose directory
    if [[ ! -f "${lcomposedir}/compose.yml" ]]
@@ -844,7 +851,7 @@ compose_down() {
    for lcontainer in "${list_containers[@]}"
    do
        # Echo
-       debug_message "Stop Container <${lcontainer}>"
+       debug_message "${FUNCNAME[0]} - Processing ... Stop Container <${lcontainer}>"
 
        # Stop Container
        stop_container "${lcontainer}" "${luser}"
@@ -895,7 +902,7 @@ compose_up() {
    for lcontainer in "${list_containers[@]}"
    do
        # Echo
-       debug_message "Start Container <${lcontainer}>"
+       debug_message "${FUNCNAME[0]} - Processing ... Start Container <${lcontainer}>"
 
        # Start Container
        # No need - Container is already Started from podman-compose up -d
@@ -956,19 +963,46 @@ enable_autostart_container() {
    # >> The unit file, source configuration file or drop-ins of container-docker-local-mirror-registry.service changed on disk. Run 'systemctl --user daemon-reload' to reload units.
    if [[ -f "${lservicepath}" ]]
    then
+       # Debug
+       debug_message "${FUNCNAME[0]} - Disable & Stop Existing Service file <${lservicepath}> for Container <${lcontainer}> in order to prevent Systemd from issueing Warnings."
+
+       # First of all Disable & Stop Current Systemd Service in order to prevent Systemd from Issueing Warnings
+       systemd_disable "${luser}" "${lservicefile}"
+       systemd_stop "${luser}" "${lservicefile}"
+
+       # Debug
+       debug_message "${FUNCNAME[0]} - Remove Existing Service file <${lservicepath}> for Container <${lcontainer}>"
+
+       # Remove it
        rm -f "${lservicepath}"
+
+       # Debug
+       debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
+
+       # Reload Systemd Daemon
        sleep 0.5
-       systemd_reload "${luser}" "${lservicefile}"
+       systemd_daemon_reload "${luser}"
        sleep 0.5
    fi
+
+   # Debug
+   debug_message "${FUNCNAME[0]} - Generate (new) Systemd Service File <${lservicepath}> for Container <${lcontainer}>"
 
    # Generate Service File
    generic_cmd "${luser}" "podman" generate systemd --name "${lcontainer}" --new > "${lservicepath}"
 
+   # Debug
+   debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
+
+   # Reload Systemd Daemon
+   sleep 0.5
+   systemd_daemon_reload "${luser}"
+   sleep 0.5
+
+   # Debug
+   debug_message "${FUNCNAME[0]} - Enable and Restart Systemd Service <${lservicepath}> for Container <${lcontainer}>"
+
    # Enable & Restart Service
-   sleep 0.5
-   systemd_reload "${luser}" "${lservicefile}"
-   sleep 0.5
    systemd_enable "${luser}" "${lservicefile}"
    systemd_restart "${luser}" "${lservicefile}"
 }
@@ -997,7 +1031,7 @@ disable_autostart_container() {
    if [[ -f "${lservicepath}" ]]
    then
       # Debug
-      debug_message "Disable + Stop Systemd Service <${lcontainer}>"
+      debug_message "${FUNCNAME[0]} - Disable + Stop Systemd Service <${lcontainer}>"
 
       # Disable & Stop Service
       systemd_disable "${luser}" "${lservicefile}"
@@ -1007,13 +1041,13 @@ disable_autostart_container() {
       #sleep 0.5
 
       # Debug
-      debug_message "Remove Systemd Service <${servicepath}> from Disk"
+      debug_message "${FUNCNAME[0]} - Remove Systemd Service <${servicepath}> from Disk"
 
       # Remove Service File
       rm -f "${lservicepath}"
 
       # Debug
-      debug_message "Reload Systemd Daemon"
+      debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
 
       # Reload Systemd Daemon again
       sleep 0.5
@@ -1153,13 +1187,13 @@ stop_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    debug_message "Container: <${lcontainer}>"
-    debug_message "Systemd Service File: <${lservicefile}>"
+    debug_message "${FUNCNAME[0]} - Container: <${lcontainer}>"
+    debug_message "${FUNCNAME[0]} - Systemd Service File: <${lservicefile}>"
 
     if [[ ! -z "${lservicefile}" ]]
     then
        # Stop Systemd Service First of All
-       debug_message "Stop Systemd Service <${lservicefile}>"
+       debug_message "${FUNCNAME[0]} - Stop Systemd Service <${lservicefile}>"
        systemd_stop "${luser}" "${lservicefile}"
     else
        # Stop using podman command
@@ -1170,7 +1204,7 @@ stop_container() {
     #local lexists=$(exists_container "${lcontainer}" "${luser}")
     exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
-    debug_message "Last Exit Code was <${lexistscode}>"
+    debug_message "${FUNCNAME[0]} - Last Exit Code was <${lexistscode}>"
     if [[ ${lexistscode} -eq 0 ]]
     then
        # If exist code is 0, then the container exists
@@ -1194,8 +1228,8 @@ restart_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    debug_message "Container: <${lcontainer}>"
-    debug_message "Systemd Service File: <${lservicefile}>"
+    debug_message "${FUNCNAME[0]} - Container: <${lcontainer}>"
+    debug_message "${FUNCNAME[0]} - Systemd Service File: <${lservicefile}>"
 
     # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
@@ -1232,8 +1266,8 @@ start_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    debug_message "Container: <${lcontainer}>"
-    debug_message "Systemd Service File: <${lservicefile}>"
+    debug_message "${FUNCNAME[0]} - Container: <${lcontainer}>"
+    debug_message "${FUNCNAME[0]} - Systemd Service File: <${lservicefile}>"
 
     # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
@@ -1244,7 +1278,7 @@ start_container() {
        #local lexists=$(exists_container "${lcontainer}" "${luser}")
        exists_container "${lcontainer}" "${luser}"
        local lexistscode=$?
-       debug_message "Last Exit Code was <${lexistscode}>"
+       debug_message "${FUNCNAME[0]} - Last Exit Code was <${lexistscode}>"
 
        if [[ ${lexistscode} -eq 0 ]]
        then
@@ -1270,8 +1304,8 @@ remove_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    debug_message "Container: <${lcontainer}>"
-    debug_message "Systemd Service File: <${lservicefile}>"
+    debug_message "${FUNCNAME[0]} - Container: <${lcontainer}>"
+    debug_message "${FUNCNAME[0]} - Systemd Service File: <${lservicefile}>"
 
     # Disable Container Autostart Service
     disable_autostart_container "${luser}" "${lcontainer}"
@@ -1286,7 +1320,7 @@ remove_container() {
     #local lexists=$(exists_container "${lcontainer}" "${luser}")
     exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
-    debug_message "Last Exit Code was <${lexistscode}>"
+    debug_message "${FUNCNAME[0]} - Last Exit Code was <${lexistscode}>"
 
     if [[ ${lexistscode} -eq 0 ]]
     then
@@ -1308,7 +1342,7 @@ exists_container() {
    fi
 
    # Debug
-   debug_message "Check if Container <${lquerycontainer}> exists."
+   debug_message "${FUNCNAME[0]} - Check if Container <${lquerycontainer}> exists."
 
    # Default to false
    #local lfound=0
@@ -1332,10 +1366,10 @@ exists_container() {
    # Check the status of the Variable
    #if [[ ${lfound} -eq 1 ]]
    #then
-   #   debug_message "Container <${lquerycontainer}> exists"
+   #   debug_message "${FUNCNAME[0]} - Container <${lquerycontainer}> exists"
    #   return 0
    #else
-   #   debug_message "Container <${lquerycontainer}> does NOT exist"
+   #   debug_message "${FUNCNAME[0]} - Container <${lquerycontainer}> does NOT exist"
    #   return 1
    #fi
 
@@ -1347,7 +1381,7 @@ exists_container() {
    local lexistscode=$?
 
    # Debug
-   debug_message "Checking if Container ${lquerycontainer} Exists returned Exit Code <${lexistscode}>."
+   debug_message "${FUNCNAME[0]} - Checking if Container ${lquerycontainer} Exists returned Exit Code <${lexistscode}>."
 
    # Print Exit Code
    #echo ${lexistscode}
