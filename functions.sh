@@ -23,7 +23,7 @@ debug_message() {
 
    # Calling Stack
    #local lcallingstack=("${FUNCNAME[@]:1}")
-   local lstack=${FUNCNAME}
+   local lstack="${FUNCNAME[@]}"
 
    # Print Stack
    echo "Calling Debug from <${FUNCNAME[1]}>" >&2
@@ -220,7 +220,7 @@ schedule_mode_not_supported() {
    local lschedulemode=${1}
    echo "Scheduling Mode <${lschedulemode}> is NOT supported. Possible choices are <cron> or <systemd>. Aborting !"
    return 2
-   break
+   #break
 }
 
 # Get Homedir
@@ -234,7 +234,7 @@ get_homedir() {
    # Store Exit Code
    local luserexists=$?
 
-   if [[ ${lzserexists} -eq 0 ]]
+   if [[ ${luserexists} -eq 0 ]]
    then
       # Get homedir
       local lhomedir=$(getent passwd "${luser}" | cut -d: -f6)
@@ -250,7 +250,7 @@ get_homedir() {
    else
       # Print Error
       echo "ERROR: User <${luser}> does NOT exist. ABORTING !"
-      break
+      #break
       echo ""
       return 1
    fi
@@ -919,7 +919,7 @@ compose_check_dir() {
        echo "       File <compose.yml> could NOT be found"
        echo "ABORTING !"
        return 99
-       break
+       #break
    fi
 }
 
@@ -1182,7 +1182,7 @@ disable_autostart_container() {
       #sleep 0.5
 
       # Debug
-      debug_message "${FUNCNAME[0]} - Remove Systemd Service <${servicepath}> from Disk"
+      debug_message "${FUNCNAME[0]} - Remove Systemd Service <${lservicepath}> from Disk"
 
       # Remove Service File
       rm -f "${lservicepath}"
