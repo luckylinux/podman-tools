@@ -501,7 +501,8 @@ remove_leading_trailing_slashes() {
 # Get Containers Associated with Compose File
 get_containers_from_compose_dir() {
    # The return Array is passed by nameref
-   declare -n lreturnarray="${1}"  # Reference to output array
+   # Reference to output array
+   declare -n lreturnarray="${1}"
 
    # The compose Directory is passed as an Argument
    local lcomposedir=${2-""}
@@ -524,7 +525,7 @@ get_containers_from_compose_dir() {
        #echo ${litem}
 
        # Perfom Cleaning of the Item String
-       cleanitem=$(echo ${litem} | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
+       lcleanitem=$(echo ${litem} | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
 
        # Debug
        #echo "Clean Item: <${lcleanitem}>"
@@ -550,7 +551,7 @@ get_systemd_file_from_container() {
     local lcontainer=${1}
 
     # Define Service File
-    local servicefile="container-${lcontainer}.service"
+    local lservicefile="container-${lcontainer}.service"
 
     # Return
     echo ${lservicefile}
