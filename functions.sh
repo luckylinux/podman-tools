@@ -629,7 +629,7 @@ compose_down() {
    for container in "${list_containers[@]}"
    do
        # Echo
-       echo "Updating Container <${container}>"
+       echo "Stop Container <${container}>"
 
        # Stop Container
        stop_container "${container}" "${luser}"
@@ -673,7 +673,7 @@ compose_up() {
    for container in "${list_containers[@]}"
    do
        # Echo
-       echo "Updating Container <${container}>"
+       echo "Start Container <${container}>"
 
        # Start Container
        # No need - Container is already Started from podman-compose up -d
@@ -748,8 +748,8 @@ disable_autostart_container() {
    # Get Systemd Configuration Folder
    systemdfolder=$(get_systemdconfigdir ${luser})
 
-   # Define Service File
-   servicefile="container-${container}.service"
+   # Get Systemd Service File Name
+   servicefile=$(get_systemd_file_from_container "${container}")
 
    # Define Service Path
    servicepath="${systemdfolder}/${servicefile}"
@@ -882,7 +882,7 @@ stop_container() {
     fi
 
     # Get Systemd Service File Name
-    servicefile=$(get_systemd_file_from_container "${container}")
+    servicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     if [[ ! -z "${servicefile}" ]]
     then
