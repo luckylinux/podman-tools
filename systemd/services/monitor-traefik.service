@@ -2,8 +2,8 @@
 Description=Traefik Monitoring and Restarting Tool
 
 [Service]
-ExecStart=/bin/bash -c '~/{{localbinpath}}/monitor-traefik.sh'
-#ExecStop=/bin/bash -c '~/{{localbinpath}}/monitor-traefik-stop.sh'
+ExecStart=/bin/bash -c '{{localbinpath}}/monitor-traefik.sh'
+#ExecStop=/bin/bash -c '{{localbinpath}}/monitor-traefik-stop.sh'
 
 [Install]
 WantedBy=default.target
