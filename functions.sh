@@ -16,6 +16,7 @@
 #  echo ${ltest2}
 #}
 
+
 # Print Debug Message if Environment DEBUG_CONTAINER is set to something
 debug_message() {
    # Debug Message processes all arguments
@@ -24,11 +25,11 @@ debug_message() {
    # Calling Stack
    #local lcallingstack=("${FUNCNAME[@]:1}")
    #local lstack="${FUNCNAME[@]}"
-   local lstack="${FUNCNAME[*:0]}"
+   local lstack="${FUNCNAME}"
 
    # Print Stack
-   echo "Calling Debug from <${FUNCNAME[1]}>" >&2
-   echo "Calling Stack Size: <${#FUNCNAME[@]}>" >&2
+   #echo "Calling Debug from <${FUNCNAME[1]}>" >&2
+   #echo "Calling Stack Size: <${#FUNCNAME[@]}>" >&2
 
    # Check if Environment Variable is Set
    if [[ -n "${DEBUG_CONTAINER}" ]]
@@ -44,16 +45,22 @@ debug_message() {
    fi
 }
 
+
 # Print Stack Size
 debug_stack() {
    # Debug Stack Local Variable
-   local lstack="${*:0}"
+   #local lstack="${*}"
+   local lstack=("${FUNCNAME[@]:1}")
 
    # Number of Elements
    local lnum=${#lstack[@]}
 
    # Debug
-   echo "${FUNCNAME[0]} - Stack has <${lnum}> Elements."
+   #echo "${FUNCNAME[0]} - Stack has <${lnum}> Elements."
+
+   #echo "First: ${lstack[0]}"
+   #echo "Second: ${lstack[1]}"
+   #echo "Third: ${lstack[2]}"
 
    # Last Index
    local llast=$((lnum-1))
@@ -64,9 +71,12 @@ debug_stack() {
    for lindex in $(seq 0 ${llast})
    do
       lindent=$(repeat_character "\t" "${lindex}")
-      echo -e "${lindent} ${lstack[${lindex}]}"
+      echo -e "[${lindex}] ${lindent} ${lstack[${lindex}]}" >&2
    done
 }
+
+
+
 
 # Repeat Character N times
 repeat_character() {
