@@ -14,7 +14,7 @@ AccuracySec=1
 OnCalendar=*-*-* 23:00:00
 
 # Run when enabled
-OnActiveSec=5s
+#OnActiveSec=5s
 
 # File describing job to execute
 Unit=podman-setup-service-custom-auto-update.service

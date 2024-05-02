@@ -807,7 +807,7 @@ get_containers_from_compose_dir() {
    for litem in "${llist[@]}"
    do
        # Debug
-       debug_message "${FUNCNAME[0]} - Processing Item <${litem}>"
+       #debug_message "${FUNCNAME[0]} - Processing Item <${litem}>"
 
        # Perfom Cleaning of the Item String
        lcleanitem=$(echo ${litem} | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
@@ -1543,7 +1543,7 @@ exists_container() {
    local lexistscode=$?
 
    # Debug
-   debug_message "${FUNCNAME[0]} - Checking if Container ${lquerycontainer} Exists returned Exit Code <${lexistscode}>."
+   debug_message "${FUNCNAME[0]} - Checking if Container <${lquerycontainer}> Exists returned Exit Code <${lexistscode}>."
 
    # Print Exit Code
    #echo ${lexistscode}
