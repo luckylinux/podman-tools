@@ -20,4 +20,5 @@ done
 cd "${currentpath}" || exit
 
 # Setup autostart for all containers
-bash "./configure_podman_service_autostart_all.sh"
+# Disabled for now
+#bash "./configure_podman_service_autostart_all.sh"
