@@ -358,7 +358,7 @@ systemd_start() {
 }
 
 
-systemd_reload() {
+systemd_daemon_reload() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
 
@@ -366,7 +366,7 @@ systemd_reload() {
    systemd_cmd "${luser}" "daemon-reload"
 }
 
-systemd_reexec() {
+systemd_daemon_reexec() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
 
@@ -390,7 +390,7 @@ systemd_reload_enable() {
    local lservice=${2}
 
    # Reload Systemd Service Files
-   systemd_reload "${luser}"
+   systemd_daemon_reload "${luser}"
 
    # Enable the Service to start automatically at each boot
    systemd_enable "${luser}" "${lservice}"
@@ -767,13 +767,13 @@ enable_autostart_container() {
    #    generic_cmd "${luser}" "podman" generate systemd --name ${lcontainer} --new > ${lsystemdfolder}/${lservicefile}
    #
    #    # Reload Systemd Configuration
-   #    systemd_reload "${luser}"
+   #    systemd_daemon_reload "${luser}"
    #else
    #    # Generate New Service File
    #    generic_cmd "${luser}" "podman" generate systemd --name ${lcontainer} --new > ${lsystemdfolder}/${lservicefile}
    #
    #    # Enable & Restart Service
-   #    systemd_reload "${luser}"
+   #    systemd_daemon_reload "${luser}"
    #    systemd_enable "${luser}" "${lservicename}"
    #    systemd_restart "${luser}" "${lservicename}"
    #fi
@@ -783,7 +783,7 @@ enable_autostart_container() {
 
    # Enable & Restart Service
    sleep 0.5
-   systemd_reload "${luser}"
+   systemd_daemon_reload "${luser}"
    sleep 0.5
    systemd_enable "${luser}" "${lservicefile}"
    systemd_restart "${luser}" "${lservicefile}"
@@ -816,14 +816,16 @@ disable_autostart_container() {
       systemd_disable "${luser}" "${lservicefile}"
       systemd_stop "${luser}" "${lservicefile}"
       sleep 0.5
-      systemd_reload "${luser}"
+      systemd_daemon_reload "${luser}"
       sleep 0.5
 
       # Remove Service File
-      rm -f "${lsystemdfolder}/${lservicefile}"
+      rm -f "${lservicepath}"
 
       # Reload Systemd again
-      systemd_reload "${luser}"
+      sleep 0.5
+      systemd_daemon_reload "${luser}"
+      sleep 0.5
    fi
 }
 
