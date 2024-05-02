@@ -644,8 +644,15 @@ get_container_from_systemd_file() {
 #    # The Container Name is passed as an Argument
 #    local lname=${1}
 #
+#    # The User is passed as Optional Argument
+#    local luser=${2-""}
+#    if [[ -z "${luser}" ]]
+#    then
+#       luser=$(whoami)
+#    fi
+#
 #    # Extract Systemd File from Container
-#    local lservicefile=$(podman inspect ${lname} | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
+#    local lservicefile=$(generic_cmd ${luser} "podman" inspect ${lname} | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
 #
 #    # Return
 #    echo ${lservicefile}
@@ -656,8 +663,27 @@ get_compose_dir_from_container() {
     # The Container Name is passed as an Argument
     local lcontainer=${1}
 
-    # Extract compodir from Container
-    local lcomposedir=$(podman inspect ${lcontainer} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+    # The User is passed as Optional Argument
+    local luser=${2-""}
+    if [[ -z "${luser}" ]]
+    then
+       luser=$(whoami)
+    fi
+
+    # Check if Container Exists first of all
+    local lexist=$(exists_container "${lcontainer}")
+
+    # Declare variable
+    local lcomposedir=""
+
+    if [[ $? -eq 0 ]]
+    then
+       # Extract compodir from Container
+       local lcomposedir=$(generic_cmd "${luser}" "podman" inspect ${lcontainer} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+    else
+       # Empty value
+       local ldummy=1
+    fi
 
     # Return
     echo ${lcomposedir}
@@ -1140,11 +1166,21 @@ exists_container() {
    # The Container Name is passed as an Argument
    local lquerycontainer=${1}
 
-   # Get List of Running/Stopped Containers
-   #mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+   # The User is passed as Optional Argument
+   local luser=${2-""}
+   if [[ -z "${luser}" ]]
+   then
+      luser=$(whoami)
+   fi
 
    # Default to false
    local lfound=0
+
+   # Debug
+   debug_message "Check if Container <${lquerycontainer}> exists."
+
+   # Get List of Running/Stopped Containers
+   #mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 
    # Loop over existing Containers
    #local lcontainer=""
@@ -1170,7 +1206,8 @@ exists_container() {
    #fi
 
    # Alternative
-   local lexist=$(podman )
-   echo $?
+   local lexist=$(generic_cmd "${luser}" "podman" container exists "${lquerycontainer}")
 
+   # Return same as Exit Code
+   echo $?
 }
