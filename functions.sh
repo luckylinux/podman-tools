@@ -34,7 +34,7 @@ debug_message() {
       if [[ -n "${DEBUG_CONTAINER_STACK}" ]]
       then
          # Show the Debug Stack
-         debug_stack ${lcallingstack}
+         debug_stack ${lcallingstack[@]}
       fi
 
       # Show the Debug Message
@@ -45,7 +45,7 @@ debug_message() {
 # Print Stack Size
 debug_stack() {
    # Debug Stack Local Variable
-   local lstack=$1
+   local lstack="$[@]"
 
    # Number of Elements
    local lnum=${#lstack[@]}
