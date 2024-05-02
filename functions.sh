@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Check what the error exiting policy currently is
-set -o|grep errexit
+#set -o|grep errexit
 
 # Disable automatic exiting in case of errors
-set +e
-set +o errexit
+#set +e
+#set +o errexit
 
 # Test BASH Variable Expansion
 #test_expansion() {
@@ -142,10 +142,10 @@ array_contains() {
     if [[ "${lstatus}" == "1" ]]
     then
        # Exit Normally
-       exit 0
+       return 0
     else
        # Issue a Warning when quitting
-       exit 1
+       return 1
     fi
 }
 
@@ -180,7 +180,8 @@ replace_text() {
 schedule_mode_not_supported() {
    local lschedulemode=${1}
    echo "Scheduling Mode <${lschedulemode}> is NOT supported. Possible choices are <cron> or <systemd>. Aborting !"
-   exit 2
+   return 2
+   break
 }
 
 # Get Homedir
@@ -484,7 +485,7 @@ list_subuid_subgid() {
      local lUSERS
      local li=0
 
-     for li in ${lSUBUID} ${lSUBGID}; do [[ -f "${li}" ]] || { echo "ERROR: ${li} does not exist, but is required."; exit 1; }; done
+     for li in ${lSUBUID} ${lSUBGID}; do [[ -f "${li}" ]] || { echo "ERROR: ${li} does not exist, but is required."; return 1; }; done
      [[ -n "${1}" ]] && lUSERS=${1} || lUSERS=$(awk -F : '{x=x " " ${1}} END{print x}' ${lSUBUID})
      for i in ${lUSERS}; do
         awk -F : "\${1} ~ /${li}/ {printf(\"%-16s sub-UIDs: %6d..%6d (%6d)\", \${1} \",\", \${2}, \${2}+\${3}, \${3})}" ${lSUBUID}
@@ -706,13 +707,13 @@ get_compose_dir_from_container() {
        echo ${lcomposedir}
 
        # Exit Normally
-       exit 0
+       return 0
     else
        # Empty value
        local ldummy=1
 
        # Exit with Error
-       exit 1
+       return 1
     fi
 }
 
@@ -726,7 +727,8 @@ compose_check_dir() {
        echo "ERROR: This is NOT a Compose Directory."
        echo "       File <compose.yml> could NOT be found"
        echo "ABORTING !"
-       exit 99
+       return 99
+       break
    fi
 }
 
@@ -1256,10 +1258,10 @@ exists_container() {
    #if [[ ${lfound} -eq 1 ]]
    #then
    #   debug_message "Container <${lquerycontainer}> exists"
-   #   exit 0
+   #   return 0
    #else
    #   debug_message "Container <${lquerycontainer}> does NOT exist"
-   #   exit 1
+   #   return 1
    #fi
 
    # Alternative
@@ -1273,8 +1275,8 @@ exists_container() {
    debug_message "Checking if Container ${lquerycontainer} Exists returned Exit Code <${lexistscode}>."
 
    # Print Exit Code
-   #echo ${lexitcode}
+   #echo ${lexistscode}
 
    # Return Exit Code
-   exit ${lexistscode}
+   return ${lexistscode}
 }
