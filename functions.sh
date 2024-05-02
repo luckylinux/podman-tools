@@ -1027,7 +1027,7 @@ exists_container() {
    mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 
    # Default to false
-   local found=0
+   local lfound=0
 
    # Loop over existing Containers
    local lcontainer=""
@@ -1035,12 +1035,12 @@ exists_container() {
    do
       if [[ "${lcontainer}" == "${lquerycontainer}" ]]
       then
-         found=1
+         lfound=1
       fi
    done
 
    # Return Value
-   #echo ${found}
+   #echo ${lfound}
 
    # Check the status of the Variable
    if [[ ${lfound} -eq 1 ]]

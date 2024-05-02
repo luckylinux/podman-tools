@@ -50,3 +50,9 @@ check_all() {
        check_script "${scriptfile}"
    done
 }
+
+# If script is Executed (NOT sourced) then execute a "main" function
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]
+then
+    check_script "$1"
+fi
