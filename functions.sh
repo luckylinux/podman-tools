@@ -35,7 +35,7 @@ debug_message() {
       if [[ -n "${DEBUG_CONTAINER_STACK}" ]]
       then
          # Show the Debug Stack
-         debug_stack "${lstack[@]:1}"
+         debug_stack ${lstack}
       fi
 
       # Show the Debug Message
@@ -46,7 +46,7 @@ debug_message() {
 # Print Stack Size
 debug_stack() {
    # Debug Stack Local Variable
-   local lstack="${@:0}"
+   local lstack="${@}"
 
    # Number of Elements
    local lnum=${#lstack[@]}
@@ -195,7 +195,7 @@ replace_text() {
     local lARGV=("$@")
 
     #Debug
-    debug_message echo "${FUNCNAME[0]} - Passed <${lnargin}> arguments and <${lnparameters}> parameter"
+    debug_message "${FUNCNAME[0]} - Passed <${lnargin}> arguments and <${lnparameters}> parameter"
 
     # Initialize Variables
     local p=1
