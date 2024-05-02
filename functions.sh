@@ -22,8 +22,8 @@ debug_message() {
    local lmessage="${*}"
 
    # Print Stack
-   echo "Calling Debug from ${FUNCNAME[1]}" >&2
-   echo "Calling Stack Size ${#FUNCNAME[@]}" >&2
+   echo "Calling Debug from <${FUNCNAME[1]}>" >&2
+   echo "Calling Stack Size: <${#FUNCNAME[@]}>" >&2
 
    # Check if Environment Variable is Set
    if [[ -n "${DEBUG_CONTAINER}" ]]
@@ -55,7 +55,7 @@ debug_stack() {
    local lindent=""
    for lindex in $(seq 0 ${llast})
    do
-      lindent=repeat_character "\t" "${lindex}"
+      lindent=$(repeat_character "\t" "${lindex}")
       echo "${lindent} ${lstack[${lindex}]}"
    done
 }
