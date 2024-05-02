@@ -936,6 +936,9 @@ stop_container() {
     # Get Systemd Service File Name
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
+    # Debug
+    echo "Systemd Service File: ${lservicefile}"
+
     if [[ ! -z "${lservicefile}" ]]
     then
        # Stop Systemd Service First of All
@@ -961,6 +964,10 @@ restart_container() {
     # Get Systemd Service File Name
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
+    # Debug
+    echo "Systemd Service File: ${lservicefile}"
+
+    # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
     then
        # Restart Systemd Service First of All
@@ -986,6 +993,10 @@ start_container() {
     # Get Systemd Service File Name
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
+    # Debug
+    echo "Systemd Service File: ${lservicefile}"
+
+    # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
     then
        # Stop Systemd Service First of All
@@ -1010,6 +1021,9 @@ remove_container() {
 
     # Get Systemd Service File Name
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
+
+    # Debug
+    echo "Systemd Service File: ${lservicefile}"
 
     # Disable Container Autostart Service
     disable_autostart_container "${luser}" "${lcontainer}"
