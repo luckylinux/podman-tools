@@ -553,7 +553,7 @@ systemd_status() {
    if [[ ${lexistscode} -eq 0 ]]
    then
       # Run Command using Wrapper
-      systemd_cmd "${luser}" "status" "${lservice}" --no-pager
+      systemd_cmd "${luser}" "status" "${lservice}" "--no-pager"
    fi
 }
 
@@ -730,10 +730,10 @@ systemd_reload_enable() {
    systemd_restart "${luser}" "${lservice}"
 
    # Verify the Status is OK
-   systemd_status "${luser}" "${lservice}" --no-pager
+   systemd_status "${luser}" "${lservice}" "--no-pager"
 
    # Check the logs from time to time and in case of issues
-   journald_log "${luser}" "${lservice}" --no-pager
+   journald_log "${luser}" "${lservice}" "--no-pager"
 }
 
 
@@ -1350,7 +1350,7 @@ status_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Get Container Status
-    systemd_status "${luser}" "${lservicefile}"
+    systemd_status "${luser}" "${lservicefile}" "--no-pager"
 }
 
 # Journal Container
@@ -1369,7 +1369,7 @@ journal_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Show Journal
-    journald_cmd "${luser}" "-xeu" "${lservicefile}" --no-pager
+    journald_cmd "${luser}" "-xeu" "${lservicefile}" "--no-pager"
 }
 
 # Logs Container
