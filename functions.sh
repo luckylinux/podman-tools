@@ -21,6 +21,10 @@ debug_message() {
    # Debug Message processes all arguments
    local lmessage="${*}"
 
+   # Print Stack
+   echo "Calling Debug ${FUNCNAME[1]}" >&2
+   echo "Stack Size ${#FUNCNAME[@]}" >&2
+
    # Check if Environment Variable is Set
    if [[ -n "${DEBUG_CONTAINER}" ]]
    then
@@ -398,8 +402,15 @@ systemd_enable() {
    local luser=${1}
    local lservice=${2}
 
-   # Run Command using Wrapper
-   systemd_cmd "${luser}" "enable" "${lservice}"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "enable" "${lservice}"
+   fi
 }
 
 # Disable service(s)
@@ -408,8 +419,15 @@ systemd_disable() {
    local luser=${1}
    local lservice=${2}
 
-   # Run Command using Wrapper
-   systemd_cmd "${luser}" "disable" "${lservice}"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "disable" "${lservice}"
+   fi
 }
 
 # Status of service(s)
@@ -418,8 +436,15 @@ systemd_status() {
    local luser=${1}
    local lservice=${2}
 
-   # Run Command using Wrapper
-   systemd_cmd "${luser}" "status" "${lservice}" --no-pager
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "status" "${lservice}" --no-pager
+   fi
 }
 
 systemd_restart() {
@@ -427,8 +452,15 @@ systemd_restart() {
    local luser=${1}
    local lservice=${2}
 
-   # Run Command using Wrapper
-   systemd_cmd "${luser}" "restart" "${lservice}"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "restart" "${lservice}"
+   fi
 }
 
 systemd_stop() {
@@ -436,8 +468,15 @@ systemd_stop() {
    local luser=${1}
    local lservice=${2}
 
-   # Run Command using Wrapper
-   systemd_cmd "${luser}" "stop" "${lservice}"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "stop" "${lservice}"
+   fi
 }
 
 systemd_start() {
@@ -445,8 +484,46 @@ systemd_start() {
    local luser=${1}
    local lservice=${2}
 
-   # Run Command using Wrapper
-   systemd_cmd "${luser}" "start" "${lservice}"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "start" "${lservice}"
+   fi
+}
+
+systemd_exists() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local luser=${1}
+   local lservice=${2}
+
+   # Get Systemd Config Directory
+   local lsystemdfolder=$(get_systemdconfigdir "${luser}")
+
+   # Build Systemd Service Path
+   local lservicepath="${lsystemdfolder}/${lservice}"
+
+   # Debug
+   debug_message "Check if Systemd Service <${lservice}> exists for User <${luser}>"
+
+   # Check if Service Exists
+   if [[ -f "${lservicepath}" ]]
+   then
+      # Debug
+      debug_message "Systemd Service <${lservice}> exists at <${lservicepath}>"
+
+      # Return Code
+      return 0
+   else
+      # Debug
+      debug_message "Systemd Service <${lservice}> does NOT exists at <${lservicepath}>"
+
+      # Return Code
+      return 1
+   fi
 }
 
 systemd_reload() {
@@ -482,8 +559,15 @@ systemd_reset() {
    local luser=${1}
    local lservice=${2}
 
-   # Run Command using Wrapper
-   systemd_cmd "${luser}" "reset-failed" "${lservice}"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "reset-failed" "${lservice}"
+   fi
 }
 
 systemd_daemon_reload() {
@@ -502,15 +586,20 @@ systemd_daemon_reexec() {
    systemd_cmd "${luser}" "daemon-reexec"
 }
 
-
-
 journald_log() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
    local lservice=${2}
 
-   #  Run Command using Wrapper
-   journald_cmd "${luser}" "-xeu" "${lservice}"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      #  Run Command using Wrapper
+      journald_cmd "${luser}" "-xeu" "${lservice}"
+   fi
 }
 
 # Shortcut to Systemd daemon-reload + enable + restart service
