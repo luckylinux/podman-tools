@@ -357,6 +357,32 @@ systemd_start() {
    systemd_cmd "${luser}" "start" "${lservice}"
 }
 
+systemd_reload() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local luser=${1}
+   local lservice=${2}
+
+   if [[ -z "${lservice}" ]]
+   then
+      # Just run systemd_daemon_reload
+      systemd_daemon_reload "${luser}"
+   else
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "reload" "${lservice}"
+
+      # Also Reset Errors for that Service
+      systemd_reset "${luser}" "${lservice}"
+   fi
+}
+
+systemd_reset() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local luser=${1}
+   local lservice=${2}
+
+   # Run Command using Wrapper
+   systemd_cmd "${luser}" "reset-failed" "${lservice}"
+}
 
 systemd_daemon_reload() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
@@ -374,6 +400,8 @@ systemd_daemon_reexec() {
    systemd_cmd "${luser}" "daemon-reexec"
 }
 
+
+
 journald_log() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
@@ -390,7 +418,9 @@ systemd_reload_enable() {
    local lservice=${2}
 
    # Reload Systemd Service Files
-   systemd_daemon_reload "${luser}"
+   sleep 0.5
+   systemd_reload "${luser}" "${lservice}"
+   sleep 0.5
 
    # Enable the Service to start automatically at each boot
    systemd_enable "${luser}" "${lservice}"
@@ -761,29 +791,47 @@ enable_autostart_container() {
    # Get Systemd Service File Name
    local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
+   # Define Systemd Service File Path
+   local lservicepath="${lsystemdfolder}/${lservicefile}"
+
    #if [[ -f "${lservicepath}" ]]
    #then
    #    # Update Service File if Required
    #    generic_cmd "${luser}" "podman" generate systemd --name ${lcontainer} --new > ${lsystemdfolder}/${lservicefile}
    #
    #    # Reload Systemd Configuration
-   #    systemd_daemon_reload "${luser}"
+   #    sleep 0.5
+   #    systemd_reload "${luser}" "${lservicefile}"
+   #    sleep 0.5
    #else
    #    # Generate New Service File
    #    generic_cmd "${luser}" "podman" generate systemd --name ${lcontainer} --new > ${lsystemdfolder}/${lservicefile}
    #
    #    # Enable & Restart Service
-   #    systemd_daemon_reload "${luser}"
-   #    systemd_enable "${luser}" "${lservicename}"
-   #    systemd_restart "${luser}" "${lservicename}"
+   #    sleep 0.5
+   #    systemd_reload "${luser}" "${lservicefile}"
+   #    sleep 0.5
+   #    systemd_enable "${luser}" "${lservicefile}"
+   #    systemd_restart "${luser}" "${lservicefile}"
    #fi
 
+   # Delete file if exists already
+   # Could prevent Systemd from printing Warning Messages such as:
+   # >> The unit file, source configuration file or drop-ins of container-docker-local-mirror-registry.service changed on disk. Run 'systemctl --user daemon-reload' to reload units.
+   if [[ -f "${lservicepath}" ]]
+   then
+       rm -f "${lservicepath}"
+       sleep 0.5
+       systemd_reload "${luser}" "${lservicefile}"
+       sleep 0.5
+   fi
+
    # Generate Service File
-   generic_cmd "${luser}" "podman" generate systemd --name "${lcontainer}" --new > "${lsystemdfolder}/${lservicefile}"
+   generic_cmd "${luser}" "podman" generate systemd --name "${lcontainer}" --new > "${lservicepath}"
 
    # Enable & Restart Service
    sleep 0.5
-   systemd_daemon_reload "${luser}"
+   systemd_reload "${luser}" "${lservicefile}"
    sleep 0.5
    systemd_enable "${luser}" "${lservicefile}"
    systemd_restart "${luser}" "${lservicefile}"
@@ -816,7 +864,7 @@ disable_autostart_container() {
       systemd_disable "${luser}" "${lservicefile}"
       systemd_stop "${luser}" "${lservicefile}"
       sleep 0.5
-      systemd_daemon_reload "${luser}"
+      systemd_reload "${luser}" "${lservicefile}"
       sleep 0.5
 
       # Remove Service File
@@ -824,7 +872,7 @@ disable_autostart_container() {
 
       # Reload Systemd again
       sleep 0.5
-      systemd_daemon_reload "${luser}"
+      systemd_reload "${luser}" "${lservicefile}"
       sleep 0.5
    fi
 }
@@ -953,8 +1001,13 @@ stop_container() {
        systemd_stop "${luser}" "${lservicefile}"
     else
        # Stop using podman command
-       generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
+       # generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
+       local ldummy=1
     fi
+
+    # Stop using podman command in *any* case
+    generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
+
 }
 
 # (Re)start Container
