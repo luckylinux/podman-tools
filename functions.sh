@@ -1016,7 +1016,7 @@ stop_container() {
     fi
 
     # Check if podman container exists
-    local lexist=$(container_exists "${lcontainer}")
+    local lexist=$(exists_container "${lcontainer}")
     if [[ $? -eq 0 ]]
     then
        # If exist code is 0, then the container exists
