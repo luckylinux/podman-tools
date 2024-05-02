@@ -22,15 +22,42 @@ debug_message() {
    local lmessage="${*}"
 
    # Print Stack
-   echo "Calling Debug ${FUNCNAME[1]}" >&2
-   echo "Stack Size ${#FUNCNAME[@]}" >&2
+   echo "Calling Debug from ${FUNCNAME[1]}" >&2
+   echo "Calling Stack Size ${#FUNCNAME[@]}" >&2
 
    # Check if Environment Variable is Set
    if [[ -n "${DEBUG_CONTAINER}" ]]
    then
+      if [[ -n "${DEBUG_CONTAINER_STACK}" ]]
+      then
+         # Show the Debug Stack
+         debug_stack "${FUNCNAME[@:2]}"
+      fi
+
       # Show the Debug Message
       echo "${lmessage}" >&2
    fi
+}
+
+# Print Stack Size
+debug_stack() {
+   # Debug Stack Local Variable
+   local lstack=${1}
+
+   # Number of Elements
+   local lnum=${#lstack[@]}
+
+   # Last Index
+   local llast=$((lnum-1))
+
+   # Iterate
+   local lindex=0
+   local lindent=""
+   for lindex in $(seq 0 ${llast})
+   do
+      lindent=repeat_character "\t" "${lindex}"
+      echo "${lindent} ${lstack[${lindex}]}"
+   done
 }
 
 # Repeat Character N times
@@ -736,7 +763,7 @@ get_containers_from_compose_dir() {
    local lwhichcontainers=${3-""}
 
    # Debug
-   debub_message "Get list of Containers from Compose Directory <${lcomposedir}> based on <compose.yml> File."
+   debug_message "Get list of Containers from Compose Directory <${lcomposedir}> based on <compose.yml> File."
 
 
    # Extract from the File itself
