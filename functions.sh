@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Check what the error exiting policy currently is
+set -o|grep errexit
+
+# Disable automatic exiting in case of errors
+set +e
+set +o errexit
+
 # Test BASH Variable Expansion
 #test_expansion() {
 #  local ltest1="${@:2}"
