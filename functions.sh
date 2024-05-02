@@ -1076,7 +1076,7 @@ stop_container() {
     # Check if podman container exists
     local lexists=$(exists_container "${lcontainer}" "${luser}")
     debug_message "Last Exit Code was <$?>"
-    if [[ ${lexist} -eq 0 ]]
+    if [[ ${lexists} -eq 0 ]]
     then
        # If exist code is 0, then the container exists
        generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
@@ -1241,8 +1241,11 @@ exists_container() {
    # Store exitcode (needed otherwise the exitcode of the function would be the exitcode of "echo" function)
    local lexitcode=$?
 
+   # Debug
+   debug_message "Checking if Container ${lquerycontainer} Exists returned Exit Code <${lexitcode}>."
+
    # Print Exit Code
-   echo ${lexists}
+   echo ${lexitcode}
 
    # Return Exit Code
    exit ${lexitcode}
