@@ -2,7 +2,7 @@
 Description=Automatically Setup Autostart Service Files for Podman Containers
 
 [Service]
-ExecStart=/bin/bash -c '{{toolpath}}/configure_podman_service_autostart_all.sh'
+ExecStart=/bin/bash -c '{{toolpath}}/configure_podman_service_autostart_all.sh "enable"'
 #ExecStop=
 
 [Install]

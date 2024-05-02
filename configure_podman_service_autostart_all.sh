@@ -66,14 +66,13 @@ else
     for servicepath in "${list[@]}"
     do
        # Need only the basename
-       servicefile=$(basename ${servicepath})
+       service=$(basename ${servicepath})
 
        # Extract Container Name from Service File
-       container=$(get_container_from_systemd_file "${servicefile}")
-
+       #container=$(get_container_from_systemd_file "${servicefile}")
+       #
        # Disable Autostart Container Service
-
-       echo "Disable & Stop & Remove Systemd Autostart Service <${service}>"
+       #echo "Disable & Stop & Remove Systemd Autostart Service <${service}>"
 
        # Disable Service
        systemd_disable "${user}" "${service}"
@@ -82,7 +81,7 @@ else
        systemd_stop "${user}" "${service}"
 
        # Remove Service
-       rm -f ${servicepath}
+       systemd_delete "${user}" "${service}"
 
        # Reload Systemd Daemon
        systemd_reload "${user}"
