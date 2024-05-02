@@ -42,7 +42,7 @@ debug_message() {
 # Print Stack Size
 debug_stack() {
    # Debug Stack Local Variable
-   local lstack=${1}
+   local lstack="${1[@]}"
 
    # Number of Elements
    local lnum=${#lstack[@]}
