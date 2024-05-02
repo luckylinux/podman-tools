@@ -577,10 +577,10 @@ get_containers_from_compose_dir() {
    if [[ "${lwhichcontainers}" == "enabled" ]]
    then
       # Exclude DISABLED (commented out) Containers
-      mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | tr -d "\n" | grep -Ev "^\s+?#")
+      mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | grep -Ev "^\s+?#")
    else
       # Include ALL
-      mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | tr -d "\n")
+      mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml")
    fi
 
    # Perform line-by-line matching using sed
