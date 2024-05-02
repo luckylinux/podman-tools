@@ -742,7 +742,7 @@ get_compose_dir_from_container() {
     #local lexists=$(exists_container "${lcontainer}" "${luser}")
     exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
-    debug_message "${FUNCNAME[0]} - Last Exit Code was <${lexistscode}>"
+    debug_message "${FUNCNAME[0]} - Last Exit Code from <exists_container> was <${lexistscode}>"
 
     # If Container exists
     if [[ ${lexistscode} -eq 0 ]]
@@ -1204,7 +1204,7 @@ stop_container() {
     #local lexists=$(exists_container "${lcontainer}" "${luser}")
     exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
-    debug_message "${FUNCNAME[0]} - Last Exit Code was <${lexistscode}>"
+    debug_message "${FUNCNAME[0]} - Last Exit Code from <exists_container> was <${lexistscode}>"
     if [[ ${lexistscode} -eq 0 ]]
     then
        # If exist code is 0, then the container exists
@@ -1240,7 +1240,7 @@ restart_container() {
        #local lexists=$(exists_container "${lcontainer}" "${luser}")
        exists_container "${lcontainer}" "${luser}"
        local lexistscode=$?
-       debug_message "Last Exit Code was <${lexistscode}>"
+       debug_message "Last Exit Code from <exists_container> was <${lexistscode}>"
 
        if [[ ${lexistscode} -eq 0 ]]
        then
@@ -1278,7 +1278,7 @@ start_container() {
        #local lexists=$(exists_container "${lcontainer}" "${luser}")
        exists_container "${lcontainer}" "${luser}"
        local lexistscode=$?
-       debug_message "${FUNCNAME[0]} - Last Exit Code was <${lexistscode}>"
+       debug_message "${FUNCNAME[0]} - Last Exit Code from <exists_container> was <${lexistscode}>"
 
        if [[ ${lexistscode} -eq 0 ]]
        then
@@ -1306,12 +1306,19 @@ remove_container() {
     # Debug
     debug_message "${FUNCNAME[0]} - Container: <${lcontainer}>"
     debug_message "${FUNCNAME[0]} - Systemd Service File: <${lservicefile}>"
+    debug_message "${FUNCNAME[0]} - Disabling Autostart Container for Container <${lcontainer}>"
 
     # Disable Container Autostart Service
     disable_autostart_container "${luser}" "${lcontainer}"
 
+    # Debug
+    debug_message "${FUNCNAME[0]} - Stop Container <${lcontainer}>"
+
     # Stop Container
     stop_container "${lcontainer}" "${luser}"
+
+    # Debug
+    debug_message "${FUNCNAME[0]} - Remove Autostart for Container <${lcontainer}>"
 
     # Remove Container Autostart Service
     remove_autostart_container "${luser}" "${lcontainer}"
@@ -1320,7 +1327,7 @@ remove_container() {
     #local lexists=$(exists_container "${lcontainer}" "${luser}")
     exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
-    debug_message "${FUNCNAME[0]} - Last Exit Code was <${lexistscode}>"
+    debug_message "${FUNCNAME[0]} - Last Exit Code from <exists_container> was <${lexistscode}>"
 
     if [[ ${lexistscode} -eq 0 ]]
     then
