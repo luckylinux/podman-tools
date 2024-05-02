@@ -241,8 +241,8 @@ get_systemdconfigdir() {
    if [[ ! -d "${lsystemdconfigdir}" ]]
    then
        # Debug
-       debub_message "Folder <${lsystemdconfigdir}> does NOT Currently Exist."
-       debub_message "Creating Folder <${lsystemdconfigdir}> now."
+       debug_message "Folder <${lsystemdconfigdir}> does NOT Currently Exist."
+       debug_message "Creating Folder <${lsystemdconfigdir}> now."
 
        mkdir -p "${lsystemdconfigdir}"
    fi
