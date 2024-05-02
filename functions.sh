@@ -155,6 +155,7 @@ replace_text() {
     local lnargin=$#
     local lnparameters=$(($((${lnargin}-1)) / 2))
     local lARGV=("$@")
+
     #Debug
     debug_message echo "Passed <${lnargin}> arguments and <${lnparameters}> parameter"
 
@@ -186,6 +187,7 @@ schedule_mode_not_supported() {
 
 # Get Homedir
 get_homedir() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
 
    # Get homedir
@@ -193,6 +195,30 @@ get_homedir() {
 
    # Return result
    echo ${lhomedir}
+}
+
+# Get Local Bin Path
+get_localbinpath() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local luser=${1}
+
+   # Declare Variable
+   local llocalbinpath=""
+
+   if [[ "${luser}" == "root" ]]
+   then
+       # Simply use System's /usr/local/bin
+       llocalbinpath="/usr/local/bin"
+   else
+       # Get User Home Directory
+       local lhomedir=$( get_homedir "${luser}" )
+
+       # Store in $HOME/.local/bin
+       llocalbinpath="${lhomedir}/.local/bin"
+   fi
+
+   # Return result
+   echo ${llocalbinpath}
 }
 
 # Get Systemdconfig

@@ -28,7 +28,7 @@ userhomedir=$( get_homedir "${user}" )
 systemdconfigfolder=$( get_systemdconfigdir "${user}" )
 
 # Generate Path to Install Executable
-userbinpath="${userhomedir}/.local/bin"
+localbinpath=$( get_localbinpath "${user}" )
 
 # Make sure that the Traefik Systemd Service has already been set up
 ${toolpath}/configure_podman_service_autostart.sh "traefik"
@@ -40,12 +40,12 @@ service="monitor-traefik.service"
 echo "Setup Traefik Monitoring Service for User <${user}>"
 
 # Copy Traefik Monitoring Script to Podman User Folder
-mkdir -p "${userbinpath}"
-cp "${toolpath}/bin/monitor-traefik.sh" "${userbinpath}/monitor-traefik.sh"
-chown "${user}:${user}" "${userbinpath}/monitor-traefik.sh"
+mkdir -p "${localbinpath}"
+cp "${toolpath}/bin/monitor-traefik.sh" "${localbinpath}/monitor-traefik.sh"
+chown "${user}:${user}" "${localbinpath}/monitor-traefik.sh"
 
 # Give Script Execution Permissions
-chmod +x "${userbinpath}/monitor-traefik.sh"
+chmod +x "${localbinpath}/monitor-traefik.sh"
 
 # Echo
 echo "Installing Systemd Service file in <${systemdconfigfolder}/${service}>"
@@ -53,6 +53,9 @@ echo "Installing Systemd Service file in <${systemdconfigfolder}/${service}>"
 # Copy Traefik Monitoring Service File to Podman Systemd Service Folder
 cp "${toolpath}/systemd/services/${service}" "${systemdconfigfolder}/${service}"
 chown "${user}:${user}" "${systemdconfigfolder}/${service}"
+
+# Make sure that the correct Path is set in the Service for localbinpath
+replace_text "${systemdconfigfolder}/${service}" "localbinpath" "${localbinpath}"
 
 # Enable & Start Systemd file
 systemd_reload_enable "${user}" "${service}"
