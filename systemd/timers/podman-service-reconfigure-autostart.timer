@@ -17,7 +17,7 @@ OnCalendar=*-*-* 20:00:00
 OnActiveSec=5s
 
 # File describing job to execute
-Unit=podman-setup-service-autostart.service
+Unit=podman-service-reconfigure-autostart.service
 
 [Install]
 WantedBy=timers.target

@@ -503,10 +503,10 @@ systemd_delete() {
       local lsystemdfolder=$(get_systemdconfigdir "${luser}")
 
       # Get Systemd Service File Name
-      local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
+      local lservicefile="${lservice}")
 
       # Define Systemd Service File Path
-      local lservicepath="${lsystemdfolder}/${lservicefile}"
+      local lservicepath="${lsystemdfolder}/${lservice}"
 
       # Remove Service File
       if [[ -f "${lservicepath}" ]]

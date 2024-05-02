@@ -17,7 +17,7 @@ OnCalendar=*-*-* 23:00:00
 #OnActiveSec=5s
 
 # File describing job to execute
-Unit=podman-setup-service-custom-auto-update.service
+Unit=podman-service-containers-auto-update.service
 
 [Install]
 WantedBy=timers.target
