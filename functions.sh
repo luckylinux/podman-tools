@@ -374,12 +374,13 @@ systemd_cmd() {
    local lservice=${3}
    #local loptions=${*:2} # Old
    local loptions=${*:4} # New
+   #local loptions=("${[@]:1}") # Untested
 
    # Who is executing the Script
    local lexecutingUser=$(whoami)
 
    # Debug
-   debug_message "${FUNCNAME[0]} - Execute systemd command targeting user <${luser}> with action <${laction}> for service <${lservice}>"
+   debug_message "${FUNCNAME[0]} - Execute systemd command targeting user <${luser}> with action <${laction}> and options <${loptions}> for service <${lservice}>"
 
    if [[ "${luser}" == "root" ]]
    then
@@ -392,12 +393,10 @@ systemd_cmd() {
       then
           # Run with runuser and with --user
 
-          # Run Command as root user and target a different non-root User
-          runuser -l "${luser}" -c "systemctl --user ${laction} ${lservice}" "${loptions}"
+          # Run Command as root using "runuser" and target a different non-root User
+          runuser -l "${luser}" -c "systemctl --user ${laction} ${lservice}" ${loptions}
       elif [[ "${luser}" == "${lexecutingUser}" ]]
       then
-          # Run without runuser and with --user
-
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
           systemctl --user ${laction} ${lservice} ${loptions}
       fi
@@ -412,7 +411,7 @@ journald_cmd() {
    local laction=${2}
    local lservice=${3}
    #local loptions=${*:2} # Old
-   local loptions=${*:2}  # New
+   local loptions=${*:4}  # New
 
    # Who is executing the Script
    local lexecutingUser=$(whoami)
