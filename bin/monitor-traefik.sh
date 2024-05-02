@@ -3,7 +3,7 @@
 while true
 do
    # Check if Traefik Container Exists first of all
-   podman container exists "${lquerycontainer}"
+   podman container exists "traefik"
 
    # Store exitcode (needed otherwise the exitcode of the function would be the exitcode of "echo" function)
    # 0 = exists
