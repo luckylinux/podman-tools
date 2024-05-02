@@ -819,6 +819,9 @@ compose_down() {
    # Get List of Containers Associated with Compose File by passing list_containers by reference
    get_containers_from_compose_dir list_containers "${lcomposedir}" "all"
 
+   # Run podman-compose down
+   generic_cmd "${luser}" "podman-compose" "down"
+
    # Loop over Containers
    local lcontainer
    for lcontainer in "${list_containers[@]}"
@@ -828,10 +831,10 @@ compose_down() {
 
        # Stop Container
        stop_container "${lcontainer}" "${luser}"
-   done
 
-   # Run podman-compose down
-   generic_cmd "${luser}" "podman-compose" "down"
+       # Remove Container
+       remove_container "${lcontainer}" "${luser}"
+   done
 }
 
 # Compose Up
