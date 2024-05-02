@@ -35,8 +35,11 @@ do
     # Remove Square brackets []
     source=$(echo ${image} | sed 's/[][]//g')
 
+    # Debug
+    debug_message "Processing Container Image <${image}> from <${source}>"
+
     # If source is non-null then try to pull image
-    if [[ -v source ]]
+    if [[ -n "${source}" ]]
     then
         # Pull (new ?) image
         podman pull ${source}
@@ -45,12 +48,12 @@ done
 
 # Restart Systemd Container Services
 cd ${systemdconfigdir} || exit
-for service in container-*.service
+for servicepath in container-*.service
 do
     # Get Service Name (without Path or "./")
-    servicename=$(basename "${service}")
+    servicename=$(basename "${servicepath}")
 
-    # Restart container
+    # Restart Service
     systemd_restart "${user}" "${servicename}"
 done
 
