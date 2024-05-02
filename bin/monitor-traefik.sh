@@ -2,6 +2,20 @@
 
 while true
 do
+   # Check if Traefik Container Exists first of all
+   podman container exists "${lquerycontainer}"
+
+   # Store exitcode (needed otherwise the exitcode of the function would be the exitcode of "echo" function)
+   # 0 = exists
+   traefik_exists=$?
+
+   # This might  not be sufficient in case Traefik is already stopped
+   if [ -d "$HOME/containers/compose/traefik" ] || [ -d "$HOME/compose/traefik" ]
+   then
+      # 0 = exists
+      traefik_exists=0
+   fi
+
    # List Containers
    mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 
@@ -56,12 +70,15 @@ do
    #echo ${formatted} | column -t -s$'\t'
    #echo -e ${formatted} | column -t -s "|"
 
-
-   if [[ ${traefik_restart} -gt 0 ]]
+   # If Traefik Container Exists
+   if [[ ${traefik_exists} -eq 0 ]]
    then
-      # Restart traefik container
-      echo "Restarting traefik container"
-      systemctl --user restart container-traefik
+       if [[ ${traefik_restart} -gt 0 ]]
+       then
+          # Restart traefik container
+          echo "Restarting traefik container"
+          systemctl --user restart container-traefik
+       fi
    fi
 
    # Wait a bit
