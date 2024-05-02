@@ -670,23 +670,30 @@ get_compose_dir_from_container() {
        luser=$(whoami)
     fi
 
-    # Check if Container Exists first of all
-    local lexist=$(exists_container "${lcontainer}")
-
     # Declare variable
     local lcomposedir=""
 
+    # Check if Container Exists first of all
+    local lexist=$(exists_container "${lcontainer}" "${luser}")
+
+    # If Container exists
     if [[ $? -eq 0 ]]
     then
        # Extract compodir from Container
        local lcomposedir=$(generic_cmd "${luser}" "podman" inspect ${lcontainer} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+
+       # Return Value
+       echo ${lcomposedir}
+
+       # Exit Normally
+       exit 0
     else
        # Empty value
        local ldummy=1
-    fi
 
-    # Return
-    echo ${lcomposedir}
+       # Exit with Error
+       exit 1
+    fi
 }
 
 compose_check_dir() {
@@ -1062,12 +1069,11 @@ stop_container() {
        systemd_stop "${luser}" "${lservicefile}"
     else
        # Stop using podman command
-       # generic_cmd "${luser}" "podman" "stop" "${lcontainer}"
        local ldummy=1
     fi
 
     # Check if podman container exists
-    local lexist=$(exists_container "${lcontainer}")
+    local lexist=$(exists_container "${lcontainer}" "${luser}")
     if [[ $? -eq 0 ]]
     then
        # If exist code is 0, then the container exists
@@ -1208,6 +1214,12 @@ exists_container() {
    # Alternative
    local lexist=$(generic_cmd "${luser}" "podman" container exists "${lquerycontainer}")
 
-   # Return same as Exit Code
+   # Store exitcode (needed otherwise the exitcode of the function would be the exitcode of "echo" function)
+   local lexitcode=$?
+
+   # Print Exit Code
    echo $?
+
+   # Return Exit Code
+   exit ${lexitcode}
 }
