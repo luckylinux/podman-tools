@@ -14,11 +14,18 @@ then
    read -p "Enter Containers base Folder (e.g. /home/podman/containers) where compose folder is located:" basefolder
 fi
 
+# Define user
+if [[ ! -v user ]]
+then
+#   user=${1:-'podman'}
+   user=$(whoami)
+fi
+
 # Stop Traefik Monitoring Service
-systemctl --user stop monitor-traefik.service
+systemd_stop "${user}" "monitor-traefik.service"
 
 # Stop Traefik Container
-systemctl --user stop container-traefik.service
+systemd_stop "${user}" "container-traefik.service"
 
 # Run Podman Compose
 if [[ -d "${basefolder}/compose" ]] && [[ -d "${basefolder}/compose/traefik" ]]
@@ -26,16 +33,19 @@ then
    # Change Folder
    cd ${basefolder}/compose/traefik || exit
 
+   # Run Wrapper
+   compose_update
+
    # Run podman compose
-   podman-compose down
-   sleep 1
-   podman-compose up -d
+   #podman-compose down
+   #sleep 1
+   #podman-compose up -d
 
    # Update Autostart File to match new Compose File
    bash ${toolpath}/configure_podman_service_autostart.sh "traefik"
 
    # Restart Traefik Monitoring Service
-   systemctl --user restart monitor-traefik.service
+   systemd_restart "${user}" "monitor-traefik.service"
 else
    echo "Folder ${basefolder}/compose/traefik does NOT exist. Aborting."
    exit 1

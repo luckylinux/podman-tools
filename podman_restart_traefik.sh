@@ -47,5 +47,5 @@ if [[ ${traefik_restart} -gt 0 ]]
 then
     # Restart traefik container
     echo "Restarting traefik container"
-    systemctl --user restart container-traefik
+    systemd_restart "container-traefik.service"
 fi
