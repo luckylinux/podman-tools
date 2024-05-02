@@ -35,6 +35,7 @@ then
    #cp "cron/podman-custom-auto-update" "${destination}"
    #chmod +x "${destination}"
    #replace_text "${destination}" "toolpath" "${toolpath}" "user" "${user}"
+   dummyvar=1
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File
