@@ -567,9 +567,21 @@ get_containers_from_compose_dir() {
        lcomposedir=$(pwd)
    fi
 
-   # Extract from the File itself:
+   # Optional Parameter stating if we want all Containers in the Compose file (to bring them DOWN) or just the ones that are enabled in the compose File
+   local lwhichcontainers=${3-""}
+
+   # Extract from the File itself
    #mapfile list < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g" )
-   mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" )
+
+   # Extract from the File itself
+   if [[ "${lwhichcontainers}" == "enabled" ]]
+   then
+      # Exclude DISABLED (commented out) Containers
+      mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | grep -Ev "^\s+?#")
+   else
+      # Include ALL
+      mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml")
+   fi
 
    # Perform line-by-line matching using sed
    local litem=""
@@ -727,7 +739,7 @@ compose_down() {
    declare -a list_containers
 
    # Get List of Containers Associated with Compose File by passing list_containers by reference
-   get_containers_from_compose_dir list_containers "${lcomposedir}"
+   get_containers_from_compose_dir list_containers "${lcomposedir}" "all"
 
    # Loop over Containers
    local lcontainer
@@ -778,7 +790,7 @@ compose_up() {
    declare -a list_containers
 
    # Get List of Containers Associated with Compose File by passing list_containers by reference
-   get_containers_from_compose_dir list_containers "${lcomposedir}"
+   get_containers_from_compose_dir list_containers "${lcomposedir}" "enabled"
 
    # Loop over Containers
    local lcontainer
