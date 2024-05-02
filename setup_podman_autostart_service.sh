@@ -29,15 +29,16 @@ systemdconfigdir=$(get_systemdconfigdir "${user}")
 
 if [[ "${schedulemode}" == "cron" ]]
 then
-   # Setup CRON to automatically generate updated Systemd Service files
-   destination="/etc/cron.d/podman-service-autostart"
-   cp "cron/podman-service-autostart" "${destination}"
-   chmod +x "${destination}"
-   replace_text "${destination}" "toolpath" "${toolpath}" "user" "${user}"
+   # Setup CRON to automatically generate updated Systemd Service files for Podman
+   # Disabled for now
+   #destination="/etc/cron.d/podman-service-reconfigure-autostart"
+   #cp "cron/podman-service-autostart" "${destination}"
+   #chmod +x "${destination}"
+   #eplace_text "${destination}" "toolpath" "${toolpath}" "user" "${user}"
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File
-   filename="podman-setup-service-autostart.service"
+   filename="podman-service-reconfigure-autostart.service"
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/services/${filename}" "${destination}"
    chmod +x "${destination}"
@@ -46,7 +47,7 @@ then
    systemd_reload_enable "${user}" "${filename}"
 
    # Copy Systemd Timer File
-   filename="podman-setup-service-autostart.timer"
+   filename="podman-service-reconfigure-autostart.timer"
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/timers/${filename}" "${destination}"
    chmod +x "${destination}"
@@ -57,3 +58,8 @@ else
    # Error
    schedule_mode_not_supported "${schedulemode}"
 fi
+
+# Remove old files / with old name
+#rm -f /etc/...
+systemd_delete "${user}" "podman-setup-service-autostart.service"
+systemd_delete "${user}" "podman-setup-service-autostart.timer"

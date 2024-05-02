@@ -444,7 +444,7 @@ journald_cmd() {
 }
 
 
-# Enable service(s)
+# Enable service
 systemd_enable() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
@@ -461,7 +461,7 @@ systemd_enable() {
    fi
 }
 
-# Disable service(s)
+# Disable service
 systemd_disable() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
@@ -475,6 +475,56 @@ systemd_disable() {
    then
       # Run Command using Wrapper
       systemd_cmd "${luser}" "disable" "${lservice}"
+   fi
+}
+
+# Delete service
+systemd_delete() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local luser=${1}
+   local lservice=${2}
+
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Debug
+      debug_message "${FUNCNAME[0]} - Disable + Stop Systemd Service <${lcontainer}>"
+
+      # Disable Service
+      systemd_disable "${luser}" "${lservice}"
+
+      # Stop Service
+      systemd_stop "${luser}" "${lservice}"
+
+      # Get Systemd Configuration Folder
+      local lsystemdfolder=$(get_systemdconfigdir "${luser}")
+
+      # Get Systemd Service File Name
+      local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
+
+      # Define Systemd Service File Path
+      local lservicepath="${lsystemdfolder}/${lservicefile}"
+
+      # Remove Service File
+      if [[ -f "${lservicepath}" ]]
+      then
+          # Debug
+          debug_message "${FUNCNAME[0]} - Remove Systemd Service <${lservicepath}> from Disk"
+
+          # Remove it
+          rm "${lservicepath}"
+      fi
+
+      # Debug
+      debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
+
+      # Reload Systemd Daemon again
+      sleep 0.5
+      systemd_daemon_reload "${luser}"
+      sleep 0.5
    fi
 }
 
@@ -1129,7 +1179,7 @@ enable_autostart_container() {
        debug_message "${FUNCNAME[0]} - Remove Existing Service file <${lservicepath}> for Container <${lcontainer}>"
 
        # Remove it
-       rm -f "${lservicepath}"
+       systemd_delete "${luser}" "${lservicefile}"
 
        # Debug
        debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
@@ -1199,7 +1249,7 @@ disable_autostart_container() {
       debug_message "${FUNCNAME[0]} - Remove Systemd Service <${lservicepath}> from Disk"
 
       # Remove Service File
-      rm -f "${lservicepath}"
+      systemd_delete "${luser}" "${lservicefile}"
 
       # Debug
       debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
