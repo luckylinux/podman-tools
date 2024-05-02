@@ -702,8 +702,8 @@ enable_autostart_container() {
    # Get Systemd Configuration Folder
    systemdfolder=$(get_systemdconfigdir "${luser}")
 
-   # Define Service File
-   servicefile="container-${container}.service"
+   # Get Systemd Service File Name
+   servicefile=$(get_systemd_file_from_container "${container}")
 
    #if [[ -f "${servicepath}" ]]
    #then
@@ -722,12 +722,13 @@ enable_autostart_container() {
    #    systemd_restart "${user}" "${servicename}"
    #fi
 
-
    # Generate Service File
    generic_cmd "${luser}" "podman" generate systemd --name "${container}" --new > "${systemdfolder}/${servicefile}"
 
    # Enable & Restart Service
+   sleep 0.5
    systemd_reload "${luser}"
+   sleep 0.5
    systemd_enable "${luser}" "${servicefile}"
    systemd_restart "${luser}" "${servicefile}"
 }
@@ -758,7 +759,9 @@ disable_autostart_container() {
       # Disable & Stop Service
       systemd_disable "${luser}" "${servicefile}"
       systemd_stop "${luser}" "${servicefile}"
+      sleep 0.5
       systemd_reload "${luser}"
+      sleep 0.5
 
       # Remove Service File
       rm -f "${systemdfolder}/${servicefile}"
