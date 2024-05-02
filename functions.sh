@@ -228,8 +228,10 @@ systemd_cmd() {
    local luser=${1}
    local laction=${2}
    local lservice=${3}
-   local loptions=${*:2}
+   #local loptions=${*:2} # Old
+   local loptions=${*:4} # New
 
+   # Who is executing the Script
    local lexecutingUser=$(whoami)
 
    # Debug
@@ -265,8 +267,10 @@ journald_cmd() {
    local luser=${1}
    local laction=${2}
    local lservice=${3}
-   local loptions=${*:2}
+   #local loptions=${*:2} # Old
+   local loptions=${*:2}  # New
 
+   # Who is executing the Script
    local lexecutingUser=$(whoami)
 
    # Debug
@@ -937,6 +941,7 @@ stop_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
+    echo "Container: ${lcontainer}"
     echo "Systemd Service File: ${lservicefile}"
 
     if [[ ! -z "${lservicefile}" ]]
@@ -965,6 +970,7 @@ restart_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
+    echo "Container: ${lcontainer}"
     echo "Systemd Service File: ${lservicefile}"
 
     # Decide what to do, depending if Systemd Service exists or not
@@ -994,6 +1000,7 @@ start_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
+    echo "Container: ${lcontainer}"
     echo "Systemd Service File: ${lservicefile}"
 
     # Decide what to do, depending if Systemd Service exists or not
@@ -1023,6 +1030,7 @@ remove_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
+    echo "Container: ${lcontainer}"
     echo "Systemd Service File: ${lservicefile}"
 
     # Disable Container Autostart Service
