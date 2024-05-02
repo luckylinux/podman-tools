@@ -370,7 +370,7 @@ systemd_reload() {
       # Check if Service provides a <reload> method
       local lcanreload=$(systemctl show "${lservice}" --property=CanReload --value)
 
-      if [[ "${}" == "yes" ]]
+      if [[ "${lcanreload}" == "yes" ]]
       then
           # If yes, execute reload of the service only
           # Run Command using Wrapper
