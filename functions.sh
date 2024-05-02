@@ -979,21 +979,47 @@ disable_autostart_container() {
 
    if [[ -f "${lservicepath}" ]]
    then
+      # Debug
+      debug_message "Disable + Stop Systemd Service <${lcontainer}>"
+
       # Disable & Stop Service
       systemd_disable "${luser}" "${lservicefile}"
       systemd_stop "${luser}" "${lservicefile}"
-      sleep 0.5
-      systemd_reload "${luser}" "${lservicefile}"
-      sleep 0.5
+      #sleep 0.5
+      #systemd_reload "${luser}" "${lservicefile}"
+      #sleep 0.5
+
+      # Debug
+      debug_message "Remove Systemd Service <${servicepath}> from Disk"
 
       # Remove Service File
       rm -f "${lservicepath}"
 
-      # Reload Systemd again
+      # Debug
+      debug_message "Reload Systemd Daemon"
+
+      # Reload Systemd Daemon again
       sleep 0.5
-      systemd_reload "${luser}" "${lservicefile}"
+      systemd_daemon_reload "${luser}"
       sleep 0.5
    fi
+}
+
+# Remove Container Autostart
+# Same as disable_autostart_container
+remove_autostart_container() {
+   # The Container Name is passed as an Argument
+   local lcontainer=${1}
+
+   # The User is passed as Optional Argument
+   local luser=${2-""}
+   if [[ -z "${luser}" ]]
+   then
+      luser=$(whoami)
+   fi
+
+   # Just call the other wrapper
+   disable_autostart_container "${lcontainer}" "${luser}"
 }
 
 # List Containers
@@ -1236,7 +1262,10 @@ remove_container() {
     # Stop Container
     stop_container "${lcontainer}" "${luser}"
 
-    # Remove Container
+    # Remove Container Autostart Service
+    remove_autostart_container "${luser}" "${lcontainer}"
+
+    # Remove Container if it exists
     #local lexists=$(exists_container "${lcontainer}" "${luser}")
     exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
