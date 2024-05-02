@@ -193,6 +193,9 @@ get_homedir() {
    # Get homedir
    local lhomedir=$(getent passwd "${luser}" | cut -d: -f6)
 
+   # Debug
+   debug_message "Local Home Directory of User <${luser}> is <${lhomedir}>."
+
    # Return result
    echo ${lhomedir}
 }
@@ -217,6 +220,9 @@ get_localbinpath() {
        llocalbinpath="${lhomedir}/.local/bin"
    fi
 
+   # Debug
+   debug_message "Local bin Path of User <${luser}> is <${llocalbinpath}>."
+
    # Return result
    echo ${llocalbinpath}
 }
@@ -236,6 +242,9 @@ get_systemdconfigdir() {
        local luserhomedir=$(get_homedir "${luser}")
        lsystemdconfigdir="${luserhomedir}/.config/systemd/user"
    fi
+
+   # Debug
+   debug_message "Systemd Config Directory of User <${luser}> is <${lsystemdconfigdir}>."
 
    # Make sure to create it if not existing already
    if [[ ! -d "${lsystemdconfigdir}" ]]
