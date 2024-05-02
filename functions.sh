@@ -139,7 +139,7 @@ replace_text() {
     local lnparameters=$(($((${lnargin}-1)) / 2))
     local lARGV=("$@")
     #Debug
-    debug_message echo "Passed ${lnargin} arguments and ${lnparameters} parameter"
+    debug_message echo "Passed <${lnargin}> arguments and <${lnparameters}> parameter"
 
     # Initialize Variables
     local p=1
@@ -152,7 +152,7 @@ replace_text() {
         local lvalue=${lARGV[${livalue}]}
 
         # Debug
-        debug_message "Replace {{${lname}}} -> ${lvalue} in ${lfilepath}"
+        debug_message "Replace <{{${lname}}}> -> <${lvalue}> in <${lfilepath}>"
 
         # Execute Replacement
         sed -Ei "s|\{\{${lname}\}\}|${lvalue}|g" "${lfilepath}"
@@ -578,7 +578,7 @@ get_containers_from_compose_dir() {
    for litem in "${llist[@]}"
    do
        # Debug
-       debug_message "Processing Item ${litem}"
+       debug_message "Processing Item <${litem}>"
 
        # Perfom Cleaning of the Item String
        lcleanitem=$(echo ${litem} | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
@@ -1017,13 +1017,13 @@ stop_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    debug_message "Container: ${lcontainer}"
-    debug_message "Systemd Service File: ${lservicefile}"
+    debug_message "Container: <${lcontainer}>"
+    debug_message "Systemd Service File: <${lservicefile}>"
 
     if [[ ! -z "${lservicefile}" ]]
     then
        # Stop Systemd Service First of All
-       debug_message "Stop Systemd Service"
+       debug_message "Stop Systemd Service <${lservicefile}>"
        systemd_stop "${luser}" "${lservicefile}"
     else
        # Stop using podman command
@@ -1056,8 +1056,8 @@ restart_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    debug_message "Container: ${lcontainer}"
-    debug_message "Systemd Service File: ${lservicefile}"
+    debug_message "Container: <${lcontainer}>"
+    debug_message "Systemd Service File: <${lservicefile}>"
 
     # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
@@ -1086,8 +1086,8 @@ start_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    debug_message "Container: ${lcontainer}"
-    debug_message "Systemd Service File: ${lservicefile}"
+    debug_message "Container: <${lcontainer}>"
+    debug_message "Systemd Service File: <${lservicefile}>"
 
     # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
@@ -1116,8 +1116,8 @@ remove_container() {
     local lservicefile=$(get_systemd_file_from_container "${lcontainer}")
 
     # Debug
-    debug_message "Container: ${lcontainer}"
-    debug_message "Systemd Service File: ${lservicefile}"
+    debug_message "Container: <${lcontainer}>"
+    debug_message "Systemd Service File: <${lservicefile}>"
 
     # Disable Container Autostart Service
     disable_autostart_container "${luser}" "${lcontainer}"
