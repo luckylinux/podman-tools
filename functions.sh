@@ -34,14 +34,17 @@ debug_message() {
    # Check if Environment Variable is Set
    if [[ -n "${DEBUG_CONTAINER}" ]]
    then
+      # Show the Debug Message
+      echo "${lmessage}" >&2
+
       if [[ -n "${DEBUG_CONTAINER_STACK}" ]]
       then
          # Show the Debug Stack
+         echo "Call Stack:" >&2
+
+         # Show the Debug Stack
          debug_stack "${lstack}"
       fi
-
-      # Show the Debug Message
-      echo "${lmessage}" >&2
    fi
 }
 
@@ -71,7 +74,7 @@ debug_stack() {
    for lindex in $(seq 0 ${llast})
    do
       lindent=$(repeat_character "\t" "${lindex}")
-      echo -e "[${lindex}] ${lindent} ${lstack[${lindex}]}" >&2
+      echo -e "${lindent} [${lindex}] ${lstack[${lindex}]}" >&2
    done
 }
 
