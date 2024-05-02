@@ -50,13 +50,16 @@ debug_stack() {
    # Last Index
    local llast=$((lnum-1))
 
+   # Debug
+   echo -e "${lstack[@]}"
+
    # Iterate
    local lindex=0
    local lindent=""
    for lindex in $(seq 0 ${llast})
    do
       lindent=$(repeat_character "\t" "${lindex}")
-      echo "${lindent} ${lstack[${lindex}]}"
+      echo -e "${lindent} ${lstack[${lindex}]}"
    done
 }
 
