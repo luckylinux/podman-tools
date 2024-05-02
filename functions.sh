@@ -478,6 +478,18 @@ systemd_disable() {
    fi
 }
 
+# Add servicee
+systemd_add() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local luser=${1}
+   local lservicefile=${3}
+
+   # Service Name is just the basename of the service file
+   local lservicename=$(basename "${lservicefile}")
+
+   # To be completed ...
+}
+
 # Delete service
 systemd_delete() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
@@ -718,10 +730,10 @@ systemd_reload_enable() {
    systemd_restart "${luser}" "${lservice}"
 
    # Verify the Status is OK
-   systemd_status "${luser}" "${lservice}"
+   systemd_status "${luser}" "${lservice}" --no-pager
 
    # Check the logs from time to time and in case of issues
-   journald_log "${luser}" "${lservice}"
+   journald_log "${luser}" "${lservice}" --no-pager
 }
 
 

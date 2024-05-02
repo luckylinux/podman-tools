@@ -27,6 +27,12 @@ homedir=$(get_homedir "${user}")
 # Get Systemdconfigdir
 systemdconfigdir=$(get_systemdconfigdir "${user}")
 
+# Remove old files / with old name
+#rm -f /etc/...
+systemd_delete "${user}" "podman-setup-service-custom-auto-update.service"
+systemd_delete "${user}" "podman-setup-service-custom-auto-update.timer"
+
+# Setup new Scheme
 if [[ "${schedulemode}" == "cron" ]]
 then
    # Setup CRON to automatically generate updated Systemd Service files
@@ -39,28 +45,23 @@ then
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File
-   filename="podman-service-containers-auto-update.service"
-   destination="${systemdconfigdir}/${filename}"
-   cp "systemd/services/${filename}" "${destination}"
+   servicefile="podman-service-containers-auto-update.service"
+   destination="${systemdconfigdir}/${servicefile}"
+   cp "systemd/services/${servicefile}" "${destination}"
    chmod +x "${destination}"
    chown "${user}:${user}" "${destination}"
    replace_text "${destination}" "toolpath" "${toolpath}" "user" "${user}"
-   systemd_reload_enable "${user}" "${filename}"
+   systemd_reload_enable "${user}" "${servicefile}"
 
    # Copy Systemd Timer File
-   filename="podman-service-containers-auto-update.timer"
-   destination="${systemdconfigdir}/${filename}"
-   cp "systemd/timers/${filename}" "${destination}"
+   timerfile="podman-service-containers-auto-update.timer"
+   destination="${systemdconfigdir}/${timerfile}"
+   cp "systemd/timers/${timerfile}" "${destination}"
    chmod +x "${destination}"
    chown "${user}:${user}" "${destination}"
    replace_text "${destination}" "toolpath" "${toolpath}" "user" "${user}"
-   systemd_reload_enable "${user}" "${filename}"
+   systemd_reload_enable "${user}" "${timerfile}"
 else
    # Error
    schedule_mode_not_supported "${schedulemode}"
 fi
-
-# Remove old files / with old name
-#rm -f /etc/...
-systemd_delete "${user}" "podman-setup-service-custom-auto-update.service"
-systemd_delete "${user}" "podman-setup-service-custom-auto-update.timer"
