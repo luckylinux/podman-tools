@@ -684,7 +684,8 @@ get_compose_dir_from_container() {
     local lcomposedir=""
 
     # Check if Container Exists first of all
-    local lexists=$(exists_container "${lcontainer}" "${luser}")
+    #local lexists=$(exists_container "${lcontainer}" "${luser}")
+    exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
     debug_message "Last Exit Code was <${lexistscode}>"
 
@@ -1085,7 +1086,8 @@ stop_container() {
     fi
 
     # Check if podman container exists
-    local lexists=$(exists_container "${lcontainer}" "${luser}")
+    #local lexists=$(exists_container "${lcontainer}" "${luser}")
+    exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
     debug_message "Last Exit Code was <${lexistscode}>"
     if [[ ${lexistscode} -eq 0 ]]
@@ -1120,7 +1122,8 @@ restart_container() {
        # Restart Systemd Service First of All
        systemd_restart "${luser}" "${lservicefile}"
     else
-       local lexists=$(exists_container "${lcontainer}" "${luser}")
+       #local lexists=$(exists_container "${lcontainer}" "${luser}")
+       exists_container "${lcontainer}" "${luser}"
        local lexistscode=$?
        debug_message "Last Exit Code was <${lexistscode}>"
 
@@ -1157,7 +1160,8 @@ start_container() {
        # Restart Systemd Service First of All
        systemd_restart "${luser}" "${lservicefile}"
     else
-       local lexists=$(exists_container "${lcontainer}" "${luser}")
+       #local lexists=$(exists_container "${lcontainer}" "${luser}")
+       exists_container "${lcontainer}" "${luser}"
        local lexistscode=$?
        debug_message "Last Exit Code was <${lexistscode}>"
 
@@ -1195,7 +1199,8 @@ remove_container() {
     stop_container "${lcontainer}" "${luser}"
 
     # Remove Container
-    local lexists=$(exists_container "${lcontainer}" "${luser}")
+    #local lexists=$(exists_container "${lcontainer}" "${luser}")
+    exists_container "${lcontainer}" "${luser}"
     local lexistscode=$?
     debug_message "Last Exit Code was <${lexistscode}>"
 
@@ -1251,7 +1256,8 @@ exists_container() {
    #fi
 
    # Alternative
-   local lexists=$(generic_cmd "${luser}" "podman" container exists "${lquerycontainer}")
+   #local lexists=$(generic_cmd "${luser}" "podman" container exists "${lquerycontainer}")
+   generic_cmd "${luser}" "podman" container exists "${lquerycontainer}"
 
    # Store exitcode (needed otherwise the exitcode of the function would be the exitcode of "echo" function)
    local lexistscode=$?
