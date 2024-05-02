@@ -25,7 +25,7 @@ debug_message() {
    if [[ -n "${DEBUG_CONTAINER}" ]]
    then
       # Show the Debug Message
-      echo "${lmessage}"
+      echo "${lmessage}" >&2
    fi
 }
 
@@ -190,14 +190,32 @@ get_homedir() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
 
-   # Get homedir
-   local lhomedir=$(getent passwd "${luser}" | cut -d: -f6)
+   # First check if user exists
+   getent passwd "${luser}" 2>&1 >/dev/null
 
-   # Debug
-   debug_message "${FUNCNAME[0]} - Local Home Directory of User <${luser}> is <${lhomedir}>."
+   # Store Exit Code
+   local luserexists=$?
 
-   # Return result
-   echo ${lhomedir}
+   if [[ ${lzserexists} -eq 0 ]]
+   then
+      # Get homedir
+      local lhomedir=$(getent passwd "${luser}" | cut -d: -f6)
+
+      # Debug
+      debug_message "${FUNCNAME[0]} - Local Home Directory of User <${luser}> is <${lhomedir}>."
+
+      # Check if it makes sense
+      # Empty Value means that the requested User hasn't been found
+
+      # Return result
+      echo ${lhomedir}
+   else
+      # Print Error
+      echo "ERROR: User <${luser}> does NOT exist. ABORTING !"
+      break
+      echo ""
+      return 1
+   fi
 }
 
 # Get Local Bin Path
@@ -1309,7 +1327,7 @@ remove_container() {
     debug_message "${FUNCNAME[0]} - Disabling Autostart Container for Container <${lcontainer}>"
 
     # Disable Container Autostart Service
-    disable_autostart_container "${luser}" "${lcontainer}"
+    disable_autostart_container "${lcontainer}" "${luser}"
 
     # Debug
     debug_message "${FUNCNAME[0]} - Stop Container <${lcontainer}>"
@@ -1321,7 +1339,7 @@ remove_container() {
     debug_message "${FUNCNAME[0]} - Remove Autostart for Container <${lcontainer}>"
 
     # Remove Container Autostart Service
-    remove_autostart_container "${luser}" "${lcontainer}"
+    remove_autostart_container "${lcontainer}" "${luser}"
 
     # Remove Container if it exists
     #local lexists=$(exists_container "${lcontainer}" "${luser}")
