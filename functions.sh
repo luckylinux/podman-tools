@@ -443,6 +443,26 @@ journald_cmd() {
 }
 
 
+# Mask service(s)
+systemd_mask() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local user=$1
+   local service=$2
+
+   # Run Command using Wrapper
+   systemd_cmd "$user" "mask" "$service"
+}
+
+# Unmask service(s)
+systemd_unmask() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local user=$1
+   local service=$2
+
+   # Run Command using Wrapper
+   systemd_cmd "$user" "unmask" "$service"
+}
+
 # Enable service
 systemd_enable() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
@@ -1104,6 +1124,9 @@ compose_up() {
    # Always run compose_down first to make sure that the don't have some Systemd Service still running or restarting
    compose_down "${luser}"
 
+   # Unmask Service
+   systemd_unmask "${luser}" "${lservicefile}"
+
    # Run podman-compose up
    generic_cmd "${luser}" "podman-compose" --podman-args="${lpodmanargs}" "up" "${lcomposeargs}"
 
@@ -1122,7 +1145,7 @@ compose_up() {
 
        # Start Container
        # No need - Container is already Started from podman-compose up -d
-       #start_container "${lcontainer}" "${luser}"
+       start_container "${lcontainer}" "${luser}"
 
        # Update Systemd Service File
        enable_autostart_container "${lcontainer}" "${luser}"
@@ -1203,6 +1226,9 @@ enable_autostart_container() {
 
    # Debug
    debug_message "${FUNCNAME[0]} - Generate (new) Systemd Service File <${lservicepath}> for Container <${lcontainer}>"
+
+   # Unmask Service
+   systemd_unmask "${luser}" "${lservicefile}"
 
    # Generate Service File
    generic_cmd "${luser}" "podman" generate systemd --name "${lcontainer}" --new > "${lservicepath}"
@@ -1450,6 +1476,9 @@ restart_container() {
     # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
     then
+       # Unmask Service
+       systemd_unmask "${luser}" "${lservicefile}"
+
        # Restart Systemd Service First of All
        systemd_restart "${luser}" "${lservicefile}"
     else
@@ -1488,6 +1517,9 @@ start_container() {
     # Decide what to do, depending if Systemd Service exists or not
     if [[ ! -z "${lservicefile}" ]]
     then
+       # Unmask Service
+       systemd_unmask "${luser}" "${lservicefile}"
+
        # Restart Systemd Service First of All
        systemd_restart "${luser}" "${lservicefile}"
     else
