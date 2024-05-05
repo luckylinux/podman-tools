@@ -1214,32 +1214,38 @@ enable_autostart_container() {
    # Delete file if exists already
    # Could prevent Systemd from printing Warning Messages such as:
    # >> The unit file, source configuration file or drop-ins of container-docker-local-mirror-registry.service changed on disk. Run 'systemctl --user daemon-reload' to reload units.
-   if [[ -f "${lservicepath}" ]]
-   then
-       # Debug
-       debug_message "${FUNCNAME[0]} - Disable & Stop Existing Service file <${lservicepath}> for Container <${lcontainer}> in order to prevent Systemd from issueing Warnings."
-
-       # Unmask Service
-       systemd_unmask "${luser}" "${lservicefile}"
-
-       # First of all Disable & Stop Current Systemd Service in order to prevent Systemd from Issueing Warnings
-       systemd_disable "${luser}" "${lservicefile}"
-       systemd_stop "${luser}" "${lservicefile}"
-
-       # Debug
-       debug_message "${FUNCNAME[0]} - Remove Existing Service file <${lservicepath}> for Container <${lcontainer}>"
-
-       # Remove it
-       systemd_delete "${luser}" "${lservicefile}"
-
-       # Debug
-       debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
-
-       # Reload Systemd Daemon
-       sleep 0.5
-       systemd_daemon_reload "${luser}"
-       sleep 0.5
-   fi
+   #
+   # WARNING ... WARNING ... WARNING
+   # This will prevent the converter from Starting at all in the future, if this Statement gets executed.
+   # Since this will result in the Container being stopped and the Systemd Service being deleted, there is no way that podman can regenerate the Systemd Service later on.
+   #
+   # This block needs to be DISABLED ALTOGETHER
+   #if [[ -f "${lservicepath}" ]]
+   #then
+   #    # Debug
+   #    debug_message "${FUNCNAME[0]} - Disable & Stop Existing Service file <${lservicepath}> for Container <${lcontainer}> in order to prevent Systemd from issueing Warnings."
+   #
+   #    # Unmask Service
+   #    systemd_unmask "${luser}" "${lservicefile}"
+   #
+   #    # First of all Disable & Stop Current Systemd Service in order to prevent Systemd from Issueing Warnings
+   #    systemd_disable "${luser}" "${lservicefile}"
+   #    systemd_stop "${luser}" "${lservicefile}"
+   #
+   #    # Debug
+   #    debug_message "${FUNCNAME[0]} - Remove Existing Service file <${lservicepath}> for Container <${lcontainer}>"
+   #
+   #    # Remove it
+   #    systemd_delete "${luser}" "${lservicefile}"
+   #
+   #    # Debug
+   #    debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
+   #
+   #    # Reload Systemd Daemon
+   #    sleep 0.5
+   #    systemd_daemon_reload "${luser}"
+   #    sleep 0.5
+   #fi
 
    # Debug
    debug_message "${FUNCNAME[0]} - Generate (new) Systemd Service File <${lservicepath}> for Container <${lcontainer}>"
