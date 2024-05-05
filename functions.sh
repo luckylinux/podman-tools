@@ -1190,6 +1190,13 @@ enable_autostart_container() {
    # Define Systemd Service File Path
    local lservicepath="${lsystemdfolder}/${lservicefile}"
 
+   local lserviceexistsalready="no"
+   if [[ -f "${lservicepath}" ]]
+   then
+      lserviceexistsalready="yes"
+   fi
+
+   # OLD CODE ... Probably  still OK after all ...
    #if [[ -f "${lservicepath}" ]]
    #then
    #    # Update Service File if Required
@@ -1207,16 +1214,18 @@ enable_autostart_container() {
    #    sleep 0.5
    #    systemd_reload "${luser}" "${lservicefile}"
    #    sleep 0.5
+   #
    #    systemd_enable "${luser}" "${lservicefile}"
    #    systemd_restart "${luser}" "${lservicefile}"
    #fi
 
+   # NEWER CODE ... WARNING ... WARNING ... WARNING ... THIS CAUSES EVERY CONTAINER TO STOP AND WILL PREVENT THEM FROM COMING BACK UP
    # Delete file if exists already
    # Could prevent Systemd from printing Warning Messages such as:
    # >> The unit file, source configuration file or drop-ins of container-docker-local-mirror-registry.service changed on disk. Run 'systemctl --user daemon-reload' to reload units.
    #
    # WARNING ... WARNING ... WARNING
-   # This will prevent the converter from Starting at all in the future, if this Statement gets executed.
+   # This will prevent the Container from Starting at all in the future, if this Statement gets executed.
    # Since this will result in the Container being stopped and the Systemd Service being deleted, there is no way that podman can regenerate the Systemd Service later on.
    #
    # This block needs to be DISABLED ALTOGETHER
@@ -1251,7 +1260,8 @@ enable_autostart_container() {
    debug_message "${FUNCNAME[0]} - Generate (new) Systemd Service File <${lservicepath}> for Container <${lcontainer}>"
 
    # Unmask Service
-   systemd_unmask "${luser}" "${lservicefile}"
+   # Should not be required ... most likely caused by the above IF statement causing podman generate systemd to create an empty file since the Converter wasn't running anymore
+   #systemd_unmask "${luser}" "${lservicefile}"
 
    # Reload Systemd Daemon
    sleep 0.5
@@ -1270,14 +1280,23 @@ enable_autostart_container() {
    sleep 0.5
 
    # Unmask Service
-   systemd_unmask "${luser}" "${lservicefile}"
-
-   # Debug
-   debug_message "${FUNCNAME[0]} - Enable and Restart Systemd Service <${lservicepath}> for Container <${lcontainer}>"
+   # Should not be required ... most likely caused by the above IF statement causing podman generate systemd to create an empty file since the Converter wasn't running anymore
+   #systemd_unmask "${luser}" "${lservicefile}"
 
    # Enable & Restart Service
-   systemd_enable "${luser}" "${lservicefile}"
-   systemd_restart "${luser}" "${lservicefile}"
+   # But only if something Changed
+   # If Compose File changed, Changes should already have been applied when runnnig compose_update
+   if [[ "${lserviceexistsalready}" == "no" ]]
+   then
+      # Debug
+      debug_message "${FUNCNAME[0]} - Enable and Restart Systemd Service <${lservicepath}> for Container <${lcontainer}>"
+
+      # Enable Container Service
+      systemd_enable "${luser}" "${lservicefile}"
+
+      # Restart Container to make sure that we are using Systemd Now
+      systemd_restart "${luser}" "${lservicefile}"
+   fi
 }
 
 # Disable Container Autostart
