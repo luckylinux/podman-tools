@@ -1263,6 +1263,9 @@ enable_autostart_container() {
    systemd_daemon_reload "${luser}"
    sleep 0.5
 
+   # Unmask Service
+   systemd_unmask "${luser}" "${lservicefile}"
+
    # Debug
    debug_message "${FUNCNAME[0]} - Enable and Restart Systemd Service <${lservicepath}> for Container <${lcontainer}>"
 

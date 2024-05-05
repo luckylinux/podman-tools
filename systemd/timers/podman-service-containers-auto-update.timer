@@ -1,3 +1,7 @@
+# WARNING
+# This could trigger loops of Docker Pull Rate Limit and result in a lot of down time with your Containers possibly failing to restart.
+# This has been DISABLED for the time being
+
 [Unit]
 Description=Custom Updater for Podman Containers Automatic Update
 RefuseManualStart=no
@@ -19,5 +23,6 @@ OnCalendar=*-*-* 23:00:00
 # File describing job to execute
 Unit=podman-service-containers-auto-update.service
 
-[Install]
-WantedBy=timers.target
+# Disabled for now
+#[Install]
+#WantedBy=timers.target
