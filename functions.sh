@@ -1158,7 +1158,7 @@ compose_up() {
        # No need - Container is already Started from podman-compose up -d
        #start_container "${lcontainer}" "${luser}"
 
-       # Update Systemd Service File
+       # Generate/Update Systemd Service File
        enable_autostart_container "${lcontainer}" "${luser}"
    done
 }
@@ -1208,9 +1208,6 @@ enable_autostart_container() {
    #    systemd_restart "${luser}" "${lservicefile}"
    #fi
 
-   # Unmask Service
-   systemd_unmask "${luser}" "${lservicefile}"
-
    # Delete file if exists already
    # Could prevent Systemd from printing Warning Messages such as:
    # >> The unit file, source configuration file or drop-ins of container-docker-local-mirror-registry.service changed on disk. Run 'systemctl --user daemon-reload' to reload units.
@@ -1218,6 +1215,9 @@ enable_autostart_container() {
    then
        # Debug
        debug_message "${FUNCNAME[0]} - Disable & Stop Existing Service file <${lservicepath}> for Container <${lcontainer}> in order to prevent Systemd from issueing Warnings."
+
+       # Unmask Service
+       systemd_unmask "${luser}" "${lservicefile}"
 
        # First of all Disable & Stop Current Systemd Service in order to prevent Systemd from Issueing Warnings
        systemd_disable "${luser}" "${lservicefile}"
@@ -1242,7 +1242,7 @@ enable_autostart_container() {
    debug_message "${FUNCNAME[0]} - Generate (new) Systemd Service File <${lservicepath}> for Container <${lcontainer}>"
 
    # Unmask Service
-   systemd_unmask "${luser}" "${lservicefile}"
+   # systemd_unmask "${luser}" "${lservicefile}"
 
    # Generate Service File
    generic_cmd "${luser}" "podman" generate systemd --name "${lcontainer}" --new > "${lservicepath}"
