@@ -446,21 +446,35 @@ journald_cmd() {
 # Mask service(s)
 systemd_mask() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local luser=$1
+   local lservice=$2
 
-   # Run Command using Wrapper
-   systemd_cmd "$user" "mask" "$service"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "mask" "${lservice}"
+   fi
 }
 
 # Unmask service(s)
 systemd_unmask() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local user=$1
-   local service=$2
+   local luser=$1
+   local lservice=$2
 
-   # Run Command using Wrapper
-   systemd_cmd "$user" "unmask" "$service"
+   # Check if Service Exists
+   systemd_exists "${luser}" "${lservice}"
+   local lexistscode=$?
+
+   if [[ ${lexistscode} -eq 0 ]]
+   then
+      # Run Command using Wrapper
+      systemd_cmd "${luser}" "unmask" "${lservice}"
+   fi
 }
 
 # Enable service
@@ -1124,9 +1138,6 @@ compose_up() {
    # Always run compose_down first to make sure that the don't have some Systemd Service still running or restarting
    compose_down "${luser}"
 
-   # Unmask Service
-   systemd_unmask "${luser}" "${lservicefile}"
-
    # Run podman-compose up
    generic_cmd "${luser}" "podman-compose" --podman-args="${lpodmanargs}" "up" "${lcomposeargs}"
 
@@ -1145,7 +1156,7 @@ compose_up() {
 
        # Start Container
        # No need - Container is already Started from podman-compose up -d
-       start_container "${lcontainer}" "${luser}"
+       #start_container "${lcontainer}" "${luser}"
 
        # Update Systemd Service File
        enable_autostart_container "${lcontainer}" "${luser}"
@@ -1196,6 +1207,9 @@ enable_autostart_container() {
    #    systemd_enable "${luser}" "${lservicefile}"
    #    systemd_restart "${luser}" "${lservicefile}"
    #fi
+
+   # Unmask Service
+   systemd_unmask "${luser}" "${lservicefile}"
 
    # Delete file if exists already
    # Could prevent Systemd from printing Warning Messages such as:
@@ -1286,7 +1300,7 @@ disable_autostart_container() {
       debug_message "${FUNCNAME[0]} - Remove Systemd Service <${lservicepath}> from Disk"
 
       # Remove Service File
-      systemd_delete "${luser}" "${lservicefile}"
+      # systemd_delete "${luser}" "${lservicefile}"
 
       # Debug
       debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
@@ -1313,6 +1327,9 @@ remove_autostart_container() {
 
    # Just call the other wrapper
    disable_autostart_container "${lcontainer}" "${luser}"
+
+   # Remove Service File
+   systemd_delete "${luser}" "${lservicefile}"
 }
 
 # List Containers
