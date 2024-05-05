@@ -1155,8 +1155,11 @@ compose_up() {
        debug_message "${FUNCNAME[0]} - Processing ... Start Container <${lcontainer}>"
 
        # Start Container
-       # No need - Container is already Started from podman-compose up -d
-       #start_container "${lcontainer}" "${luser}"
+       # Really No need ? Container is already Started from podman-compose up -d
+       start_container "${lcontainer}" "${luser}"
+
+       # Wait a bit
+       sleep 2
 
        # Generate/Update Systemd Service File
        enable_autostart_container "${lcontainer}" "${luser}"
@@ -1242,7 +1245,12 @@ enable_autostart_container() {
    debug_message "${FUNCNAME[0]} - Generate (new) Systemd Service File <${lservicepath}> for Container <${lcontainer}>"
 
    # Unmask Service
-   # systemd_unmask "${luser}" "${lservicefile}"
+   systemd_unmask "${luser}" "${lservicefile}"
+
+   # Reload Systemd Daemon
+   sleep 0.5
+   systemd_daemon_reload "${luser}"
+   sleep 0.5
 
    # Generate Service File
    generic_cmd "${luser}" "podman" generate systemd --name "${lcontainer}" --new > "${lservicepath}"
