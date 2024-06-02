@@ -104,3 +104,9 @@ datasets+=("VOLUMES")
 sizes+=("256G")
 recordsizes+=("${zfsdefault}")
 compressions+=("${zfsdefault}")
+
+# Define Dataset
+datasets+=("TMP")
+sizes+=("256G")
+recordsizes+=("${zfsdefault}")
+compressions+=("${zfsdefault}")

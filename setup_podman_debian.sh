@@ -137,9 +137,9 @@ echo "# ${user} BIND Mounts" >> /etc/fstab
 
 if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
 then
-    echo "/${storage}/CONFIG /home/${user}/.config/containers none defaults,rbind 0 0" >> /etc/fstab
+    echo "/${storage}/CONFIG /home/${user}/.config/containers none defaults,nofail,x-systemd.automount,rbind 0 0" >> /etc/fstab
 else
-    echo "/home/${user}/containers/config /home/${user}/.config/containers none defaults,rbind 0 0" >> /etc/fstab
+    echo "/home/${user}/containers/config /home/${user}/.config/containers none defaults,nofail,x-systemd.automount,rbind 0 0" >> /etc/fstab
 fi
 
 
@@ -200,7 +200,7 @@ do
              set_zfs_property "${name}" "recordsize" "${recordsize}"
 
 	     # Add FSTAB entry
-	     echo "/${name} ${destination}/${lname} none defaults,rbind 0 0" >> /etc/fstab
+	     echo "/${name} ${destination}/${lname} none defaults,nofail,x-systemd.automount,rbind 0 0" >> /etc/fstab
 
              # Mount dataset
              zfs mount ${name}
