@@ -14,6 +14,16 @@ source ${toolpath}/functions.sh
 # Exit in case of error
 #set -e
 
+# Get OS Release
+get_os_release() {
+    # The Distribution can be Detected by looking at the Line starting with ID=...
+    # Possible values: ID=fedora, ID=debian, ID=ubuntu, ...
+    distribution=$(cat /etc/os-release | grep -Ei "^ID=" | sed -E "s|ID=([a-zA-Z]+?)|\1|")
+
+    # Return Value
+    echo $distribution
+}
+
 # Setup storage
 setup_storage() {
     local lpath=${1}
@@ -84,6 +94,9 @@ homedir=$(get_homedir "${user}")
 
 # Get Systemdconfigdir
 systemdconfigdir=$(get_systemdconfigdir "${user}")
+
+# Get Distribution OS Release
+distribution=$(get_os_release)
 
 # Storage Path
 if [[ "${mode}" == "dir" ]]
@@ -268,25 +281,42 @@ chown ${user}:${user} ${destination}/storage/volumes
 scriptspath=$(pwd)
 
 # Install requirements
-apt-get install --yes sudo aptitude jq
+if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
+then
+   # Enable Backports Repository
+   # Copy Debian Backports Repository Configuration
+   cp repositories/debian/bookworm/sources.list.d/debian-backports.list /etc/apt/sources.list.d/debian-backports.list
 
-# Enable Backports Repository
-# Copy Debian Backports Repository Configuration
-cp repositories/debian/bookworm/sources.list.d/debian-backports.list /etc/apt/sources.list.d/debian-backports.list
+   # Install Packages
+   apt-get install --yes sudo aptitude jq podman python3 python3-pip podman-compose
 
-# Install podman
-apt-get -y install podman
+   # Install podman-compose (only relevant if NOT using Debian Backports)
+   #pip3 install podman-compose # Use latest version
+   #pip3 install https://github.com/containers/podman-compose/archive/refs/tags/v0.1.10.tar.gz # Use legacy version
+elif [ "${distribution}" == "ubuntu" ]
+then
+   # Install Packages
+   apt-get install --yes sudo aptitude jq podman python3 python3-pip podman-compose
+elif [ "${distribution}" == "fedora" ]
+then
+   # Install Packages
+   dnf install -y sudo jq podman python3 python3-pip podman-compose
+else
+    echo "[ERROR]: Distribution ${distribution} is NOT Supported. ABORTING !"
+    exit 9
+fi
 
-# Install podman-compose
-apt-get -y install python3 python3-pip
-#pip3 install podman-compose # Use latest version
-#pip3 install https://github.com/containers/podman-compose/archive/refs/tags/v0.1.10.tar.gz # Use legacy version
+# Create /etc/sysctl.d Folder if not exist yet
+mkdir -p /etc/sysctl.d
 
 # Allow unprivileged ports <1024 for rootless install
-echo "net.ipv4.ip_unprivileged_port_start=80" >> /etc/sysctl.conf
+echo "net.ipv4.ip_unprivileged_port_start=80" >> /etc/sysctl.d/99-podman.conf
+
+# Allong rootless Containers to ping
+echo "net.ipv4.ping_group_range=0 2000000" >> /etc/sysctl.d/99-podman.conf
 
 # Allow unprivileged network access
-echo "kernel.unprivileged_userns_clone=1" >> /etc/sysctl.d/userns.conf
+echo "kernel.unprivileged_userns_clone=1" >> /etc/sysctl.d/99-podman.conf
 
 # Enable CGROUPS v2
 # For Rock 5B SBC needs to be manually configured in /boot/mk_extlinux script
@@ -319,10 +349,15 @@ chown -R ${user}:${user} /var/run/user/${userid}
 # Populate config directory
 mount /home/${user}/.config/containers
 cd /home/${user}/.config/containers || exit
-wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/storage.conf -O storage.conf
-wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/registries.conf -O registries.conf
-wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/default-policy.json -O default-policy.json
-wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/containers.conf -O containers.conf
+#wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/storage.conf -O storage.conf
+#wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/registries.conf -O registries.conf
+#wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/default-policy.json -O default-policy.json
+#wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/containers.conf -O containers.conf
+
+cp ${toolpath}/config/containers/storage.conf storage.conf
+cp ${toolpath}/config/containers/registries.conf registries.conf
+cp ${toolpath}/config/containers/default-policy.json default-policy.json
+cp ${toolpath}/config/containers/containers.conf containers.conf
 
 # Create registries.conf.d directory for registries
 mkdir -p registries.conf.d
@@ -395,7 +430,15 @@ sed -Ei "s|^#DefaultStartLimitBurst\s*=.*|DefaultStartLimitBurst=500|g" /etc/sys
 loginctl enable-linger ${userid}
 
 # Upgrade other parts of the system
-apt-get --yes dist-upgrade
+if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
+then
+   # Perform Upgrade
+   apt-get --yes dist-upgrade
+elif [ "${distribution}" == "fedora" ]
+then
+   # Perform Upgrade
+   dnf upgrade --refresh
+fi
 
 # Rebuild initramfs
 update-initramfs -k all  -u
@@ -412,9 +455,17 @@ sudo -u ${user} cp /lib/systemd/user/podman-auto-update.service /home/${user}/.c
 sudo -u ${user} cp /lib/systemd/user/podman-restart.service /home/${user}/.config/systemd/user/
 
 # Install additionnal packages
-apt-get --yes install uidmap fuse-overlayfs slirp4netns containernetworking-plugins
+if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
+then
+   apt-get --yes install uidmap fuse-overlayfs slirp4netns containernetworking-plugins
+elif [ "${distribution}" == "fedora" ]
+then
+   # shadow-utils is the Fedora Packages corresponding to uidmap in Debian (providing getsubids, newgidmap, newuidmap)
+   dnf install -y shadow-utils fuse-overlayfs slirp4netns containernetworking-plugins
+fi
 
 # Disable root-level services
+# (this Script defaults to rootless podman Installation)
 systemctl disable podman-restart.service
 systemctl disable podman.socket
 systemctl disable podman-auto-update
@@ -446,9 +497,6 @@ echo "OOMScoreAdjust=" >> override.conf
 cd ${scriptspath} || exit
 mkdir -p /etc/systemd/user.conf.d/
 cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
-
-# Install podman-compose
-aptitude -y install podman-compose
 
 # Increase Limits on Maximum Number of Open Files
 sudo sh -c "echo '* soft     nofile         65535
