@@ -155,6 +155,7 @@ then
    # Get Pool Name
    IFS='/'
    read -ra storageparts <<< "${storage}"
+   unset IFS
    poolname="${storageparts[0]}"
 
    # Enable ZFS Pool Autotrim
