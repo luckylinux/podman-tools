@@ -520,7 +520,13 @@ then
 fi
 
 # Rebuild initramfs
-update-initramfs -k all  -u
+if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
+then
+    update-initramfs -k all  -u
+elif [ "${distribution}" == "fedora" ]
+then
+    dracut --regenerate-all
+fi
 
 # Setup Systemd
 # Source: https://salsa.debian.org/debian/libpod/-/blob/debian/sid/contrib/systemd/README.md#user-podman-service-run-as-given-user-aka-rootless
