@@ -438,6 +438,7 @@ fi
 # Podman Configuration
 export XDG_RUNTIME_DIR=/run/user/${userid}
 export XDG_CONFIG_HOME="/home/podman/.config"
+export TMPDIR="/home/podman/containers/tmp"
 #export CONTAINERS_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/containers.conf"
 #export CONTAINERS_STORAGE_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/storage.conf"
 #export CONTAINERS_REGISTRIES_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/registries.conf"
@@ -472,6 +473,24 @@ sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"${destination}/volumes\"|g" c
 
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
+
+# Create Systemd Files if they do NOT exist yet
+# This is typically needed for Fedora
+if [[ ! -f "/etc/systemd/system.conf" ]]
+then
+    cp ${toolpath}/etc/systemd/system.conf /etc/systemd/system.conf
+    systemctl daemon-reload
+    systemctl daemon-reexec
+fi
+
+if [[ ! -f "/etc/systemd/user.conf" ]]
+then
+    cp ${toolpath}/etc/systemd/user.conf /etc/systemd/user.conf
+    systemctl daemon-reload
+    systemctl daemon-reexec
+fi
+
+
 
 # Setup default Timeout settings for Systemd
 sed -Ei "s|^#DefaultTimeoutStartSec\s*=.*|DefaultTimeoutStartSec=15s|g" /etc/systemd/system.conf
