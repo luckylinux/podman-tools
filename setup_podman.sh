@@ -107,6 +107,26 @@ elif [[ "${mode}" == "zfs" ]]
 then
    storage=${3:-'zdata/PODMAN'}
    destination=${4:-"/home/${user}/containers"}
+
+   # Ask whether to forcefully DISABLE compression, DISABLE automatic snapshots and ENABLE autotrim
+   # Needed for instance when running ZFS on top of (e.g. Proxmox VE Host) ZVOL
+   echo -e "Some Settings will need to be double-checked now"
+   echo -e "When running Podman on ZFS, it's VERY IMPORTANT that compression/automatic snapshots are ONLY ENABLED if the Disk is a RAW Storage Device (Physical Disk or LUKS/DMCRYPT Device)"
+   echo -e "If running ZFS on top of a ZVOL (e.g. in a Proxmox VE Virtual Machine), then:"
+   echo -e "    - ZFS Compression MUST BE DISABLED"
+   echo -e "    - ZFS Automatic Snapshots MUST BE DISABLED"
+   echo -e "    - ZFS Autotrim SHOULD BE ENABLED"
+   echo -e "Otherwise this will eventually fill up the Disk to 100% Usage, even though not much Space at all is being actually used"
+   echo -e "\nThis can be done EITHER on the HOST LEVEL (e.g. Proxmox VE) **OR** in the Podman Virtual Machine (if you are setting up one now)"
+   echo -e "\nIn case you wish to perform such Operations on the HOST LEVEL (e.g. Proxmox VE), then you'll have to manually issue the following Commands:"
+   echo -e "    - zfs set com.sun:auto-snapshot=false rpool/data/<my-vm-disk>"
+   echo -e "    - zfs set compression=off rpool/data/<my-vm-disk>"
+   echo -e "IMPORTANT: ZFS Autotrim should **ANYWAY** be ENABLED in the **GUEST** ZFS Pool (or you must manually run the zpool trim <mypool> Command)"
+
+   read -p "Do you want to FORCEFULLY DISABLE ZFS Compression (zfs set compression=off <all-datasets>) [y/n]: " forcezfsnocompression
+   read -p "Do you want to FORCEFULLY DISABLE ZFS Automatic Snapshots (zfs set com.sun:auto-snapshot=false <all-datasets>) [y/n]: " forcezfsnoautomaticsnapshots
+   read -p "Do you want to FORCEFULLY ENABLE ZFS Autotrim (zpool set autotrim=on <mypool>) [y/n]: " forcezfsautotrim
+
 elif [[ "${mode}" == "zvol" ]]
 then
    storage=${3:-'zdata/PODMAN'}
@@ -129,20 +149,45 @@ passwd "${user}"
 nano /etc/subuid
 nano /etc/subgid
 
+# Enable ZFS Pool Autotrim
+if [[ "${forcezfsautotrim}" == "y" ]]
+then
+   # Get Pool Name
+   IFS='/'
+   read -ra storageparts <<< "${storage}"
+   poolname="${storageparts[0]}"
+
+   # Enable ZFS Pool Autotrim
+   zpool set autotrim=on ${poolname}
+fi
+
+# Default ZFS Compression
+zfsdefaultcompression="lz4"
+if [[ "${forcezfsnocompression}" == "y" ]]
+then
+    zfsdefaultcompression="off"
+fi
+
 if [ "${mode}" == "zvol"  ]
 then
     # Create Root storage
-    zfs create -o compression=lz4 -o canmount=on ${storage}
+    zfs create -o compression=${zfsdefaultcompression} -o canmount=on ${storage}
 
     # Allow over-subscribind in case of ZVOL
     zfs set refreservation=none ${storage}
 elif [ "${mode}" == "zfs"  ]
 then
     # Create Root storage
-    zfs create -o compression=lz4 -o canmount=on ${storage}
+    zfs create -o compression=${zfsdefaultcompression} -o canmount=on ${storage}
 
     # Enable mounting of ZFS datasets
     zfs set canmount=on ${storage}
+fi
+
+# Disable ZFS Automatic Snapshots
+if [[ "${forcezfsnoautomaticsnapshots}" == "y" ]]
+then
+    zfs set com.sun:auto-snapshot=false ${storage}
 fi
 
 # Setup FSTAB
@@ -194,6 +239,20 @@ do
 	umount_if_mounted ${destination}/${lname}/
 	chattr -i ${destination}/${lname}/
 	chown -R ${user}:${user} ${destination}/${lname}/
+
+        # Disable ZFS Automatic Snapshots
+        if [[ "${forcezfsnoautomaticsnapshots}" == "y" ]]
+        then
+            zfs set com.sun:auto-snapshot=false ${name}
+        fi
+
+        # Default ZFS Compression
+        zfsdefaultcompression="lz4"
+        if [ "${forcezfsnocompression}" == "y" ] && [ "${compression}" != "${zfsdefault}" ]
+        then
+            # Force Compression Property
+            set_zfs_property "${name}" "compression" "off"
+        fi
 
 	if [ "${mode}" == "zfs"  ]
 	then
