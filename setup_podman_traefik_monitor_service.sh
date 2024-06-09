@@ -9,13 +9,13 @@ source "${toolpath}/functions.sh"
 
 # Define user
 #user=${1}
-if [[ ! -v user ]]
+if [[ -z "${user}" ]]
 then
    user=$(whoami)
 fi
 
 # Define mode
-if [[ ! -v schedulemode ]]
+if [[ -z "${schedulemode}" ]]
 then
 #   schedulemode=${2:-'cron'}
    schedulemode='systemd'

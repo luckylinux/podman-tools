@@ -569,8 +569,8 @@ systemd_enable "${user}" "podman-auto-update.service"
 systemd_restart "${user}" "podman-auto-update.service"
 
 systemd_status "${user}" "podman.socket podman.service podman-restart.service podman-auto-update.service"
-systemd_reexec "${user}"
-systemd_reload "${user}"
+systemd_daemon_reexec "${user}"
+systemd_daemon_reload "${user}"
 
 # https://github.com/containers/podman/issues/3024#issuecomment-1742105831 ,  https://github.com/containers/podman/issues/3024#issuecomment-1762708730
 mkdir -p /etc/systemd/system/user@.service.d

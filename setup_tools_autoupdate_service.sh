@@ -11,14 +11,17 @@ if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" 
 source ${toolpath}/functions.sh
 
 # Define user
-user=${1}
-if [[ -v user ]]
+if [[ -z "${user}" ]]
 then
+   # Try to use Username passed as argument
+   user=${1}
+
+   # If it's not passed as argument then use the current User
    user=$(whoami)
 fi
 
 # Define mode
-if [[ ! -v schedulemode ]]
+if [[ -z "${schedulemode}" ]]
 then
    if [[ "${user}" == "root" ]]
    then

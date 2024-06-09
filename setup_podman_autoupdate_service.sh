@@ -8,14 +8,14 @@ if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" 
 source ${toolpath}/functions.sh
 
 # Define user
-if [[ ! -v user ]]
+if [[ -z "${user}" ]]
 then
 #   user=${1:-'podman'}
    user=$(whoami)
 fi
 
 # Define mode
-if [[ ! -v schedulemode ]]
+if [[ -z "${schedulemode}" ]]
 then
 #   schedulemode=${2:-'cron'}
    schedulemode='systemd'
