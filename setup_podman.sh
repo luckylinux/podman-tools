@@ -143,7 +143,6 @@ fi
 touch /etc/{subgid,subuid}
 useradd -c "${user}" -s /bin/bash "${user}"
 passwd -d "${user}"
-#usermod --add-subuids 100000-165535 --add-subgids 100000-165535 "${user}"
 passwd "${user}"
 
 nano /etc/subuid
