@@ -73,7 +73,7 @@ set_zfs_property() {
 export user=${1}
 #export user=${1:-'podman'}
 
-if [[ ! -v user ]]
+if [[ -z "${user}" ]]
 then
     echo "User must be specified"
     exit 11
@@ -83,7 +83,7 @@ fi
 export mode=${2}
 #export mode=${2:-'zfs'}
 
-if [[ ! -v mode ]]
+if [[ -z "${user}" ]]
 then
     echo "Mode must be specified and be one of <dir> or <zfs> or <zvol>"
     exit 12
@@ -143,7 +143,7 @@ fi
 touch /etc/{subgid,subuid}
 useradd -c "${user}" -s /bin/bash "${user}"
 passwd -d "${user}"
-usermod --add-subuids 100000-165535 --add-subgids 100000-165535 "${user}"
+#usermod --add-subuids 100000-165535 --add-subgids 100000-165535 "${user}"
 passwd "${user}"
 
 nano /etc/subuid
