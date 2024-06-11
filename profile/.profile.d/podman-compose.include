@@ -1,0 +1,14 @@
+# Include $HOME/podman-compose/bin in PATH if exists
+# Append to PATH if not exist yet
+# Prevents from appending to PATH every time
+if [[ ":$PATH:" != *":$HOME/podman-compose/bin:"* ]]
+then
+    if [[ -d "$HOME/podman-compose/bin" ]]
+    then
+        # Left Side of PATH: prefer this over System-Level PATH
+        export PATH="$HOME/podman-compose/bin:$PATH"
+
+        # Right Side of PATH: only use if not found on System-Level PATH
+        # export PATH="$PATH:$HOME/podman-compose/bin"
+    fi
+fi
