@@ -424,34 +424,23 @@ mkdir -p registries.conf.d
 # Setup folders and set correct permissions
 chown -R ${user}:${user} /home/${user}
 
-# Set
-tee ${homedir}/.bash_profile << EOF
-# Include Generic Profile
-source /etc/skel/.bashrc
+# Set ~/.bash_profile
+cp ${toolpath}/profile/.bash_profile ${homedir}/.bash_profile
 
-# Include .bashrc
-if [ -f ~/.bashrc ]; then
-   . ~/.bashrc
-fi
+# Set ~/.bashrc
+cp ${toolpath}/profile/.bashrc ${homedir}/.bashrc
 
-# Podman Configuration
-export XDG_RUNTIME_DIR=/run/user/${userid}
-export XDG_CONFIG_HOME="/home/podman/.config"
-export TMPDIR="/home/podman/containers/tmp"
-#export CONTAINERS_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/containers.conf"
-#export CONTAINERS_STORAGE_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/storage.conf"
-#export CONTAINERS_REGISTRIES_CONF_OVERRIDE="${XDG_CONFIG_HOME}/containers/registries.conf"
+# Copy Profile Includes
+mkdir -p ${homedir}/.profile.d
+cp -ar ${toolpath}/profile/.profile.d/*.include ${homedir}/.profile.d/
 
-# Load Helper Functions
-if [ -f ~/tools/helpers.sh ]
-then
-   source ~/tools/helpers.sh
-fi
-EOF
+# Set correct Ownership
+chown -R ${user}:${user} ${homedir}/.bash_profile
+chown -R ${user}:${user} ${homedir}/.bashrc
+chown -R ${user}:${user} ${homedir}/.profile.d
 
 # Not needed anymore since now .bash_profile will also load .bashrc (if that file exists)
 #echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/${user}/.bashrc
-
 
 # Change some configuration in storage.conf
 sed -Ei "s|^#? ?runroot = \".*\"|runroot = \"/run/user/${userid}\"|g" storage.conf
@@ -594,18 +583,32 @@ source enable_rc_local.sh
 #################################################
 # Setup a copy of the tool for user
 cd ${homedir} || exit
-if [[ ! -d "tools" ]]
+if [[ ! -d "podman-tools" ]]
 then
-   git clone https://github.com/luckylinux/podman-tools.git tools
+   git clone https://github.com/luckylinux/podman-tools.git podman-tools
 else
    git pull
 fi
 
 # Ensure propert Permissions
-chown -R ${user}:${user} "tools/"
+chown -R ${user}:${user} "${homedir}/podman-tools/"
 
 # Move to the local copy of the tool for the user
-cd tools || exit
+cd ${homedir}/podman-tools || exit
+
+# Setup CRON/Systemd to automatically install images updates
+#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_podman_autoupdate_service.sh"
+
+# Setup CRON/Systemd to automatically generate updated Systemd Service files
+#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_podman_autostart_service.sh"
+
+# Setup CRON/Systemd to automatically detect traefik changes and restart traefik to apply them
+#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_podman_traefik_monitor_service.sh"
+
+# Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
+#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_tools_autoupdate_service.sh"
+
+
 
 # Setup CRON/Systemd to automatically install images updates
 source setup_podman_autoupdate_service.sh
@@ -614,7 +617,7 @@ source setup_podman_autoupdate_service.sh
 source setup_podman_autostart_service.sh
 
 # Setup CRON/Systemd to automatically detect traefik changes and restart traefik to apply them
-#source setup_podman_traefik_monitor_service.sh
+#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_podman_traefik_monitor_service.sh"
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
 source setup_tools_autoupdate_service.sh
