@@ -609,6 +609,8 @@ cd ${homedir}/podman-tools || exit
 #generic_cmd "${user}" "cd ~/podman-tools/ && source setup_tools_autoupdate_service.sh"
 
 
+# Setup Local podman-compose to ensure that we got the latest Version
+source setup_podman_compose_local.sh
 
 # Setup CRON/Systemd to automatically install images updates
 source setup_podman_autoupdate_service.sh
@@ -621,3 +623,4 @@ source setup_podman_autostart_service.sh
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
 source setup_tools_autoupdate_service.sh
+
