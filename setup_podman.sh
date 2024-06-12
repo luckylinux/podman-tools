@@ -89,12 +89,6 @@ then
     exit 12
 fi
 
-# Get homedir
-homedir=$(get_homedir "${user}")
-
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
-
 # Get Distribution OS Release
 distribution=$(get_os_release)
 
@@ -147,6 +141,12 @@ passwd "${user}"
 
 nano /etc/subuid
 nano /etc/subgid
+
+# Get homedir
+homedir=$(get_homedir "${user}")
+
+# Get Systemdconfigdir
+systemdconfigdir=$(get_systemdconfigdir "${user}")
 
 # Enable ZFS Pool Autotrim
 if [[ "${forcezfsautotrim}" == "y" ]]
@@ -400,12 +400,8 @@ chown -R ${user}:${user} /var/run/user/${userid}
 #su ${user}
 
 # Populate config directory
-mount /home/${user}/.config/containers
-cd /home/${user}/.config/containers || exit
-#wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/storage.conf -O storage.conf
-#wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/registries.conf -O registries.conf
-#wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/default-policy.json -O default-policy.json
-#wget https://src.fedoraproject.org/rpms/containers-common/raw/main/f/containers.conf -O containers.conf
+mount ${homedir}/.config/containers
+cd ${homedir}/.config/containers || exit
 
 cp ${toolpath}/config/containers/storage.conf storage.conf
 cp ${toolpath}/config/containers/registries.conf registries.conf
