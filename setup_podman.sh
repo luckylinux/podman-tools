@@ -368,14 +368,8 @@ fi
 # Create /etc/sysctl.d Folder if not exist yet
 mkdir -p /etc/sysctl.d
 
-# Allow unprivileged ports <1024 for rootless install
-echo "net.ipv4.ip_unprivileged_port_start=80" >> /etc/sysctl.d/99-podman.conf
-
-# Allong rootless Containers to ping
-echo "net.ipv4.ping_group_range=0 2000000" >> /etc/sysctl.d/99-podman.conf
-
-# Allow unprivileged network access
-echo "kernel.unprivileged_userns_clone=1" >> /etc/sysctl.d/99-podman.conf
+# Copy sysctl Configuration Files
+cp -r ${toolpath}/etc/sysctl.d/*.conf /etc/sysctl.d/
 
 # Enable CGROUPS v2
 # For Rock 5B SBC needs to be manually configured in /boot/mk_extlinux script
