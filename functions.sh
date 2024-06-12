@@ -905,7 +905,7 @@ get_containers_from_compose_dir() {
        #debug_message "${FUNCNAME[0]} - Processing Item <${litem}>"
 
        # Perfom Cleaning of the Item String
-       lcleanitem=$(echo ${litem} | sed -E "s|^\s*?#?\s*?container_name:\s*?([a-zA-Z0-9_-]+)\s*?$|\1|g")
+       lcleanitem=$(echo ${litem} | sed -E "s|^\s*?#?\s*?container_name:\s*?\"?([a-zA-Z0-9_-]+)\"?\s*?$|\1|g")
 
        # Debug
        debug_message "${FUNCNAME[0]} - Cleaned Item: <${lcleanitem}>"
