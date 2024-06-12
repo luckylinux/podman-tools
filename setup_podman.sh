@@ -378,7 +378,16 @@ read -p "Press ENTER once ready" confirmation
 
 if [[ -f "/etc/default/grub" ]]; then
     nano /etc/default/grub
-    update-grub
+
+    if [ "${distribution}" == "ubuntu" ]
+    then
+        # Update Grub Configuration
+        update-grub
+    elif [ "${distribution}" == "fedora" ]
+    then
+        # Update Grub Configuration
+        grub2-mkconfig -o /boot/grub2/grub.cfg
+    fi
 else
     nano /etc/default/kernel-cmdline
 fi
