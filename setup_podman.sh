@@ -408,18 +408,6 @@ mkdir -p /var/run/user/${userid}
 chown -R ${user}:${user} /var/run/user/${userid}
 #su ${user}
 
-# Populate config directory
-mount ${homedir}/.config/containers
-cd ${homedir}/.config/containers || exit
-
-cp ${toolpath}/config/containers/storage.conf storage.conf
-cp ${toolpath}/config/containers/registries.conf registries.conf
-cp ${toolpath}/config/containers/default-policy.json default-policy.json
-cp ${toolpath}/config/containers/containers.conf containers.conf
-
-# Create registries.conf.d directory for registries
-mkdir -p registries.conf.d
-
 # Setup folders and set correct permissions
 chown -R ${user}:${user} /home/${user}
 
@@ -438,8 +426,17 @@ chown -R ${user}:${user} ${homedir}/.bash_profile
 chown -R ${user}:${user} ${homedir}/.bashrc
 chown -R ${user}:${user} ${homedir}/.profile.d
 
-# Not needed anymore since now .bash_profile will also load .bashrc (if that file exists)
-#echo "export XDG_RUNTIME_DIR=/run/user/${userid}" >> /home/${user}/.bashrc
+# Set Containers Configuration
+mount ${homedir}/.config/containers
+cd ${homedir}/.config/containers || exit
+
+cp ${toolpath}/config/containers/storage.conf storage.conf
+cp ${toolpath}/config/containers/registries.conf registries.conf
+cp ${toolpath}/config/containers/default-policy.json default-policy.json
+cp ${toolpath}/config/containers/containers.conf containers.conf
+
+# Create registries.conf.d directory for registries
+mkdir -p registries.conf.d
 
 # Change some configuration in storage.conf
 sed -Ei "s|^#? ?runroot = \".*\"|runroot = \"/run/user/${userid}\"|g" storage.conf
@@ -457,6 +454,9 @@ sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"${destination}/volumes\"|g" c
 
 # Enable cgroups v2
 #sed -i 's/#CGROUP_MODE=hybrid/CGROUP_MODE=hybrid/g' /etc/rc.conf
+
+# Setup folders and set correct permissions
+chown -R ${user}:${user} /home/${user}
 
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
