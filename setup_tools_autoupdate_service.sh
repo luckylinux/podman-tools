@@ -43,7 +43,7 @@ then
    destination="/etc/cron.d/podman-tools-autoupdate"
    cp "cron/podman-tools-autoupdate" "${destination}"
    chmod +x "${destination}"
-   replace_text "${destination}" "toolpath" "${toolpath}" "user" "${user}"
+   replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File
@@ -51,7 +51,7 @@ then
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/services/${filename}" "${destination}"
    chmod +x "${destination}"
-   replace_text "${destination}" "toolpath" "${toolpath}" "user" "${user}"
+   replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
    systemd_reload_enable "${user}" "${filename}"
 
    # Copy Systemd Timer File
@@ -59,7 +59,7 @@ then
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/timers/${filename}" "${destination}"
    chmod +x "${destination}"
-   replace_text "${destination}" "toolpath" "${toolpath}" "user" "${user}"
+   replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
    systemd_reload_enable "${user}" "${filename}"
 else
    # Error
