@@ -13,9 +13,6 @@ source ${toolpath}/functions.sh
 # Define user
 if [[ -z "${user}" ]]
 then
-   # Try to use Username passed as argument
-   user=${1}
-
    # If it's not passed as argument then use the current User
    user=$(whoami)
 fi
