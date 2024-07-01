@@ -83,10 +83,18 @@ fi
 export mode=${2}
 #export mode=${2:-'zfs'}
 
-if [[ -z "${user}" ]]
+if [[ -z "${mode}" ]]
 then
-    echo "Mode must be specified and be one of <dir> or <zfs> or <zvol>"
+    echo "Mode must be specified and be one of <dir> / <zfs> / <zvol>"
     exit 12
+fi
+
+if [ "${mode}" == "dir" ] || [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
+then
+    # Validation is OK
+    mode_validated=1
+else
+    echo "ERROR: Mode must be specified and be one of <dir> / <zfs> / <zvol>"
 fi
 
 # Get Distribution OS Release
