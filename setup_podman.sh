@@ -582,6 +582,11 @@ cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
 sudo sh -c "echo '* soft     nofile         65535
 * hard     nofile         65535' > /etc/security/limits.d/30-max-number-open-files.conf"
 
+# Setup Policy in /etc/containers
+# Required in particular for Fedora
+mkdir -p /etc/containers
+cp -r ${toolpath}/etc/containers/* /etc/containers/
+
 # Enable rc.local service and make sure ZFS dataset are mounted BEFORE everything else
 source enable_rc_local.sh
 
