@@ -1,0 +1,111 @@
+version: '3.9'
+
+services:
+  traefik:
+    image: traefik:v3.2
+    hostname: traefik
+    restart: always
+    container_name: traefik
+    security_opt:
+      - no-new-privileges:true
+      - label=type:container_runtime_t
+    ports:
+      - target: 80
+        host_ip: 192.168.x.y
+        published: 80
+        protocol: tcp
+      - target: 443
+        host_ip: 192.168.x.y
+        published: 443
+        protocol: tcp
+
+    networks:
+      - traefik
+    volumes:
+      - /run/user/1002/podman/podman.sock:/var/run/docker.sock:ro,Z
+      - ~/containers/config/traefik/dynamic:/etc/traefik/dynamic:ro,Z
+      - ~/containers/certificates/letsencrypt:/certificates:ro,Z
+      - ~/containers/log/traefik:/log:rw,Z
+    command:
+      ## Logging
+      # Server Log
+      - "--log.level=DEBUG"
+      # - "--log.level=INFO"
+      - "--log.filePath=/log/server/traefik.log"
+
+      # Access Log
+      - "--accesslog=true"
+      - "--accesslog.filePath=/log/access/access.log"
+
+      ## Dashboard & API
+      - "--api"
+      - "--api.insecure=false" # production = false , development = true
+      - "--api.dashboard=true"
+
+      ## EntryPoints
+      # HTTP - Unsecure Connection - Redirect to Secure
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entryPoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entryPoints.web.http.redirections.entrypoint.permanent=true"
+
+      # HTTPs - Secure Connection
+      - "--entryPoints.websecure.address=:443"
+      - "--entryPoints.websecure.http.tls=true"
+      #- "--entrypoints.websecure.http.tls.certresolver=letsencrypt"
+
+      # HTTPs Timeout - Trafik <= v2.10
+      - "--entryPoints.websecure.transport.respondingTimeouts.readTimeout=420"
+      - "--entryPoints.websecure.transport.respondingTimeouts.writeTimeout=420"
+      - "--entryPoints.websecure.transport.respondingTimeouts.idleTimeout=420"
+
+      # HTTPs Timeout - Traefik >= v2.11 but dashboard does NOT work
+      #- "--entryPoints.websecure.transport.respondingTimeouts.http.readTimeout=420"
+      #- "--entryPoints.websecure.transport.respondingTimeouts.http.writeTimeout=420"
+      #- "--entryPoints.websecure.transport.respondingTimeouts.http.idleTimeout=420"
+
+      # WS (WebSocket) - Unsecure Connection - Redirect to Secure
+      #- "--entryPoints.websocket.address=:80"
+      #- "--entryPoints.websocket.tcp.redirections.entrypoint.to=websocketsecure"
+      #- "--entryPoints.websocket.tcp.redirections.entrypoint.scheme=wss"
+      #- "--entryPoints.websocket.tcp.redirections.entrypoint.permanent=true"
+
+      # WS (WebSocket) - Secure Connection
+      - "--entryPoints.websocketsecure.address=:3012"
+      #- "--entryPoints.websocketsecure.tls=true"
+
+
+      ## Docker / Podman Intergration
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      # - "--providers.docker.watch=false"
+      - "--providers.docker.watch=true"
+      # - "--providers.docker.swarmMode=false"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
+      - "--providers.docker.allowEmptyServices=true"
+
+
+      # Use Dynamic Configuration
+      - "--providers.file=true"
+      - "--providers.file.directory=/etc/traefik/dynamic"
+
+
+      ## Other
+      # ...
+      - "--serversTransport.insecureSkipVerify=true"
+
+      # No Telemetry
+      - "--global.sendAnonymousUsage=false"
+
+    labels:
+      # Enable Traefik
+      - "traefik.enable=true"
+
+      # Dashboard
+      # - "traefik.http.routers.dashboard.entryPoint=websecure" # !! If enabled, this line causes a 404 page not found for the dashboard !!
+      - "traefik.http.routers.dashboard.rule=Host(`podmanserver16.MYDOMAIN.TLD`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
+networks:
+  traefik:
+    external: true
