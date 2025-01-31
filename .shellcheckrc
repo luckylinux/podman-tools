@@ -1,0 +1,13 @@
+# Options to use when excecuting shellcheck
+
+# Ignore unused Variables
+disable=SC2034
+
+# Disable Declare and assign separately to avoid masking return values
+disable=SC2155
+
+# Temporarily disabe [*] vs [@] Assignment to String (Assigning an array to a string! Assign as array, or use * instead of @ to concatenate)
+disable=SC2124
+
+# Include external Sources
+external-sources=true

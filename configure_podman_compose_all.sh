@@ -8,16 +8,17 @@ user=${1:-'podman'}
 currentpath=$(pwd)
 
 # Bring up all containers using podman-compose
-for filename in /home/$user/compose/*
+for filename in /home/${user}/compose/*
 do
-    container=$(basename $filename)
-    cd "$currentpath/compose/$container"
+    container=$(basename "${filename}")
+    cd "${currentpath}/compose/${container}" || exit
 #    runuser -l podman -c "podman-compose up -d"
     podman-compose up -d
 done
 
 # Change back to current path
-cd $currentpath
+cd "${currentpath}" || exit
 
 # Setup autostart for all containers
-bash "./configure_podman_service_autostart_all.sh"
+# Disabled for now
+#bash "./configure_podman_service_autostart_all.sh"

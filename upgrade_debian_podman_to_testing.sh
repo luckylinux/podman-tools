@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # Define list of packages to remove & reinstall
-#list="podman-compose podman conmon crun runc golang-github-containers-common containers-storage docker-compose aardvark-dns buildah fuse-overlayfs libfuse3-3 passt"
-list="podman-compose podman conmon crun runc golang-github-containers-common containers-storage aardvark-dns buildah fuse-overlayfs fuse3 libfuse3-3 passt"
+list="podman-compose podman conmon crun runc golang-github-containers-common containers-storage aardvark-dns buildah fuse-overlayfs fuse3 libfuse3-3 passt containernetworking-plugins"
 
 # Remove packages
-apt-get remove $list
+apt-get remove ${list}
 
 # Setup debian-testing reposistories
 tee /etc/apt/sources.list.d/debian-testing.list << EOF
@@ -33,7 +32,7 @@ EOF
 # Setup podman to install from debian-testing
 tee /etc/apt/preferences.d/podman << EOF
 # Allow upgrading only my-specific-software from the testing release
-Package: podman-compose podman conmon crun runc golang-github-containers-common containers-storage docker-compose aardvark-dns buildah fuse-overlayfs fuse3 libfuse3-3
+Package: podman-compose podman conmon crun runc golang-github-containers-common containers-storage docker-compose aardvark-dns buildah fuse-overlayfs fuse3 libfuse3-3 libglib2.0-0 containernetworking-plugins
 # Might also be useful:  slirp4netns passt
 Pin: release a=testing
 Pin-Priority: 600
@@ -43,7 +42,7 @@ EOF
 apt-get update
 
 # Reinstall packages
-apt-get install $list
+apt-get install ${list}
 
 # Perform dist-upgrade
 apt-get dist-upgrade

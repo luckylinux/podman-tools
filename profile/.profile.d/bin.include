@@ -1,0 +1,14 @@
+# Include $HOME/.local/bin in PATH if exists
+# Append to PATH if not exist yet
+# Prevents from appending to PATH every time
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]
+then
+    if [[ -d "$HOME/.local/bin" ]]
+    then
+        # Left Side of PATH: prefer this over System-Level PATH
+        export PATH="$HOME/.local/bin:$PATH"
+
+        # Right Side of PATH: only use if not found on System-Level PATH
+        # export PATH="$PATH:$HOME/.local/bin"
+    fi
+fi

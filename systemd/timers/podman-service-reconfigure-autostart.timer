@@ -14,10 +14,11 @@ AccuracySec=1
 OnCalendar=*-*-* 20:00:00
 
 # Run when enabled
-OnActiveSec=5s
+#OnActiveSec=5s
 
 # File describing job to execute
-Unit=podman-setup-service-autostart.service
+Unit=podman-service-reconfigure-autostart.service
 
-[Install]
-WantedBy=timers.target
+# Disabled  for now - it's up to the User to decide whether to configure Autostart Service for each Container.
+#[Install]
+#WantedBy=timers.target

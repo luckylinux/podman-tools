@@ -19,7 +19,7 @@ do
 #    duration_s=$((duration_raw/100000))
 
     # Get past epoch Time in which the container was started (constant value)
-    startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=$container)
+    startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=${container})
 
     # Get container running duration
     duration_s=$((now-startedat))

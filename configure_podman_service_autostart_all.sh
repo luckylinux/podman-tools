@@ -1,30 +1,89 @@
 #!/bin/bash
 
-# List Containers
-mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+# Determine toolpath if not set already
+relativepath="./" # Define relative path to go from this script to the root level of the tool
+if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing ${scriptpath}/${relativepath}); fi
 
-for container in "${list[@]}"
-do
-   echo "Generate & Enable & Start Systemd Autostart Service for <${container}>"
+# Load Configuration
+source ${toolpath}/config.sh
 
-   # Define where service file would be located
-   servicename="container-${container}"
-   servicepath="$HOME/.config/systemd/user/${servicename}.service"
+# Load Functions
+source ${toolpath}/functions.sh
 
-   if [[ -f "${servicepath}" ]]
-   then
-       # Update Service File if Required
-       podman generate systemd --name $container --new > $servicepath
+# Setting
+setting=${1-"enable"}
 
-       # Reload Systemd Configuration
-       systemctl --user daemon-reload
-   else
-       # Generate New Service File
-       podman generate systemd --name $container --new > $servicepath
+# User
+user=${2-""}
+if [[ -z "${user}" ]]
+then
+   user=$(whoami)
+fi
 
-       # Enable & Restart Service
-       systemctl --user daemon-reload
-       systemctl --user enable $servicename
-       systemctl --user restart $servicename
-   fi
-done
+# Get homedir
+homedir=$(get_homedir "${user}")
+
+# Get Systemdconfigdir
+systemdconfigdir=$(get_systemdconfigdir "${user}")
+
+# Validation
+if [ "${setting}" != "enable" ] && [ "${setting}" != "disable" ]
+then
+   echo "Setting must be one of the following: <enable> or <disable>. Aborting."
+   exit 9
+fi
+
+if [ "${setting}" == "enable" ]
+then
+   # List running Containers
+   mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+
+   for container in "${list[@]}"
+   do
+      # Echo
+      echo "Generate & Enable & Start Systemd Autostart Service for <${container}>"
+
+      # Enable Autostart Container Service
+      enable_autostart_container "${container}" "${user}"
+   done
+else
+    # List running Containers
+    mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+
+    for container in "${list[@]}"
+    do
+       # Echo
+       echo "Disable & Stop & Remove Systemd Autostart Service for <${container}>"
+
+       # Disable Autostart Container Service
+       disable_autostart_container "${container}" "${user}"
+    done
+
+    # List (remaing) Systemd Services
+    mapfile -t list < <( ls -1 ${systemdconfigdir}/container-* )
+
+    # Stop These Services which might be deprecated anyways
+    for servicepath in "${list[@]}"
+    do
+       # Need only the basename
+       service=$(basename ${servicepath})
+
+       # Extract Container Name from Service File
+       #container=$(get_container_from_systemd_file "${servicefile}")
+       #
+       # Disable Autostart Container Service
+       #echo "Disable & Stop & Remove Systemd Autostart Service <${service}>"
+
+       # Disable Service
+       systemd_disable "${user}" "${service}"
+
+       # Stop Service
+       systemd_stop "${user}" "${service}"
+
+       # Remove Service
+       systemd_delete "${user}" "${service}"
+
+       # Reload Systemd Daemon
+       systemd_reload "${user}"
+    done
+fi

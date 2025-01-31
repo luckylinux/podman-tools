@@ -20,7 +20,7 @@ traefik_restart=0
 for container in "${list[@]}"
 do
     # Get past epoch Time in which the container was started (constant value)
-    container_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=$container)
+    container_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=${container})
 
     # Get container running duration
     container_duration_s=$((now-container_startedat))
@@ -28,7 +28,7 @@ do
     # Compare against traefik started time
     if [[ ${traefik_startedat} -lt ${container_startedat} ]]
     then
-        echo "Container $container was started AFTER traefik Proxy Server. Restarting Traefik Necessary"
+        echo "Container ${container} was started AFTER traefik Proxy Server. Restarting Traefik Necessary"
         traefik_restart=1
     fi
 
@@ -47,5 +47,5 @@ if [[ ${traefik_restart} -gt 0 ]]
 then
     # Restart traefik container
     echo "Restarting traefik container"
-    systemctl --user restart container-traefik
+    systemd_restart "container-traefik.service"
 fi
