@@ -1,0 +1,9 @@
+tls:
+#  stores:
+#    default:
+#      defaultCertificate:
+#        certFile: /certificates/MYDOMAIN.TLD/cert.pem
+#        keyFile: /certificates/MYDOMAIN.TLD/privkey.pem
+  certificates:
+    - certFile: /certificates/MYDOMAIN.TLD/fullchain.pem
+      keyFile: /certificates/MYDOMAIN.TLD/privkey.pem
