@@ -889,7 +889,7 @@ get_containers_from_compose_dir() {
    if [[ "${lwhichcontainers}" == "enabled" ]]
    then
       # Exclude DISABLED (commented out) Containers
-      mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | grep -Ev "^\s+?#")
+      mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml" | grep -Ev "^\s*?#")
    else
       # Include ALL
       mapfile llist < <( grep -r -h "container_name:" "${lcomposedir}/compose.yml")
@@ -1147,22 +1147,51 @@ compose_up() {
    # Get List of Containers Associated with Compose File by passing list_containers by reference
    get_containers_from_compose_dir list_containers "${lcomposedir}" "enabled"
 
+
+   # # Loop over Containers
+   # local lcontainer
+   # for lcontainer in "${list_containers[@]}"
+   # do
+   #     # Echo
+   #     debug_message "${FUNCNAME[0]} - Processing ... (Re)start Container <${lcontainer}>"
+   #
+   #     # Start Container
+   #     # Really No need ? Container is already Started from podman-compose up -d
+   #     start_container "${lcontainer}" "${luser}"
+   #
+   #     # Wait a bit
+   #     sleep 2
+   #
+   #     # Generate/Update Systemd Service File
+   #     enable_autostart_container "${lcontainer}" "${luser}"
+   # done
+
+   # Loop over Containers
+   local lcontainer
+   for lcontainer in "${list_containers[@]}"
+   do
+       # Generate/Update Systemd Service File
+       enable_autostart_container "${lcontainer}" "${luser}"
+   done
+
+   # Wait a bit
+   sleep  2
+
+   # Run podman-compose down
+   generic_cmd "${luser}" "podman-compose" "down"
+
+   # Wait a bit
+   sleep 2
+
    # Loop over Containers
    local lcontainer
    for lcontainer in "${list_containers[@]}"
    do
        # Echo
-       debug_message "${FUNCNAME[0]} - Processing ... Start Container <${lcontainer}>"
+       debug_message "${FUNCNAME[0]} - Processing ... (Re)start Container <${lcontainer}>"
 
        # Start Container
-       # Really No need ? Container is already Started from podman-compose up -d
        start_container "${lcontainer}" "${luser}"
-
-       # Wait a bit
-       sleep 2
-
-       # Generate/Update Systemd Service File
-       enable_autostart_container "${lcontainer}" "${luser}"
    done
 }
 
@@ -1295,7 +1324,7 @@ enable_autostart_container() {
       systemd_enable "${luser}" "${lservicefile}"
 
       # Restart Container to make sure that we are using Systemd Now
-      systemd_restart "${luser}" "${lservicefile}"
+      # systemd_restart "${luser}" "${lservicefile}"
    fi
 }
 
