@@ -1183,6 +1183,9 @@ compose_up() {
    # Wait a bit
    sleep 2
 
+   # Create Pod
+   generic_cmd "${luser}" "podman" pod "pod_${lcontainer}"
+
    # Loop over Containers
    local lcontainer
    for lcontainer in "${list_containers[@]}"
