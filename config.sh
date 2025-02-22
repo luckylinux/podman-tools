@@ -82,6 +82,12 @@ recordsizes+=("${zfsdefault}")
 compressions+=("${zfsdefault}")
 
 # Define Dataset
+datasets+=("QUADLETS")
+sizes+=("16G")
+recordsizes+=("${zfsdefault}")
+compressions+=("${zfsdefault}")
+
+# Define Dataset
 datasets+=("ROOT")
 sizes+=("128G")
 recordsizes+=("${zfsdefault}")
@@ -95,6 +101,12 @@ compressions+=("${zfsdefault}")
 
 # Define Dataset
 datasets+=("STORAGE")
+sizes+=("256G")
+recordsizes+=("${zfsdefault}")
+compressions+=("${zfsdefault}")
+
+# Define Dataset
+datasets+=("SYSTEM")
 sizes+=("256G")
 recordsizes+=("${zfsdefault}")
 compressions+=("${zfsdefault}")

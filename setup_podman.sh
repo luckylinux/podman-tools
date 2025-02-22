@@ -203,9 +203,16 @@ echo "# ${user} BIND Mounts" >> /etc/fstab
 
 if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
 then
-    echo "/${storage}/CONFIG			/home/${user}/.config/containers	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    echo "/${storage}/SYSTEM			/home/${user}/.config/containers		none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
 else
-    echo "/home/${user}/containers/config	/home/${user}/.config/containers	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    echo "/home/${user}/containers/system	/home/${user}/.config/containers		none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+fi
+
+if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
+then
+    echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+else
+    echo "/home/${user}/containers/quadlets	/home/${user}/.config/containers/systemd	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
 fi
 
 
@@ -438,6 +445,12 @@ chown -R ${user}:${user} ${homedir}/.profile.d
 mount ${homedir}/.config/containers
 cd ${homedir}/.config/containers || exit
 
+# Create Systemd Configuration Folder
+mkdir -p ${homedir}/.config/containers/system
+chattr +i ${homedir}/.config/containers/system
+mount ${homedir}/.config/containers/system
+
+# Copy Configuration Files
 cp ${toolpath}/config/containers/storage.conf storage.conf
 cp ${toolpath}/config/containers/registries.conf registries.conf
 cp ${toolpath}/config/containers/default-policy.json default-policy.json
