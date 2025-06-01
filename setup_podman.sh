@@ -446,9 +446,9 @@ mount ${homedir}/.config/containers
 cd ${homedir}/.config/containers || exit
 
 # Create Systemd Configuration Folder
-mkdir -p ${homedir}/.config/containers/system
-chattr +i ${homedir}/.config/containers/system
-mount ${homedir}/.config/containers/system
+mkdir -p ${homedir}/.config/containers/systemd
+chattr +i ${homedir}/.config/containers/systemd
+mount ${homedir}/.config/containers/systemd
 
 # Copy Configuration Files
 cp ${toolpath}/config/containers/storage.conf storage.conf
