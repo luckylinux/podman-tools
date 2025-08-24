@@ -1,0 +1,8 @@
+[Unit]
+Description=Enforce Startup of Containers due to delayed Startup of Systemd
+
+[Service]
+ExecStart=/bin/bash -c '{{toolpath}}/bin/podman-delayed-start.sh'
+
+[Install]
+WantedBy=default.target
