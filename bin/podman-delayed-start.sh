@@ -16,6 +16,12 @@ user=$(whoami)
 # Wait a bit
 sleep 15
 
+# Reload Systemd Daemon
+systemctl --user daemon-reload
+
+# Rexecute Systemd Daemon
+systemctl --user daemon-reexec
+
 # List Services that are configured to automatically start
 mapfile -t services < <( find /var/run/user/${uid}/systemd/generator/default.target.wants/ -iwholename *.service )
 
