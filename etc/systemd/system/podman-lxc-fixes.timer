@@ -1,0 +1,26 @@
+[Unit]
+Description=Fixes for Podman when running in LXC Container
+RefuseManualStart=no
+RefuseManualStop=no
+
+[Timer]
+# Execute job if it missed a run due to machine being off
+Persistent=true
+
+# Set the timer accuracy to 1 Minute (default is 1 Minute)
+AccuracySec=1m
+
+# Set a Randomized Delay from 0 to this Value, in order to make it unlikely that all Timers fire simultaneously
+RandomizedDelaySec=15s
+
+# Run Every Day every Hour at *:00:00
+OnCalendar=*-*-* *:00:00
+
+# Run when enabled
+OnActiveSec=5s
+
+# File describing job to execute
+Unit=podman-lxc-fixes.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,8 @@
+[Unit]
+Description=Fixes for Podman when running in LXC Container
+
+[Service]
+ExecStart=/usr/local/sbin/podman-lxc-fixes.sh
+
+[Install]
+WantedBy=default.target
