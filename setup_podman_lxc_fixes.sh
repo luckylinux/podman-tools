@@ -14,7 +14,7 @@ source ${toolpath}/functions.sh
 # Check to make sure that we are running inside LXC Container
 status=$(grep -qa container=lxc /proc/1/environ)
 
-if [ ${status} -eq 0]
+if [ ${status} -eq 0 ]
 then
     # Echo
     echo "Running in LXC"
