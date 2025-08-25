@@ -35,6 +35,34 @@ then
         # Change Permissions
         chmod 4755 /usr/sbin/newgidmap
     fi
+
+    # Get Capabilities
+    capabilities_newuidmap=$(getcap -v /usr/bin/newuidmap)
+    echo "${capabilities_newuidmap}" | grep -qa cap_setuid=ep > /dev/null
+    status_newuidmap=$?
+
+    capabilities_newgidmap=$(getcap -v /usr/bin/newgidmap)
+    echo "${capabilities_newgidmap}" | grep -qa cap_setgid=ep > /dev/null
+    status_newgidmap=$?
+
+    if [ ${status_newuidmap} -ne 0 ]
+    then
+        # Echo
+        echo "Set cap_setuid=ep for /usr/sbin/newuidmap"
+
+        # Set Capability
+        setcap cap_setuid=ep /usr/bin/newuidmap
+    fi
+
+    if [ ${status_newgidmap} -ne 0 ]
+    then
+        # Echo
+        echo "Set cap_setgid=ep for /usr/sbin/newgidmap"
+
+        # Set Capability
+        setcap cap_setgid=ep /usr/bin/newgidmap
+    fi
+
 else
     # Do nothing
     x=1
