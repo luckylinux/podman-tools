@@ -12,7 +12,8 @@ source ${toolpath}/config.sh
 source ${toolpath}/functions.sh
 
 # Check to make sure that we are running inside LXC Container
-status=$(grep -qa container=lxc /proc/1/environ)
+grep -qa container=lxc /proc/1/environ
+status=$?
 
 if [ ${status} -eq 0 ]
 then
