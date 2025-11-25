@@ -7,6 +7,10 @@ if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" 
 # Load functions
 source ${toolpath}/functions.sh
 
+# Deprecated now that Quadlets are used
+# Exit immediately to prevent conflicts
+exit 0
+
 # Define user
 if [[ -z "${user}" ]]
 then
