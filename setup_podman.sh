@@ -204,14 +204,9 @@ echo "# ${user} BIND Mounts" >> /etc/fstab
 if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
 then
     echo "/${storage}/SYSTEM			/home/${user}/.config/containers		none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
-else
-    echo "/home/${user}/containers/system	/home/${user}/.config/containers		none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
-fi
-
-if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
-then
     echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
 else
+    echo "/home/${user}/containers/system	/home/${user}/.config/containers		none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
     echo "/home/${user}/containers/quadlets	/home/${user}/.config/containers/systemd	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
 fi
 
@@ -345,6 +340,31 @@ do
         # Increment counter
         counter=$((counter+1))
 done
+
+# Reload Systemd Configuration
+systemctl daemon-reload
+
+# Mount Configuration Folder
+mount /home/${user}/.config/containers
+
+# Create Mountpoint for Quadlets
+mkdir -p /home/${user}/.config/containers/systemd
+
+# Prevent direct Writes (must mount a Partition there)
+chattr +i /home/${user}/.config/containers/systemd
+
+# Automatically mount ZFS datasets
+if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
+then
+   zfs mount -a
+   sleep 2
+fi
+
+# Automatically bind-mount remaining datasets
+mount -a
+
+# Mount Quadlets
+mount /home/${user}/.config/containers/systemd
 
 # Create symbolic links for "legacy" versions of podmans (e.g. not supporting "volumepath" or "imagestore" configuration directives)
 rm -f ${destination}/storage/volumes
