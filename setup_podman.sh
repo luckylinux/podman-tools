@@ -203,11 +203,11 @@ echo "# ${user} BIND Mounts" >> /etc/fstab
 
 if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
 then
-    echo "/${storage}/SYSTEM			/home/${user}/.config/containers		none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
-    echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    echo "/${storage}/SYSTEM	    		/home/${user}/.config/containers		    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
 else
-    echo "/home/${user}/containers/system	/home/${user}/.config/containers		none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
-    echo "/home/${user}/containers/quadlets	/home/${user}/.config/containers/systemd	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    echo "/home/${user}/containers/system   	/home/${user}/.config/containers	    	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    echo "/home/${user}/containers/quadlets	/home/${user}/.config/containers/systemd	    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
 fi
 
 
@@ -460,6 +460,19 @@ cp ${toolpath}/profile/.bashrc ${homedir}/.bashrc
 mkdir -p ${homedir}/.profile.d
 cp -ar ${toolpath}/profile/.profile.d/*.include ${homedir}/.profile.d/
 
+# For some Systems (e.g. OpenSUSE) which don't have a /etc/skel/.bashrc, just copy it from /usr/etc/skel/.bashrc
+if [[ ! -e "/etc/skel/.bashrc" ]]
+then
+    if [[ -f "/usr/etc/skel/.bashrc" ]]
+    then
+        # Copy File
+        cp /usr/etc/skel/.bashrc /etc/skel/.bashrc
+
+        # Ensure correct Permissions
+        chmod 0644 /etc/skel/.bashrc
+    fi
+fi
+
 # Set correct Ownership
 chown -R ${user}:${user} ${homedir}/.bash_profile
 chown -R ${user}:${user} ${homedir}/.bashrc
@@ -623,10 +636,11 @@ echo "OOMScoreAdjust=" >> override.conf
 
 # Prevent Systemd from auto restarting Podman Containers too quickly and timing out
 cd ${scriptspath} || exit
-mkdir -p /etc/systemd/user.conf.d/
+mkdir -p /etc/systemd/user.conf.d
 cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
 
 # Increase Limits on Maximum Number of Open Files
+mkdir -p /etc/security/limits.d
 sudo sh -c "echo '* soft     nofile         65535
 * hard     nofile         65535' > /etc/security/limits.d/30-max-number-open-files.conf"
 
