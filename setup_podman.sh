@@ -18,7 +18,7 @@ source ${toolpath}/functions.sh
 get_os_release() {
     # The Distribution can be Detected by looking at the Line starting with ID=...
     # Possible values: ID=fedora, ID=debian, ID=ubuntu, ...
-    distribution=$(cat /etc/os-release | grep -Ei "^ID=" | sed -E "s|ID=([a-zA-Z]+?)|\1|")
+    distribution=$(cat /etc/os-release | grep -Ei "^ID=" | sed -E "s|ID=\"?([a-zA-Z_-]+)\"?|\1|")
 
     # Return Value
     echo $distribution
@@ -375,7 +375,7 @@ chown ${user}:${user} ${destination}/storage/volumes
 scriptspath=$(pwd)
 
 # Install requirements
-if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
+if [[ "${distribution}" == "debian" ]]
 then
    # Enable Backports Repository
    # Copy Debian Backports Repository Configuration
@@ -387,14 +387,18 @@ then
    # Install podman-compose (only relevant if NOT using Debian Backports)
    #pip3 install podman-compose # Use latest version
    #pip3 install https://github.com/containers/podman-compose/archive/refs/tags/v0.1.10.tar.gz # Use legacy version
-elif [ "${distribution}" == "ubuntu" ]
+elif [[ "${distribution}" == "ubuntu" ]]
 then
    # Install Packages
    apt-get install --yes sudo aptitude jq podman python3 python3-pip podman-compose
-elif [ "${distribution}" == "fedora" ]
+elif [[ "${distribution}" == "fedora" ]]
 then
    # Install Packages
    dnf install -y sudo jq podman python3 python3-pip podman-compose
+elif [[ "${distribution}" == "opensuse"* ]]
+then
+    # Install Packages
+    zypper install -y sudo jq podman python3 python3-pip
 else
     echo "[ERROR]: Distribution ${distribution} is NOT Supported. ABORTING !"
     exit 9
@@ -541,17 +545,24 @@ if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
 then
    # Perform Upgrade
    apt-get --yes dist-upgrade
-elif [ "${distribution}" == "fedora" ]
+elif [[ "${distribution}" == "fedora" ]]
 then
    # Perform Upgrade
    dnf upgrade --refresh
+elif [[ "${distribution}" == "opensuse"* ]]
+then
+   # Perform Upgrades
+   zypper update
 fi
 
 # Rebuild initramfs
 if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
 then
     update-initramfs -k all  -u
-elif [ "${distribution}" == "fedora" ]
+elif [[ "${distribution}" == "fedora" ]]
+then
+    dracut --regenerate-all
+elif [[ "${distribution}" == "opensuse"* ]]
 then
     dracut --regenerate-all
 fi
@@ -571,10 +582,14 @@ sudo -u ${user} cp /lib/systemd/user/podman-restart.service /home/${user}/.confi
 if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
 then
    apt-get --yes install uidmap fuse-overlayfs slirp4netns containernetworking-plugins
-elif [ "${distribution}" == "fedora" ]
+elif [[ "${distribution}" == "fedora" ]]
 then
-   # shadow-utils is the Fedora Packages corresponding to uidmap in Debian (providing getsubids, newgidmap, newuidmap)
+   # shadow-utils is the Fedora Package corresponding to uidmap in Debian (providing getsubids, newgidmap, newuidmap)
    dnf install -y shadow-utils fuse-overlayfs slirp4netns containernetworking-plugins
+elif [[ "${distribution}" == "opensuse"* ]]
+then
+   # shadow is the OpenSUSE Package corresponding to uidmap in Debian (providing getsubids, newgidmap, newuidmap)
+   zypper install -y fuse-overlayfs slirp4netns shadow container-selinux
 fi
 
 # Disable root-level services
