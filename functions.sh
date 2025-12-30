@@ -356,8 +356,15 @@ generic_cmd() {
    else
       if [[ "${lexecutingUser}" == "root" ]]
       then
-          # Run Command as root user and target a different non-root User
-          runuser -l ${luser} -c ${lcommand} ${larguments}
+          # Systemd based Distribution
+          if [[ $(command -v systemctl) ]]
+          then
+              # Run Command as root user and target a different non-root User
+              runuser -l ${luser} -c ${lcommand} ${larguments}
+          else
+              # Use sudo
+              sudo -u ${luser} ${lcommand} ${larguments}
+          fi
       elif [[ "${luser}" == "${lexecutingUser}" ]]
       then
           # Run Command directly (target user is the same as the user that is executing the script / function)
@@ -391,10 +398,16 @@ systemd_cmd() {
    else
       if [[ "${lexecutingUser}" == "root" ]]
       then
-          # Run with runuser and with --user
-
-          # Run Command as root using "runuser" and target a different non-root User
-          runuser -l "${luser}" -c "systemctl --user ${laction} ${lservice} ${loptions}"
+          # Systemd based Distribution
+          if [[ $(command -v systemctl) ]]
+          then
+              # Run Command as root using "runuser" and target a different non-root User
+              # Run with runuser and with --user
+              runuser -l "${luser}" -c "systemctl --user ${laction} ${lservice} ${loptions}"
+          else
+              # Use sudo
+              sudo -u ${luser} rc-service ${lservice} ${laction} ${loptions}
+          fi
       elif [[ "${luser}" == "${lexecutingUser}" ]]
       then
           # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
@@ -428,16 +441,24 @@ journald_cmd() {
    else
       if [[ "${lexecutingUser}" == "root" ]]
       then
-          # Run with runuser and with --user
+          # Systemd based Distribution
+          if [[ $(command -v systemctl) ]]
+          then
+              # Run with runuser and with --user
 
-          # Run Command as root user and target a different non-root User
-          runuser -l ${luser} -c "journalctl --user \"${laction}\" \"${lservice}\" ${loptions}"
+              # Run Command as root user and target a different non-root User
+              runuser -l ${luser} -c "journalctl --user \"${laction}\" \"${lservice}\" ${loptions}"
+          fi
       elif [[ "${luser}" == "${lexecutingUser}" ]]
       then
-          # Run without runuser and with --user
+          # Systemd based Distribution
+          if [[ $(command -v systemctl) ]]
+          then
+              # Run without runuser and with --user
 
-          # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          journalctl --user "${laction}" "${lservice}" ${loptions}
+              # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
+              journalctl --user "${laction}" "${lservice}" ${loptions}
+          fi
       fi
    fi
 }

@@ -688,7 +688,7 @@ mkdir -p /etc/containers
 cp -r ${toolpath}/etc/containers/* /etc/containers/
 
 # Enable rc.local service and make sure ZFS dataset are mounted BEFORE everything else
-source enable_rc_local.sh
+source ${toolpath}/enable_rc_local.sh
 
 #################################################
 ################### User Level ##################
