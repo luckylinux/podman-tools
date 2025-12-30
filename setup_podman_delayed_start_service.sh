@@ -24,20 +24,28 @@ fi
 # Get homedir
 homedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
 
-# Remove old files / with old name
-#rm -f /etc/...
-systemd_delete "${user}" "podman-delayed-start.service"
-systemd_delete "${user}" "podman-delayed-start.timer"
+    # Remove old files / with old name
+    #rm -f /etc/...
+    systemd_delete "${user}" "podman-delayed-start.service"
+    systemd_delete "${user}" "podman-delayed-start.timer"
+fi
 
 # Setup new Scheme
 if [[ "${schedulemode}" == "cron" ]]
 then
    # Setup CRON to automatically generate updated Systemd Service files for Podman
+
+   # Nothing currently implemented for OpenRC
+   echo "[WARNING] Currently podman-delayed-start-service is NOT implemented for OpenRC based Distributions"
+
    # Disabled for now
-   dummyvar=1
+   x=1
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File
