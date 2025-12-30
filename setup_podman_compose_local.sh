@@ -50,4 +50,4 @@ fi
 cd $HOME || exit
 
 # Setup venv for Podman Compose
-generic_cmd "${user}" "python3 -m venv ~/podman-compose ; source ~/podman-compose/bin/activate ; pip install --upgrade git+https://github.com/containers/podman-compose.git@v1.5.0"
+generic_cmd "${user}" bash -c "python3 -m venv ~/podman-compose ; source ~/podman-compose/bin/activate ; pip install --upgrade git+https://github.com/containers/podman-compose.git@v1.5.0"
