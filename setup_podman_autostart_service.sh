@@ -14,38 +14,57 @@ exit 0
 # Define user
 if [[ -z "${user}" ]]
 then
-#   user=${1:-'podman'}
+#   user=${1:-"podman"}
    user=$(whoami)
 fi
 
 # Define mode
 if [[ -z "${schedulemode}" ]]
 then
-#   schedulemode=${2:-'cron'}
-   schedulemode='systemd'
+#   schedulemode=${2:-"cron"}
+   schedulemode="systemd"
+fi
+
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Nothing to do
+    x=1
+else
+    # Systemd is not available
+    # Force Cron
+    schedulemode="cron"
 fi
 
 # Get homedir
 homedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
 
-# Remove old files / with old name
-#rm -f /etc/...
-systemd_delete "${user}" "podman-setup-service-autostart.service"
-systemd_delete "${user}" "podman-setup-service-autostart.timer"
+    # Remove old files / with old name
+    #rm -f /etc/...
+    systemd_delete "${user}" "podman-setup-service-autostart.service"
+    systemd_delete "${user}" "podman-setup-service-autostart.timer"
+fi
 
 # Setup new Scheme
 if [[ "${schedulemode}" == "cron" ]]
 then
    # Setup CRON to automatically generate updated Systemd Service files for Podman
+
+   # Nothing currently implemented for OpenRC
+   echo "[WARNING] Currently podman-setup-service-autostart is NOT implemented for OpenRC based Distributions"
+
    # Disabled for now
    #destination="/etc/cron.d/podman-service-reconfigure-autostart"
    #cp "cron/podman-service-autostart" "${destination}"
    #chmod +x "${destination}"
    #eplace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
-   dummyvar=1
+   x=1
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File

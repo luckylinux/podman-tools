@@ -23,20 +23,27 @@ then
     # Copy Script
     cp ${toolpath}/usr/local/sbin/podman-lxc-fixes.sh /usr/local/sbin/podman-lxc-fixes.sh
 
-    # Copy Systemd Service
-    cp ${toolpath}/etc/systemd/system/podman-lxc-fixes.service /etc/systemd/system/podman-lxc-fixes.service
+    # Systemd based Distribution
+    if [[ $(command -v systemctl) ]]
+    then
+        # Copy Systemd Service
+        cp ${toolpath}/etc/systemd/system/podman-lxc-fixes.service /etc/systemd/system/podman-lxc-fixes.service
 
-    # Copy Systemd Timer
-    cp ${toolpath}/etc/systemd/system/podman-lxc-fixes.timer /etc/systemd/system/podman-lxc-fixes.timer
+        # Copy Systemd Timer
+        cp ${toolpath}/etc/systemd/system/podman-lxc-fixes.timer /etc/systemd/system/podman-lxc-fixes.timer
 
-    # Reload Systemd Daemon
-    systemctl daemon-reload
+        # Reload Systemd Daemon
+        systemctl daemon-reload
 
-    # Enable Systemd Timer
-    systemctl enable podman-lxc-fixes
+        # Enable Systemd Timer
+        systemctl enable podman-lxc-fixes
 
-    # Start Systemd Timer
-    systemctl restart podman-lxc-fixes
+        # Start Systemd Timer
+        systemctl restart podman-lxc-fixes
+    else
+        # Nothing currently implemented for OpenRC
+        echo "[WARNING] Currently podman-lxc-fixes is NOT implemented for OpenRC based Distributions"
+    fi
 else
     # Echo
     echo "NOT running in LXC"

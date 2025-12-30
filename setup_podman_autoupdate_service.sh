@@ -10,38 +10,58 @@ source ${toolpath}/functions.sh
 # Define user
 if [[ -z "${user}" ]]
 then
-#   user=${1:-'podman'}
+#   user=${1:-"podman"}
    user=$(whoami)
 fi
 
 # Define mode
 if [[ -z "${schedulemode}" ]]
 then
-#   schedulemode=${2:-'cron'}
-   schedulemode='systemd'
+#   schedulemode=${2:-"cron"}
+   schedulemode="systemd"
 fi
+
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Nothing to do
+    x=1
+else
+    # Systemd is not available
+    # Force Cron
+    schedulemode="cron"
+fi
+
 
 # Get homedir
 homedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
 
-# Remove old files / with old name
-#rm -f /etc/...
-systemd_delete "${user}" "podman-setup-service-custom-auto-update.service"
-systemd_delete "${user}" "podman-setup-service-custom-auto-update.timer"
+    # Remove old files / with old name
+    #rm -f /etc/...
+    systemd_delete "${user}" "podman-setup-service-custom-auto-update.service"
+    systemd_delete "${user}" "podman-setup-service-custom-auto-update.timer"
+fi
 
 # Setup new Scheme
 if [[ "${schedulemode}" == "cron" ]]
 then
    # Setup CRON to automatically generate updated Systemd Service files
+
+   # Nothing currently implemented for OpenRC
+   echo "[WARNING] Currently podman-setup-service-custom-auto-update is NOT implemented for OpenRC based Distributions"
+
    # Disabled for now
    #destination="/etc/cron.d/podman-custom-auto-update"
    #cp "cron/podman-custom-auto-update" "${destination}"
    #chmod +x "${destination}"
    #replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
-   dummyvar=1
+   x=1
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File

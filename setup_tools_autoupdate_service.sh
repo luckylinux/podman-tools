@@ -22,17 +22,25 @@ if [[ -z "${schedulemode}" ]]
 then
    if [[ "${user}" == "root" ]]
    then
-        schedulemode=${2:-'cron'}
+        schedulemode=${2:-"cron"}
    else
-        schedulemode='systemd'
+        schedulemode="systemd"
    fi
+fi
+
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Nothing to do
+    x=1
+else
+    # Systemd is not available
+    # Force Cron
+    schedulemode="cron"
 fi
 
 # Get homedir
 homedir=$(get_homedir "${user}")
-
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
 
 if [[ "${schedulemode}" == "cron" ]]
 then
@@ -43,6 +51,9 @@ then
    replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
 elif [[ "${schedulemode}" == "systemd" ]]
 then
+   # Get Systemdconfigdir
+   systemdconfigdir=$(get_systemdconfigdir "${user}")
+
    # Copy Systemd Service File
    filename="podman-tools-autoupdate.service"
    destination="${systemdconfigdir}/${filename}"

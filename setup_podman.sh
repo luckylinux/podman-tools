@@ -224,19 +224,30 @@ echo "# ${user} BIND Mounts" >> /etc/fstab
 
 if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
 then
-    echo "/${storage}/SYSTEM	    		/home/${user}/.config/containers		    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
-    echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    echo "/${storage}/SYSTEM                    /home/${user}/.config/containers                    none        defaults,nofail,x-systemd.automount,rbind       0       0" >> /etc/fstab
 else
-    echo "/home/${user}/containers/system   	/home/${user}/.config/containers	    	none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
-    echo "/home/${user}/containers/quadlets	/home/${user}/.config/containers/systemd	    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    echo "/home/${user}/containers/system       /home/${user}/.config/containers                none    defaults,nofail,x-systemd.automount,rbind       0       0" >> /etc/fstab
 fi
-
 
 mkdir -p "/home/${user}"
 chattr -i "/home/${user}"
 mkdir -p "/home/${user}/.config"
 mkdir -p "/home/${user}/.config/containers"
-mkdir -p "/home/${user}/.config/systemd"
+
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Create Folder if not exist already
+    mkdir -p "/home/${user}/.config/systemd"
+
+    # Add extra FSTAB Entries
+    if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
+    then
+        echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    else
+        echo "/home/${user}/containers/quadlets	/home/${user}/.config/containers/systemd	    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+    fi
+fi
 
 # Ensure proper permissions for config folder
 chown -R ${user}:${user} /home/${user}/.config/containers
