@@ -646,7 +646,7 @@ then
 elif [[ "${distribution}" == "alpine" ]]
 then
    # shadow
-   apk add shadow shadow-subids shadow-login
+   apk add shadow shadow-subids shadow-login fuse-overlayfs
 fi
 
 # Systemd Based
