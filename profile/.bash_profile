@@ -1,6 +1,3 @@
-# Load Default Profile
-source /etc/skel/.bashrc
-
 # Load .bashrc if it exists
 if [ -f ~/.bashrc ]
 then
