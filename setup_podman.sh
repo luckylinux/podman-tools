@@ -517,7 +517,12 @@ cp ${toolpath}/config/containers/containers.conf containers.conf
 mkdir -p registries.conf.d
 
 # Change some configuration in storage.conf
-sed -Ei "s|^#? ?runroot = \".*\"|runroot = \"/run/user/${userid}\"|g" storage.conf
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    sed -Ei "s|^#? ?runroot = \".*\"|runroot = \"/run/user/${userid}\"|g" storage.conf
+fi
+
 sed -Ei "s|^#? ?graphroot = \".*\"|graphroot = \"${destination}/storage\"|g" storage.conf
 sed -Ei "s|^#? ?rootless_storage_path = \".*\"|rootless_storage_path = \"${destination}/storage\"|g" storage.conf
 sed -Ei "s|^#? ?imagestore = \".*\"|#imagestore = \"${destination}/images\"|g" storage.conf
