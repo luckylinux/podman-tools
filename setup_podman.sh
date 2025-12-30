@@ -143,8 +143,29 @@ fi
 
 # Setup container user
 touch /etc/{subgid,subuid}
-useradd -c "${user}" -s /bin/bash "${user}"
+
+
+# If user doesn't exist yet
+grep -qE "^podman2:" /etc/passwd
+user_exist_check=$?
+
+if [ ${user_exist_check} -ne 0 ]
+then
+    # Systemd based Distribution
+    if [[ $(command -v systemctl) ]]
+    then
+        # Use "useradd"
+        useradd -c "${user}" -s /bin/bash "${user}"
+    else
+        # Use "adduser"
+        adduser -s /bin/bash "${user}"
+    fi
+fi
+
+# Remove existing Password
 passwd -d "${user}"
+
+# Set a new Password
 passwd "${user}"
 
 nano /etc/subuid
