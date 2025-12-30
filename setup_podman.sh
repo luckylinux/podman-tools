@@ -610,16 +610,21 @@ then
     dracut --regenerate-all
 fi
 
-# Setup Systemd
-# Source: https://salsa.debian.org/debian/libpod/-/blob/debian/sid/contrib/systemd/README.md#user-podman-service-run-as-given-user-aka-rootless
-# Need to execute as podman user
-# Setup files
-sudo -u ${user} mkdir -p /home/${user}/.config/systemd/user
-sudo -u ${user} cp /lib/systemd/user/podman.service /home/${user}/.config/systemd/user/
-sudo -u ${user} cp /lib/systemd/user/podman.socket /home/${user}/.config/systemd/user/
-sudo -u ${user} cp /lib/systemd/user/podman-auto-update.timer /home/${user}/.config/systemd/user/
-sudo -u ${user} cp /lib/systemd/user/podman-auto-update.service /home/${user}/.config/systemd/user/
-sudo -u ${user} cp /lib/systemd/user/podman-restart.service /home/${user}/.config/systemd/user/
+
+# Systemd Based
+if [[ $(command -v systemctl) ]]
+then
+    # Setup Systemd
+    # Source: https://salsa.debian.org/debian/libpod/-/blob/debian/sid/contrib/systemd/README.md#user-podman-service-run-as-given-user-aka-rootless
+    # Need to execute as podman user
+    # Setup files
+    sudo -u ${user} mkdir -p /home/${user}/.config/systemd/user
+    sudo -u ${user} cp /lib/systemd/user/podman.service /home/${user}/.config/systemd/user/
+    sudo -u ${user} cp /lib/systemd/user/podman.socket /home/${user}/.config/systemd/user/
+    sudo -u ${user} cp /lib/systemd/user/podman-auto-update.timer /home/${user}/.config/systemd/user/
+    sudo -u ${user} cp /lib/systemd/user/podman-auto-update.service /home/${user}/.config/systemd/user/
+    sudo -u ${user} cp /lib/systemd/user/podman-restart.service /home/${user}/.config/systemd/user/
+fi
 
 # Install additionnal packages
 if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
