@@ -21,32 +21,36 @@ then
    user=$(whoami)
 fi
 
-# Stop Traefik Monitoring Service
-systemd_stop "${user}" "monitor-traefik.service"
-
-# Stop Traefik Container
-systemd_stop "${user}" "container-traefik.service"
-
-# Run Podman Compose
-if [[ -d "${basefolder}/compose" ]] && [[ -d "${basefolder}/compose/traefik" ]]
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
 then
-   # Change Folder
-   cd ${basefolder}/compose/traefik || exit
+    # Stop Traefik Monitoring Service
+    systemd_stop "${user}" "monitor-traefik.service"
 
-   # Run Wrapper
-   compose_update
+    # Stop Traefik Container
+    systemd_stop "${user}" "container-traefik.service"
 
-   # Run podman compose
-   #podman-compose down
-   #sleep 1
-   #podman-compose up -d
+    # Run Podman Compose
+    if [[ -d "${basefolder}/compose" ]] && [[ -d "${basefolder}/compose/traefik" ]]
+    then
+        # Change Folder
+        cd ${basefolder}/compose/traefik || exit
 
-   # Update Autostart File to match new Compose File
-   bash ${toolpath}/configure_podman_service_autostart.sh "traefik"
+       # Run Wrapper
+       compose_update
 
-   # Restart Traefik Monitoring Service
-   systemd_restart "${user}" "monitor-traefik.service"
-else
-   echo "Folder ${basefolder}/compose/traefik does NOT exist. Aborting."
-   exit 1
+       # Run podman compose
+       #podman-compose down
+       #sleep 1
+       #podman-compose up -d
+
+       # Update Autostart File to match new Compose File
+       bash ${toolpath}/configure_podman_service_autostart.sh "traefik"
+
+       # Restart Traefik Monitoring Service
+       systemd_restart "${user}" "monitor-traefik.service"
+    else
+        echo "Folder ${basefolder}/compose/traefik does NOT exist. Aborting."
+        exit 1
+    fi
 fi

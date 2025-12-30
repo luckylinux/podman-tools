@@ -35,8 +35,12 @@ currentpath=$(pwd)
 # Get homedir
 homedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
+fi
 
 # Modify all Containers based on Podman Compose file Structure
 for containerpath in ${basedir}/compose/*
@@ -77,39 +81,47 @@ mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 
 for container in "${list[@]}"
 do
-   # Get compose file location from Container Properties
-   composedir=$(podman inspect ${container} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
+    # Get compose file location from Container Properties
+    composedir=$(podman inspect ${container} | jq -r '.[0].Config.Labels."com.docker.compose.project.working_dir"')
 
-   # Get systemd service name
-   service=$(podman inspect ${container} | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
+    # Get systemd service name
+    service=$(podman inspect ${container} | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
 
-   echo -e "Run podman-compose down & podman-compose up -d <${container}> which is currently running"
-   echo -e "\t Compose Directory: ${composedir}"
-   echo -e "\t Systemd Service: ${service}"
+    echo -e "Run podman-compose down & podman-compose up -d <${container}> which is currently running"
+    echo -e "\t Compose Directory: ${composedir}"
+    echo -e "\t Systemd Service: ${service}"
 
-   # Disable Service Temporarily
-   systemd_disable "${user}" "${service}"
+    # Systemd based Distribution
+    if [[ $(command -v systemctl) ]]
+    then
+        # Disable Service Temporarily
+        systemd_disable "${user}" "${service}"
 
-   # Stop Service
-   systemd_stop "${user}" "${service}"
+        # Stop Service
+        systemd_stop "${user}" "${service}"
+    fi
 
-   # Change Directory
-   cd ${composedir} || exit
+    # Change Directory
+    cd ${composedir} || exit
 
-   # Bring Container Down
-   podman-compose down
+    # Bring Container Down
+    podman-compose down
 
-   # Wait a bit
-   sleep 0.5
+    # Wait a bit
+    sleep 0.5
 
-   # Bring Container Up
-   podman-compose up -d
+    # Bring Container Up
+    podman-compose up -d
 
-   # Re-enable Service
-   systemd_enable "${user}" "${service}"
+    # Systemd based Distribution
+    if [[ $(command -v systemctl) ]]
+    then
+        # Re-enable Service
+        systemd_enable "${user}" "${service}"
 
-   # Restart Service
-   systemd_restart "${user}" "${service}"
+        # Restart Service
+        systemd_restart "${user}" "${service}"
+    fi
 done
 
 # Re-enable all containers

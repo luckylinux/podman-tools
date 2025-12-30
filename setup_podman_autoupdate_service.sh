@@ -32,7 +32,6 @@ else
     schedulemode="cron"
 fi
 
-
 # Get homedir
 homedir=$(get_homedir "${user}")
 

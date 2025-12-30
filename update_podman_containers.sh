@@ -20,9 +20,6 @@ fi
 # Get user homedir
 userhomedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
-
 # Prune old images
 podman image prune -f
 
@@ -46,20 +43,27 @@ do
     fi
 done
 
-# Restart Systemd Container Services
-cd ${systemdconfigdir} || exit
-for servicepath in container-*.service
-do
-    # Get Service Name (without Path or "./")
-    servicename=$(basename "${servicepath}")
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
 
-    # Restart Service
-    systemd_restart "${user}" "${servicename}"
-done
+    # Restart Systemd Container Services
+    cd ${systemdconfigdir} || exit
+    for servicepath in container-*.service
+    do
+        # Get Service Name (without Path or "./")
+        servicename=$(basename "${servicepath}")
+
+        # Restart Service
+        systemd_restart "${user}" "${servicename}"
+    done
+fi
 
 # Change back to currentpath
 cd ${currentpath} || exit
 
 # Restart the podman-auto-update.service Systemd Service
 # This forces old images to be purges and news ones to be fetched
-#systemctl --user restart podman-auto-update.service
+# systemctl --user restart podman-auto-update.service
