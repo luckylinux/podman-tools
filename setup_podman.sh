@@ -780,6 +780,7 @@ then
     git clone https://github.com/luckylinux/podman-tools.git podman-tools
 else
     # Update existing local Repository
+    cd ${homedir}/podman-tools || exit
     git pull
 fi
 
