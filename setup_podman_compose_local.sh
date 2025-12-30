@@ -44,7 +44,7 @@ if [[ $(command -v systemctl) ]]
 then
     # Get Systemdconfigdir
     systemdconfigdir=$(get_systemdconfigdir "${user}")
-
-    # Setup venv
-    generic_cmd "${user}" "cd ~ ; python3 -m venv ~/podman-compose ; source ~/podman-compose/bin/activate ; pip install git+https://github.com/containers/podman-compose.git@v1.1.0"
 fi
+
+# Setup venv for Podman Compose
+generic_cmd "${user}" "cd ~ ; python3 -m venv ~/podman-compose ; source ~/podman-compose/bin/activate ; pip install git+https://github.com/containers/podman-compose.git@v1.1.0"

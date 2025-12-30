@@ -770,13 +770,17 @@ source ${toolpath}/enable_rc_local.sh
 #################################################
 ################### User Level ##################
 #################################################
+
 # Setup a copy of the tool for user
 cd ${homedir} || exit
-if [[ ! -d "podman-tools" ]]
+
+if [[ ! -d "${homedir}/podman-tools" ]]
 then
-   git clone https://github.com/luckylinux/podman-tools.git podman-tools
+    # Clone Remote Repository
+    git clone https://github.com/luckylinux/podman-tools.git podman-tools
 else
-   git pull
+    # Update existing local Repository
+    git pull
 fi
 
 # Ensure propert Permissions
@@ -796,7 +800,6 @@ cd ${homedir}/podman-tools || exit
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
 #generic_cmd "${user}" "cd ~/podman-tools/ && source setup_tools_autoupdate_service.sh"
-
 
 # Setup Local podman-compose to ensure that we got the latest Version
 source setup_podman_compose_local.sh
