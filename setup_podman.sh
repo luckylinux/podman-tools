@@ -222,11 +222,21 @@ fi
 # Setup FSTAB
 echo "# ${user} BIND Mounts" >> /etc/fstab
 
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Systemd Mount Options
+    mount_opts="defaults,nofail,x-systemd.automount,rbind"
+else
+    # OpenRC Mount Options
+    mount_opts="defaults,nofail,rbind"
+fi
+
 if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
 then
-    echo "/${storage}/SYSTEM                    /home/${user}/.config/containers                    none        defaults,nofail,x-systemd.automount,rbind       0       0" >> /etc/fstab
+    echo "/${storage}/SYSTEM			/home/${user}/.config/containers		none	${mount_opts}		0	0" >> /etc/fstab
 else
-    echo "/home/${user}/containers/system       /home/${user}/.config/containers                none    defaults,nofail,x-systemd.automount,rbind       0       0" >> /etc/fstab
+    echo "/home/${user}/containers/system	/home/${user}/.config/containers		none	${mount_opts}		0	0" >> /etc/fstab
 fi
 
 mkdir -p "/home/${user}"
@@ -243,9 +253,9 @@ then
     # Add extra FSTAB Entries
     if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
     then
-        echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+        echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	none	${mount_opts}		0	0" >> /etc/fstab
     else
-        echo "/home/${user}/containers/quadlets	/home/${user}/.config/containers/systemd	    none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
+        echo "/home/${user}/containers/quadlets		/home/${user}/.config/containers/systemd	none	${mount_opts}		0	0" >> /etc/fstab
     fi
 fi
 
@@ -385,11 +395,15 @@ fi
 # Mount Configuration Folder
 mount /home/${user}/.config/containers
 
-# Create Mountpoint for Quadlets
-mkdir -p /home/${user}/.config/containers/systemd
+# Systemd Based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Create Mountpoint for Quadlets
+    mkdir -p /home/${user}/.config/containers/systemd
 
-# Prevent direct Writes (must mount a Partition there)
-chattr +i /home/${user}/.config/containers/systemd
+    # Prevent direct Writes (must mount a Partition there)
+    chattr +i /home/${user}/.config/containers/systemd
+fi
 
 # Automatically mount ZFS datasets
 if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
@@ -401,8 +415,12 @@ fi
 # Automatically bind-mount remaining datasets
 mount -a
 
-# Mount Quadlets
-mount /home/${user}/.config/containers/systemd
+# Systemd Based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Mount Quadlets
+    mount /home/${user}/.config/containers/systemd
+fi
 
 # Create symbolic links for "legacy" versions of podmans (e.g. not supporting "volumepath" or "imagestore" configuration directives)
 rm -f ${destination}/storage/volumes
@@ -534,10 +552,15 @@ chown -R ${user}:${user} ${homedir}/.profile.d
 mount ${homedir}/.config/containers
 cd ${homedir}/.config/containers || exit
 
-# Create Systemd Configuration Folder
-mkdir -p ${homedir}/.config/containers/systemd
-chattr +i ${homedir}/.config/containers/systemd
-mount ${homedir}/.config/containers/systemd
+
+# Systemd Based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Create Systemd Configuration Folder
+    mkdir -p ${homedir}/.config/containers/systemd
+    chattr +i ${homedir}/.config/containers/systemd
+    mount ${homedir}/.config/containers/systemd
+fi
 
 # Copy Configuration Files
 cp ${toolpath}/config/containers/storage.conf storage.conf
