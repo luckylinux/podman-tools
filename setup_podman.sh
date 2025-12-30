@@ -325,8 +325,11 @@ do
 	     exit;
 	fi
 
-	# Reload systemd to make use of new FSTAB
-	systemctl daemon-reload
+        if [[ $(command -v systemctl) ]]
+        then
+	    # Reload systemd to make use of new FSTAB
+	    systemctl daemon-reload
+        fi
 
 	# Mount according to FSTAB
         if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
@@ -341,8 +344,11 @@ do
         counter=$((counter+1))
 done
 
-# Reload Systemd Configuration
-systemctl daemon-reload
+if [[ $(command -v systemctl) ]]
+then
+    # Reload Systemd Configuration
+    systemctl daemon-reload
+fi
 
 # Mount Configuration Folder
 mount /home/${user}/.config/containers
@@ -399,6 +405,10 @@ elif [[ "${distribution}" == "opensuse"* ]]
 then
     # Install Packages
     zypper install -y sudo jq podman python3 python3-pip
+elif [[ "${distribution}" == "alpine" ]]
+then
+    # Install Packages
+    apk add jq podman python3 podman-compose
 else
     echo "[ERROR]: Distribution ${distribution} is NOT Supported. ABORTING !"
     exit 9
@@ -429,6 +439,16 @@ if [[ -f "/etc/default/grub" ]]; then
     fi
 else
     nano /etc/default/kernel-cmdline
+fi
+
+if [[ $(command -v systemctl) ]]
+then
+    # Nothing to do for systemd
+    x=1
+else
+    # Must enable cgroups Service
+    rc-update add cgroups
+    rc-service cgroups start
 fi
 
 # Automatically mount ZFS datasets
@@ -519,39 +539,41 @@ chown -R ${user}:${user} /home/${user}
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 
-# Create Systemd Files if they do NOT exist yet
-# This is typically needed for Fedora
-if [[ ! -f "/etc/systemd/system.conf" ]]
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
 then
-    cp ${toolpath}/etc/systemd/system.conf /etc/systemd/system.conf
-    systemctl daemon-reload
-    systemctl daemon-reexec
+    # Create Systemd Files if they do NOT exist yet
+    # This is typically needed for Fedora
+    if [[ ! -f "/etc/systemd/system.conf" ]]
+    then
+        cp ${toolpath}/etc/systemd/system.conf /etc/systemd/system.conf
+        systemctl daemon-reload
+        systemctl daemon-reexec
+    fi
+
+    if [[ ! -f "/etc/systemd/user.conf" ]]
+    then
+        cp ${toolpath}/etc/systemd/user.conf /etc/systemd/user.conf
+        systemctl daemon-reload
+        systemctl daemon-reexec
+    fi
+
+    # Setup default Timeout settings for Systemd
+    sed -Ei "s|^#DefaultTimeoutStartSec\s*=.*|DefaultTimeoutStartSec=15s|g" /etc/systemd/system.conf
+    sed -Ei "s|^#DefaultTimeoutStopSec\s*=.*|DefaultTimeoutStopSec=15s|g" /etc/systemd/system.conf
+    sed -Ei "s|^#DefaultDeviceTimeoutSec\s*=.*|DefaultDeviceTimeoutSec=15s|g" /etc/systemd/system.conf
+    sed -Ei "s|^#DefaultStartLimitIntervalSec\s*=.*|DefaultStartLimitIntervalSec=10s|g" /etc/systemd/system.conf
+    sed -Ei "s|^#DefaultStartLimitBurst\s*=.*|DefaultStartLimitBurst=500|g" /etc/systemd/system.conf
+
+    sed -Ei "s|^#DefaultTimeoutStartSec\s*=.*|DefaultTimeoutStartSec=15s|g" /etc/systemd/user.conf
+    sed -Ei "s|^#DefaultTimeoutStopSec\s*=.*|DefaultTimeoutStopSec=15s|g" /etc/systemd/user.conf
+    sed -Ei "s|^#DefaultDeviceTimeoutSec\s*=.*|DefaultDeviceTimeoutSec=15s|g" /etc/systemd/user.conf
+    sed -Ei "s|^#DefaultStartLimitIntervalSec\s*=.*|DefaultStartLimitIntervalSec=10s|g" /etc/systemd/user.conf
+    sed -Ei "s|^#DefaultStartLimitBurst\s*=.*|DefaultStartLimitBurst=500|g" /etc/systemd/user.conf
+
+    # Enable lingering sessions
+    loginctl enable-linger ${userid}
 fi
-
-if [[ ! -f "/etc/systemd/user.conf" ]]
-then
-    cp ${toolpath}/etc/systemd/user.conf /etc/systemd/user.conf
-    systemctl daemon-reload
-    systemctl daemon-reexec
-fi
-
-
-
-# Setup default Timeout settings for Systemd
-sed -Ei "s|^#DefaultTimeoutStartSec\s*=.*|DefaultTimeoutStartSec=15s|g" /etc/systemd/system.conf
-sed -Ei "s|^#DefaultTimeoutStopSec\s*=.*|DefaultTimeoutStopSec=15s|g" /etc/systemd/system.conf
-sed -Ei "s|^#DefaultDeviceTimeoutSec\s*=.*|DefaultDeviceTimeoutSec=15s|g" /etc/systemd/system.conf
-sed -Ei "s|^#DefaultStartLimitIntervalSec\s*=.*|DefaultStartLimitIntervalSec=10s|g" /etc/systemd/system.conf
-sed -Ei "s|^#DefaultStartLimitBurst\s*=.*|DefaultStartLimitBurst=500|g" /etc/systemd/system.conf
-
-sed -Ei "s|^#DefaultTimeoutStartSec\s*=.*|DefaultTimeoutStartSec=15s|g" /etc/systemd/user.conf
-sed -Ei "s|^#DefaultTimeoutStopSec\s*=.*|DefaultTimeoutStopSec=15s|g" /etc/systemd/user.conf
-sed -Ei "s|^#DefaultDeviceTimeoutSec\s*=.*|DefaultDeviceTimeoutSec=15s|g" /etc/systemd/user.conf
-sed -Ei "s|^#DefaultStartLimitIntervalSec\s*=.*|DefaultStartLimitIntervalSec=10s|g" /etc/systemd/user.conf
-sed -Ei "s|^#DefaultStartLimitBurst\s*=.*|DefaultStartLimitBurst=500|g" /etc/systemd/user.conf
-
-# Enable lingering sessions
-loginctl enable-linger ${userid}
 
 # Upgrade other parts of the system
 if [ "${distribution}" == "debian" ] || [ "${distribution}" == "ubuntu" ]
@@ -566,6 +588,11 @@ elif [[ "${distribution}" == "opensuse"* ]]
 then
    # Perform Upgrades
    zypper update
+elif [[ "${distribution}" == "alpine" ]]
+then
+   # Perform Upgrades
+   apk update
+   apk upgrade
 fi
 
 # Rebuild initramfs
@@ -576,6 +603,9 @@ elif [[ "${distribution}" == "fedora" ]]
 then
     dracut --regenerate-all
 elif [[ "${distribution}" == "opensuse"* ]]
+then
+    dracut --regenerate-all
+elif [[ "${distribution}" == "alpine" ]]
 then
     dracut --regenerate-all
 fi
@@ -603,41 +633,49 @@ elif [[ "${distribution}" == "opensuse"* ]]
 then
    # shadow is the OpenSUSE Package corresponding to uidmap in Debian (providing getsubids, newgidmap, newuidmap)
    zypper install -y fuse-overlayfs slirp4netns shadow container-selinux
+elif [[ "${distribution}" == "alpine" ]]
+then
+   # shadow
+   apk add shadow shadow-subids
 fi
 
-# Disable root-level services
-# (this Script defaults to rootless podman Installation)
-systemctl disable podman-restart.service
-systemctl disable podman.socket
-systemctl disable podman-auto-update
+# Systemd Based
+if [[ $(command -v systemctl) ]]
+then
+    # Disable root-level services
+    # (this Script defaults to rootless podman Installation)
+    systemctl disable podman-restart.service
+    systemctl disable podman.socket
+    systemctl disable podman-auto-update
 
-# Enable user-level services
-systemd_enable "${user}" "podman.socket"
-systemd_restart "${user}" "podman.socket"
+    # Enable user-level services
+    systemd_enable "${user}" "podman.socket"
+    systemd_restart "${user}" "podman.socket"
 
-systemd_enable "${user}" "podman.service"
-systemd_restart "${user}" "podman.service"
+    systemd_enable "${user}" "podman.service"
+    systemd_restart "${user}" "podman.service"
 
-systemd_enable "${user}" "podman-restart.service"
-systemd_restart "${user}" "podman-restart.service"
+    systemd_enable "${user}" "podman-restart.service"
+    systemd_restart "${user}" "podman-restart.service"
 
-systemd_enable "${user}" "podman-auto-update.service"
-systemd_restart "${user}" "podman-auto-update.service"
+    systemd_enable "${user}" "podman-auto-update.service"
+    systemd_restart "${user}" "podman-auto-update.service"
 
-systemd_status "${user}" "podman.socket podman.service podman-restart.service podman-auto-update.service"
-systemd_daemon_reexec "${user}"
-systemd_daemon_reload "${user}"
+    systemd_status "${user}" "podman.socket podman.service podman-restart.service podman-auto-update.service"
+    systemd_daemon_reexec "${user}"
+    systemd_daemon_reload "${user}"
 
-# https://github.com/containers/podman/issues/3024#issuecomment-1742105831 ,  https://github.com/containers/podman/issues/3024#issuecomment-1762708730
-mkdir -p /etc/systemd/system/user@.service.d
-cd /etc/systemd/system/user@.service.d || exit
-echo "[Service]" > override.conf
-echo "OOMScoreAdjust=" >> override.conf
+    # https://github.com/containers/podman/issues/3024#issuecomment-1742105831 ,  https://github.com/containers/podman/issues/3024#issuecomment-1762708730
+    mkdir -p /etc/systemd/system/user@.service.d
+    cd /etc/systemd/system/user@.service.d || exit
+    echo "[Service]" > override.conf
+    echo "OOMScoreAdjust=" >> override.conf
 
-# Prevent Systemd from auto restarting Podman Containers too quickly and timing out
-cd ${scriptspath} || exit
-mkdir -p /etc/systemd/user.conf.d
-cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
+    # Prevent Systemd from auto restarting Podman Containers too quickly and timing out
+    cd ${scriptspath} || exit
+    mkdir -p /etc/systemd/user.conf.d
+    cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
+fi
 
 # Increase Limits on Maximum Number of Open Files
 mkdir -p /etc/security/limits.d
@@ -697,4 +735,3 @@ source setup_podman_autostart_service.sh
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
 source setup_tools_autoupdate_service.sh
-
