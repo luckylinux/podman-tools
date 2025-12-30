@@ -55,13 +55,15 @@ mount -a
 # Get homedir
 homedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
+fi
 
 # Save current path
 currentpath=$(pwd)
-
-
 
 # Stop all Running Containers based only on Podman Running Status
 mapfile -t runninglist < <( podman ps --all --format="{{.Names}}" )
@@ -74,11 +76,15 @@ do
    #service="container-${container}"
    service=$(podman inspect ${container} | jq -r '.[0].Config.Labels."PODMAN_SYSTEMD_UNIT"')
 
-   # Disable Service Temporarily
-   systemd_disable "${user}" "${service}"
+   # Systemd based Distribution
+   if [[ $(command -v systemctl) ]]
+   then
+       # Disable Service Temporarily
+       systemd_disable "${user}" "${service}"
 
-   # Stop Service
-   systemd_stop "${user}" "${service}"
+       # Stop Service
+       systemd_stop "${user}" "${service}"
+   fi
 done
 
 # Stop all Containers based on Podman Compose file Structure
@@ -238,14 +244,24 @@ make_immutable_if_exist "${destinationdir}/restoretmp"
 sed -Ei "s|${sourcedir}/backup|${destinationdir}/backup|g" "/etc/fstab"
 sed -Ei "s|${sourcedir}/restoretmp|${destinationdir}/restoretmp|g" "/etc/fstab"
 
-# Load new FSTAB Configuration
-systemctl daemon-reload
 
-# Load new FSTAB Configuration as User
-systemd_reload "${user}"
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Load new FSTAB Configuration
+    systemctl daemon-reload
+
+    # Load new FSTAB Configuration as User
+    systemd_reload "${user}"
+fi
+
 
 # Remount all mountpoints
-zfs mount -a
+if [[ $(command -v zfs) ]]
+then
+    zfs mount -a
+fi
+
 mount -a
 
 # Now All compose.yml files need to be updated
@@ -347,8 +363,12 @@ rm -rf ${sourcedir}/images/*
 rm -rf ${destinationdir}/storage/*
 rm -rf ${destinationdir}/images/*
 
-# Regenerate Entries
-systemd_reload "${user}"
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Regenerate Entries
+    systemd_reload "${user}"
+fi
 
 # Shoud Reboot
 echo "You should now Reboot !"

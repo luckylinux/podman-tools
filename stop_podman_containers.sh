@@ -20,19 +20,23 @@ fi
 # Get user homedir
 userhomedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
 
-# Restart Systemd Container Services
-cd ${systemdconfigdir} || exit
-for service in container-*.service
-do
-    # Get Service Name (without Path or "./")
-    servicename=$(basename "${service}")
+    # Restart Systemd Container Services
+    cd ${systemdconfigdir} || exit
+    for service in container-*.service
+    do
+        # Get Service Name (without Path or "./")
+        servicename=$(basename "${service}")
 
-    # Stop container
-    systemd_stop "${user}" "${servicename}"
-done
+        # Stop container
+        systemd_stop "${user}" "${servicename}"
+    done
+fi
 
 # Change back to currentpath
 cd ${currentpath} || exit

@@ -14,22 +14,37 @@ source ${toolpath}/functions.sh
 # Define user
 if [[ ! -v user ]]
 then
-#   user=${1:-'podman'}
+#   user=${1:-"podman"}
    user=$(whoami)
 fi
 
 # Define mode
 if [[ ! -v schedulemode ]]
 then
-#   schedulemode=${2:-'cron'}
-   schedulemode='systemd'
+#   schedulemode=${2:-"cron"}
+   schedulemode="systemd"
+fi
+
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Nothing to do
+    x=1
+else
+    # Systemd is not available
+    # Force Cron
+    schedulemode="cron"
 fi
 
 # Get homedir
 homedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
+fi
 
 # Setup CRON/Systemd to automatically install images updates
 source setup_podman_autoupdate_service.sh

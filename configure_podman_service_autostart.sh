@@ -40,12 +40,21 @@ then
    read -p "Container Name to Create Systemd Service for:" container
 fi
 
-# Configure Systemd Service
-if [ "${setting}" == "enable" ]
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
 then
-    # Enable Service
-    enable_autostart_container "${container}" "${user}"
+    # Configure Systemd Service
+    if [ "${setting}" == "enable" ]
+    then
+        # Enable Service
+        enable_autostart_container "${container}" "${user}"
+    else
+        # Disable Service
+        disable_autostart_container "${container}" "${user}"
+    fi
 else
-    # Disable Service
-    disable_autostart_container "${container}" "${user}"
+    # Display Warning
+    # Nothing currently implemented for OpenRC
+    echo "[WARNING] Currently nothing is implemented to setup Autostart on OpenRC based Distributions"
 fi
+

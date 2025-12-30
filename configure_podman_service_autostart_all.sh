@@ -23,9 +23,6 @@ fi
 # Get homedir
 homedir=$(get_homedir "${user}")
 
-# Get Systemdconfigdir
-systemdconfigdir=$(get_systemdconfigdir "${user}")
-
 # Validation
 if [ "${setting}" != "enable" ] && [ "${setting}" != "disable" ]
 then
@@ -33,57 +30,67 @@ then
    exit 9
 fi
 
-if [ "${setting}" == "enable" ]
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
 then
-   # List running Containers
-   mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
 
-   for container in "${list[@]}"
-   do
-      # Echo
-      echo "Generate & Enable & Start Systemd Autostart Service for <${container}>"
+    if [ "${setting}" == "enable" ]
+    then
+       # List running Containers
+       mapfile -t list < <( podman ps --all --format="{{.Names}}" )
 
-      # Enable Autostart Container Service
-      enable_autostart_container "${container}" "${user}"
-   done
+       for container in "${list[@]}"
+       do
+           # Echo
+           echo "Generate & Enable & Start Systemd Autostart Service for <${container}>"
+
+           # Enable Autostart Container Service
+           enable_autostart_container "${container}" "${user}"
+       done
+    else
+        # List running Containers
+        mapfile -t list < <( podman ps --all --format="{{.Names}}" )
+
+        for container in "${list[@]}"
+        do
+            # Echo
+            echo "Disable & Stop & Remove Systemd Autostart Service for <${container}>"
+
+            # Disable Autostart Container Service
+            disable_autostart_container "${container}" "${user}"
+        done
+
+        # List (remaing) Systemd Services
+        mapfile -t list < <( ls -1 ${systemdconfigdir}/container-* )
+
+        # Stop These Services which might be deprecated anyways
+        for servicepath in "${list[@]}"
+        do
+            # Need only the basename
+            service=$(basename ${servicepath})
+
+            # Extract Container Name from Service File
+            #container=$(get_container_from_systemd_file "${servicefile}")
+            #
+            # Disable Autostart Container Service
+            #echo "Disable & Stop & Remove Systemd Autostart Service <${service}>"
+
+            # Disable Service
+            systemd_disable "${user}" "${service}"
+
+            # Stop Service
+            systemd_stop "${user}" "${service}"
+
+            # Remove Service
+            systemd_delete "${user}" "${service}"
+
+            # Reload Systemd Daemon
+            systemd_reload "${user}"
+        done
+    fi
 else
-    # List running Containers
-    mapfile -t list < <( podman ps --all --format="{{.Names}}" )
-
-    for container in "${list[@]}"
-    do
-       # Echo
-       echo "Disable & Stop & Remove Systemd Autostart Service for <${container}>"
-
-       # Disable Autostart Container Service
-       disable_autostart_container "${container}" "${user}"
-    done
-
-    # List (remaing) Systemd Services
-    mapfile -t list < <( ls -1 ${systemdconfigdir}/container-* )
-
-    # Stop These Services which might be deprecated anyways
-    for servicepath in "${list[@]}"
-    do
-       # Need only the basename
-       service=$(basename ${servicepath})
-
-       # Extract Container Name from Service File
-       #container=$(get_container_from_systemd_file "${servicefile}")
-       #
-       # Disable Autostart Container Service
-       #echo "Disable & Stop & Remove Systemd Autostart Service <${service}>"
-
-       # Disable Service
-       systemd_disable "${user}" "${service}"
-
-       # Stop Service
-       systemd_stop "${user}" "${service}"
-
-       # Remove Service
-       systemd_delete "${user}" "${service}"
-
-       # Reload Systemd Daemon
-       systemd_reload "${user}"
-    done
+    # Nothing currently implemented for OpenRC
+    echo "[WARNING] Currently podman-setup-service-autostart-all is NOT implemented for OpenRC based Distributions"
 fi

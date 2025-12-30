@@ -17,15 +17,23 @@ fi
 # Define mode
 if [[ -z "${schedulemode}" ]]
 then
-#   schedulemode=${2:-'cron'}
-   schedulemode='systemd'
+#   schedulemode=${2:-"cron"}
+   schedulemode="systemd"
 fi
 
 # Get user home folder
 userhomedir=$( get_homedir "${user}" )
 
-# Get Systemd Config Folder
-systemdconfigfolder=$( get_systemdconfigdir "${user}" )
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemd Config Folder
+    systemdconfigfolder=$( get_systemdconfigdir "${user}" )
+else
+    # Systemd is not available
+    # Force Cron
+    schedulemode="cron"
+fi
 
 # Generate Path to Install Executable
 localbinpath=$( get_localbinpath "${user}" )
@@ -47,15 +55,19 @@ chown "${user}:${user}" "${localbinpath}/monitor-traefik.sh"
 # Give Script Execution Permissions
 chmod +x "${localbinpath}/monitor-traefik.sh"
 
-# Echo
-echo "Installing Systemd Service file in <${systemdconfigfolder}/${service}>"
+# Systemd based Distribution
+if [[ $(command -v systemctl) ]]
+then
+    # Echo
+    echo "Installing Systemd Service file in <${systemdconfigfolder}/${service}>"
 
-# Copy Traefik Monitoring Service File to Podman Systemd Service Folder
-cp "${toolpath}/systemd/services/${service}" "${systemdconfigfolder}/${service}"
-chown "${user}:${user}" "${systemdconfigfolder}/${service}"
+    # Copy Traefik Monitoring Service File to Podman Systemd Service Folder
+    cp "${toolpath}/systemd/services/${service}" "${systemdconfigfolder}/${service}"
+    chown "${user}:${user}" "${systemdconfigfolder}/${service}"
 
-# Make sure that the correct Path is set in the Service for localbinpath
-replace_text "${systemdconfigfolder}/${service}" "localbinpath" "${localbinpath}"
+    # Make sure that the correct Path is set in the Service for localbinpath
+    replace_text "${systemdconfigfolder}/${service}" "localbinpath" "${localbinpath}"
 
-# Enable & Start Systemd file
-systemd_reload_enable "${user}" "${service}"
+    # Enable & Start Systemd file
+    systemd_reload_enable "${user}" "${service}"
+fi
