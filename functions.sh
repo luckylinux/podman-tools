@@ -363,7 +363,7 @@ generic_cmd() {
               runuser -l ${luser} -c ${lcommand} ${larguments}
           else
               # Use sudo
-              sudo -u ${luser} ${lcommand} ${larguments}
+              sudo -u ${luser} ${lcommand} ${larguments[@]}
           fi
       elif [[ "${luser}" == "${lexecutingUser}" ]]
       then

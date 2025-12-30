@@ -679,9 +679,11 @@ then
     dracut --regenerate-all
 elif [[ "${distribution}" == "alpine" ]]
 then
-    dracut --regenerate-all
+    if [[ $(command -v dracut) ]]
+    then
+        dracut --regenerate-all
+    fi
 fi
-
 
 # Systemd Based
 if [[ $(command -v systemctl) ]]
