@@ -389,6 +389,20 @@ systemd_cmd() {
    # Debug
    debug_message "${FUNCNAME[0]} - Execute systemd command targeting user <${luser}> with action <${laction}> and options <${loptions}> for service <${lservice}>"
 
+   # Systemd based Distribution
+   if [[ $(command -v systemctl) ]]
+   then
+       # Everything is OK
+       x=1
+   else
+       # Show WARNING
+       echo "[WARNING] The Function systemd_cmd has been called, but this is NOT a Systemd based Distribution"
+
+       # Show Call Stack
+       echo "Call Stack:"
+       debug_stack
+   fi
+
    if [[ "${luser}" == "root" ]]
    then
       # Run without runuser and without --user
@@ -398,20 +412,13 @@ systemd_cmd() {
    else
       if [[ "${lexecutingUser}" == "root" ]]
       then
-          # Systemd based Distribution
-          if [[ $(command -v systemctl) ]]
-          then
-              # Run Command as root using "runuser" and target a different non-root User
-              # Run with runuser and with --user
-              runuser -l "${luser}" -c "systemctl --user ${laction} ${lservice} ${loptions}"
-          else
-              # Use sudo
-              sudo -u ${luser} rc-service ${lservice} ${laction} ${loptions}
-          fi
+          # Run Command as root using "runuser" and target a different non-root User
+          # Run with runuser and with --user
+          runuser -l "${luser}" -c "systemctl --user ${laction} ${lservice} ${loptions}"
       elif [[ "${luser}" == "${lexecutingUser}" ]]
       then
-          # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
-          systemctl --user ${laction} ${lservice} ${loptions}
+         # Run Systemd Command directly with --user Option (target user is the same as the user that is executing the script / function)
+         systemctl --user ${laction} ${lservice} ${loptions}
       fi
    fi
 }
