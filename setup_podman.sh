@@ -408,7 +408,7 @@ then
 elif [[ "${distribution}" == "alpine" ]]
 then
     # Install Packages
-    apk add sudo jq podman python3 podman-compose
+    apk add sudo jq podman python3 podman-compose coreutils
 else
     echo "[ERROR]: Distribution ${distribution} is NOT Supported. ABORTING !"
     exit 9
