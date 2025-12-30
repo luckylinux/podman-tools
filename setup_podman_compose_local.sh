@@ -51,3 +51,6 @@ cd ${HOME} || exit
 
 # Setup venv for Podman Compose
 generic_cmd "${user}" bash -c "python3 -m venv \${HOME}/podman-compose ; source \${HOME}/podman-compose/bin/activate ; pip install --upgrade pip ; pip install --upgrade git+https://github.com/containers/podman-compose.git@v1.5.0"
+
+# This Command works on Alpine Linux
+# sudo -u podman -i bash -c "python3 -m venv \${HOME}/podman-compose ; source \${HOME}/podman-compose/bin/activate ; pip install --upgrade pip ; pip install --upgrade git+https://github.com/containers/podman-compose.git@v1.5.0"
