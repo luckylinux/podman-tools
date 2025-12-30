@@ -781,7 +781,7 @@ then
 else
     # Update existing local Repository
     cd ${homedir}/podman-tools || exit
-    git pull
+    generic_cmd "${user}" "git pull"
 fi
 
 # Ensure propert Permissions
