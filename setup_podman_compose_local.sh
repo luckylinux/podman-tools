@@ -47,12 +47,12 @@ then
 fi
 
 # Change to Home Folder
-cd ${HOME} || exit
+cd ${homedir} || exit
 
 # Setup venv for Podman Compose
 generic_cmd "${user}" -- bash << EOF
-python3 -m venv ${HOME}/podman-compose;
-source ${HOME}/podman-compose/bin/activate;
+python3 -m venv ${homedir}/podman-compose;
+source ${homedir}/podman-compose/bin/activate;
 pip install --upgrade pip;
 pip install --upgrade git+https://github.com/containers/podman-compose.git@v1.5.0
 EOF
