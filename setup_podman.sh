@@ -406,11 +406,21 @@ then
 fi
 
 # Mount Configuration Folder
-mount "${containersconfigdir}"
+if ! mountpoint -q "${containersconfigdir}"
+then
+    # Not currently mounted, mount now
+    mount "${containersconfigdir}"
+fi
 
 # Systemd Based Distribution
 if [[ $(command -v systemctl) ]]
 then
+    if mountpoint -q "${containersconfigdir}/systemd"
+    then
+        # Currently mounted, unmount to make sure that when doing chattr +i we don't get everything stuck
+        umount "${containersconfigdir}/systemd"
+    fi
+
     # Create Mountpoint for Quadlets
     mkdir -p "${containersconfigdir}/systemd"
 
@@ -431,8 +441,11 @@ mount -a
 # Systemd Based Distribution
 if [[ $(command -v systemctl) ]]
 then
-    # Mount Quadlets
-    mount "${containersconfigdir}/systemd"
+    if ! mountpoint -q "${containersconfigdir}"
+    then
+        # Not currently mounted, mount now
+        mount "${containersconfigdir}/systemd"
+    fi
 fi
 
 # Create symbolic links for "legacy" versions of podmans (e.g. not supporting "volumepath" or "imagestore" configuration directives)
@@ -571,13 +584,24 @@ chown -R "${user}":"${user}" "${homedir}/.bashrc"
 chown -R "${user}":"${user}" "${homedir}/.profile.d"
 
 # Set Containers Configuration
-mount "${containersconfigdir}"
+if ! mountpoint -q "${containersconfigdir}"
+then
+    # Not currently mounted, mount now
+    mount "${containersconfigdir}"
+fi
+
 cd "${containersconfigdir}" || exit
 
 
 # Systemd Based Distribution
 if [[ $(command -v systemctl) ]]
 then
+    if mountpoint -q "${containersconfigdir}/systemd"
+    then
+        # Currently mounted, unmount now to avoid getting stuck when we do chattr +i
+        umount "${containersconfigdir}/systemd"
+    fi
+
     # Create Systemd Configuration Folder
     mkdir -p "${containersconfigdir}/systemd"
     chattr +i "${containersconfigdir}/systemd"
