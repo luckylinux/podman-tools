@@ -270,6 +270,28 @@ get_homedir() {
    fi
 }
 
+# Get Toolsdir
+get_toolsdir() {
+    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+    local luser=${1}
+
+    # Declare Variable
+    local ltoolsdir
+
+    # If User is root, use $toolpath
+    if [[ "${luser}" == "root" ]]
+    then
+        ltoolsdir="${toolpath}"
+    else
+        local lhomedir
+        lhomedir=$(get_homedir "${luser}")
+        ltoolsdir="${lhomedir}/podman-tools"
+    fi
+
+    # Return Value
+    echo "${ltoolsdir}"
+}
+
 # Get Local Bin Path
 get_localbinpath() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !

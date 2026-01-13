@@ -46,7 +46,10 @@ else
 fi
 
 # Get homedir
-homedir=$(get_homedir "${user}")
+# homedir=$(get_homedir "${user}")
+
+# Determine toolsdir
+toolsdir=$(get_toolsdir "${user}")
 
 if [[ "${schedulemode}" == "cron" ]]
 then
@@ -54,7 +57,7 @@ then
    destination="/etc/cron.d/podman-tools-autoupdate"
    cp "cron/podman-tools-autoupdate" "${destination}"
    chmod +x "${destination}"
-   replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
+   replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Get Systemdconfigdir
@@ -65,7 +68,7 @@ then
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/services/${filename}" "${destination}"
    # chmod +x "${destination}"
-   replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
+   replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
    systemd_reload_enable "${user}" "${filename}"
 
    # Copy Systemd Timer File
@@ -73,7 +76,7 @@ then
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/timers/${filename}" "${destination}"
    # chmod +x "${destination}"
-   replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
+   replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
    systemd_reload_enable "${user}" "${filename}"
 else
    # Error
