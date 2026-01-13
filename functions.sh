@@ -513,6 +513,9 @@ quadlet_restart() {
 
     if [[ ${lexistscode} -eq 0 ]]
     then
+       # Also do a daemon-reload
+       systemd_daemon_reload "${luser}"
+
        # Run Command using Wrapper
        systemd_cmd "${luser}" "restart" "${lquadlet}"
     fi
@@ -530,6 +533,9 @@ quadlet_start() {
 
     if [[ ${lexistscode} -eq 0 ]]
     then
+       # Also do a daemon-reload
+       systemd_daemon_reload "${luser}"
+
        # Run Command using Wrapper
        systemd_cmd "${luser}" "start" "${lquadlet}"
     fi
@@ -547,9 +553,58 @@ quadlet_stop() {
 
     if [[ ${lexistscode} -eq 0 ]]
     then
+       # Also do a daemon-reload
+       systemd_daemon_reload "${luser}"
+
        # Run Command using Wrapper
        systemd_cmd "${luser}" "stop" "${lquadlet}"
     fi
+}
+
+# Debug Quadlet
+quadlet_debug() {
+    # Input Arguments
+    local luser=$(get_user "${1}")
+
+    # Debug the current Path
+    local lpath
+    lpath="$PWD"
+
+    # Debug Systemd Generator
+    if [[ "${luser}" == "root" ]]
+    then
+        QUADLET_UNIT_DIRS="${lpath}" /usr/lib/systemd/system-generators/podman-system-generator --dryrun
+    else
+        generic_cmd "${luser}" bash << EOF
+        QUADLET_UNIT_DIRS="${lpath}" /usr/lib/systemd/system-generators/podman-system-generator --user --dryrun
+EOF
+    fi
+}
+
+# Get User from Command Argument with Fallback
+get_user() {
+    # Input Arguments
+    local luser="$1"
+
+    if [[ -z "${luser}" ]]
+    then
+        luser=$(whoami)
+    fi
+
+    # Return Value
+    echo "${luser}"
+}
+
+# Get Podman Logs
+podman_logs() {
+    # Input Arguments
+    local luser=$(get_user "$1")
+    local lcontainer=$2
+
+    # Get Current Quadlets in current Folder
+    # mapfile -t quadlets < <( find . -mindepth 1 -iname *.container )
+
+    # To be implemented
 }
 
 # Execute Systemd Command
