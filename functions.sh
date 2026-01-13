@@ -827,6 +827,7 @@ systemd_uninstall_service() {
     local lservicename="$2"
 
     if [[ "${lservicename}" == *".service" ]]
+    then
         # Nothing to do
         local x=1
     else
@@ -856,6 +857,7 @@ systemd_uninstall_timer() {
     local ltimername="$2"
 
     if [[ "${ltimername}" == *".timer" ]]
+    then
         # Nothing to do
         local x=1
     else
