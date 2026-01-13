@@ -711,7 +711,7 @@ systemd_start() {
 systemd_exists() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
    local luser=${1}
-   local lservice=${2}
+   local lservice=$(systemd_service_filename "$2")
 
    # Get Systemd Config Directory
    local lsystemdfolder=$(get_systemdconfigdir "${luser}")
@@ -840,11 +840,10 @@ systemd_reload_enable() {
 }
 
 
-# Somewhat duplicated of systemd_delete
-systemd_uninstall_service() {
+# Get Fully Qualified Service Name
+systemd_service_filename() {
     # Input Arguments
-    local luser="$1"
-    local lservicename="$2"
+    local lservicename="$1"
 
     if [[ "${lservicename}" == *".service" ]]
     then
@@ -854,6 +853,37 @@ systemd_uninstall_service() {
         # Append ".service" Suffix
         lservicename="${lservicename}.service"
     fi
+
+    # Return Value
+    echo "${lservicename}"
+}
+
+# Get Fully Qualified Timer Name
+systemd_timer_filename() {
+    # Input Arguments
+    local ltimername="$1"
+
+    if [[ "${ltimername}" == *".timer" ]]
+    then
+        # Nothing to do
+        local x=1
+    else
+        # Append ".timer" Suffix
+        ltimername="${ltimername}.timer"
+    fi
+
+    # Return Value
+    echo "${ltimername}"
+}
+
+
+# Somewhat duplicated of systemd_delete
+systemd_uninstall_service() {
+    # Input Arguments
+    local luser="$1"
+    local lservicename="$2"
+
+    lservicename=$(systemd_service_filename "${lservicename}")
 
     # Get Systemdconfigdir
     local lsystemdconfigdir
@@ -876,14 +906,7 @@ systemd_uninstall_timer() {
     local luser="$1"
     local ltimername="$2"
 
-    if [[ "${ltimername}" == *".timer" ]]
-    then
-        # Nothing to do
-        local x=1
-    else
-        # Append ".timer" Suffix
-        ltimername="${ltimername}.timer"
-    fi
+    ltimername=$(systemd_timer_filename "${timername}")
 
     # Get Systemdconfigdir
     local lsystemdconfigdir
