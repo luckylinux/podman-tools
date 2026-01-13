@@ -144,15 +144,11 @@ fi
 # ZVOL FS (if type=zfs)
 #fs=${4:-'ext4'}
 
-# Setup container user
+# Setup Container User
 touch /etc/{subgid,subuid}
 
-
 # If user doesn't exist yet
-grep -qE "^podman2:" /etc/passwd
-user_exist_check=$?
-
-if [ ${user_exist_check} -ne 0 ]
+if [ $(user_exists "${user}") -ne 0 ]
 then
     # Systemd based Distribution
     if [[ $(command -v systemctl) ]]
@@ -163,16 +159,17 @@ then
         # Use "adduser"
         adduser -s /bin/bash "${user}"
     fi
+
+    # Remove existing Password
+    passwd -d "${user}"
+
+    # Set a new Password
+    passwd "${user}"
+
+    # Customize subuid & subgid if desired
+    nano /etc/subuid
+    nano /etc/subgid
 fi
-
-# Remove existing Password
-passwd -d "${user}"
-
-# Set a new Password
-passwd "${user}"
-
-nano /etc/subuid
-nano /etc/subgid
 
 # Get homedir
 homedir=$(get_homedir "${user}")

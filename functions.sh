@@ -79,8 +79,6 @@ debug_stack() {
 }
 
 
-
-
 # Repeat Character N times
 repeat_character() {
    # Character to repeat
@@ -235,6 +233,24 @@ schedule_mode_not_supported() {
    echo "Scheduling Mode <${lschedulemode}> is NOT supported. Possible choices are <cron> or <systemd>. Aborting !"
    return 2
    #break
+}
+
+# Check if User exists
+user_exists() {
+   # Input Arguments
+   local luser="$1"
+
+   # Check if User exists
+   grep -qE "^${luser}:" /etc/passwd
+}
+
+# Check if Group exists
+group_exists() {
+    # Input Arguments
+    local lgroup="$1"
+
+    # Check if Group exists
+    grep -qE "^${lgroup}:" /etc/group
 }
 
 # Get Homedir
