@@ -473,6 +473,12 @@ mkdir -p /etc/sysctl.d
 # Copy sysctl Configuration Files
 cp -r ${toolpath}/etc/sysctl.d/*.conf /etc/sysctl.d/
 
+# Remove /etc/sysctl.d/99-userns.conf for alpine since the Kernel doesn't support it
+if [[ "${distribution}" == "alpine" ]]
+then
+    rm -f /etc/sysctl.d/99-userns.conf
+fi
+
 # Enable CGROUPS v2
 # For Rock 5B SBC needs to be manually configured in /boot/mk_extlinux script
 echo "Please add <systemd.unified_cgroup_hierarchy=1> to /etc/default/kernel-cmdline or /etc/default/grub"
