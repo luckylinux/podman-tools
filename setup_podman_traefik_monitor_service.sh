@@ -41,8 +41,11 @@ localbinpath=$( get_localbinpath "${user}" )
 # Make sure that the Traefik Systemd Service has already been set up
 ${toolpath}/configure_podman_service_autostart.sh "traefik"
 
-# Define service name
-service="monitor-traefik.service"
+# Define Service Name
+servicename="monitor-traefik"
+
+# Define Service File
+servicefile="${servicename}.service"
 
 # Echo
 echo "Setup Traefik Monitoring Service for User <${user}>"
@@ -59,15 +62,15 @@ chmod +x "${localbinpath}/monitor-traefik.sh"
 if [[ $(command -v systemctl) ]]
 then
     # Echo
-    echo "Installing Systemd Service file in <${systemdconfigfolder}/${service}>"
+    echo "Installing Systemd Service file to <${systemdconfigfolder}/${servicefile}>"
 
     # Copy Traefik Monitoring Service File to Podman Systemd Service Folder
-    cp "${toolpath}/systemd/services/${service}" "${systemdconfigfolder}/${service}"
-    chown "${user}:${user}" "${systemdconfigfolder}/${service}"
+    cp "${toolpath}/systemd/services/${servicefile}" "${systemdconfigfolder}/${servicefile}"
+    chown "${user}:${user}" "${systemdconfigfolder}/${servicefile}"
 
     # Make sure that the correct Path is set in the Service for localbinpath
-    replace_text "${systemdconfigfolder}/${service}" "localbinpath" "${localbinpath}"
+    replace_text "${systemdconfigfolder}/${servicefile}" "localbinpath" "${localbinpath}"
 
     # Enable & Start Systemd file
-    systemd_reload_enable "${user}" "${service}"
+    systemd_reload_enable "${user}" "${servicefile}"
 fi

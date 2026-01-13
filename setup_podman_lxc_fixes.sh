@@ -15,6 +15,9 @@ source ${toolpath}/functions.sh
 grep -qa container=lxc /proc/1/environ
 status=$?
 
+# Define Service Name
+servicename="podman-lxc-fixes"
+
 if [ ${status} -eq 0 ]
 then
     # Echo
@@ -27,22 +30,22 @@ then
     if [[ $(command -v systemctl) ]]
     then
         # Copy Systemd Service
-        cp ${toolpath}/etc/systemd/system/podman-lxc-fixes.service /etc/systemd/system/podman-lxc-fixes.service
+        cp ${toolpath}/etc/systemd/system/${servicename}.service /etc/systemd/system/${servicename}.service
 
         # Copy Systemd Timer
-        cp ${toolpath}/etc/systemd/system/podman-lxc-fixes.timer /etc/systemd/system/podman-lxc-fixes.timer
+        cp ${toolpath}/etc/systemd/system/${servicename}.timer /etc/systemd/system/${servicename}.timer
 
         # Reload Systemd Daemon
         systemctl daemon-reload
 
         # Enable Systemd Timer
-        systemctl enable podman-lxc-fixes
+        systemctl enable ${servicename}
 
         # Start Systemd Timer
-        systemctl restart podman-lxc-fixes
+        systemctl restart ${servicename}
     else
         # Nothing currently implemented for OpenRC
-        echo "[WARNING] Currently podman-lxc-fixes is NOT implemented for OpenRC based Distributions"
+        echo "[WARNING] Currently ${servicename} is NOT implemented for OpenRC based Distributions"
     fi
 else
     # Echo

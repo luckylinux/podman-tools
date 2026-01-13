@@ -38,6 +38,9 @@ fi
 # Get toolsdir
 toolsdir=$(get_toolsdir "${user}")
 
+# Define Service Name
+servicename="podman-service-containers-auto-update"
+
 # Systemd based Distribution
 if [[ $(command -v systemctl) ]]
 then
@@ -56,18 +59,18 @@ then
    # Setup CRON to automatically generate updated Systemd Service files
 
    # Nothing currently implemented for OpenRC
-   echo "[WARNING] Currently podman-setup-service-custom-auto-update is NOT implemented for OpenRC based Distributions"
+   echo "[WARNING] Currently ${servicename} is NOT implemented for OpenRC based Distributions"
 
    # Disabled for now
-   #destination="/etc/cron.d/podman-custom-auto-update"
-   #cp "cron/podman-custom-auto-update" "${destination}"
+   #destination="/etc/cron.d/${servicename}"
+   #cp "cron/${servicename}" "${destination}"
    #chmod +x "${destination}"
    #replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
    x=1
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File
-   servicefile="podman-service-containers-auto-update.service"
+   servicefile="${servicename}.service"
    destination="${systemdconfigdir}/${servicefile}"
    cp "systemd/services/${servicefile}" "${destination}"
    #chmod +x "${destination}"
@@ -76,7 +79,7 @@ then
    systemd_reload_enable "${user}" "${servicefile}"
 
    # Copy Systemd Timer File
-   timerfile="podman-service-containers-auto-update.timer"
+   timerfile="${servicename}.timer"
    destination="${systemdconfigdir}/${timerfile}"
    cp "systemd/timers/${timerfile}" "${destination}"
    #chmod +x "${destination}"

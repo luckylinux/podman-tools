@@ -27,6 +27,9 @@ fi
 # Get toolsdir
 toolsdir=$(get_toolsdir "${user}")
 
+# Define Service Name
+servicename="podman-delayed-start"
+
 # Systemd based Distribution
 if [[ $(command -v systemctl) ]]
 then
@@ -45,14 +48,14 @@ then
    # Setup CRON to automatically generate updated Systemd Service files for Podman
 
    # Nothing currently implemented for OpenRC
-   echo "[WARNING] Currently podman-delayed-start-service is NOT implemented for OpenRC based Distributions"
+   echo "[WARNING] Currently ${servicename} is NOT implemented for OpenRC based Distributions"
 
    # Disabled for now
    x=1
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File
-   servicefile="podman-delayed-start.service"
+   servicefile="${servicename}.service"
    destination="${systemdconfigdir}/${servicefile}"
    cp "systemd/services/${servicefile}" "${destination}"
    chmod +x "${destination}"

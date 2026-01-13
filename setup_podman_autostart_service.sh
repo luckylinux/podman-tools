@@ -42,6 +42,9 @@ fi
 # Get toolsdir
 toolsdir=$(get_toolsdir "${user}")
 
+# Define Service Name
+servicename="podman-service-reconfigure-autostart"
+
 # Systemd based Distribution
 if [[ $(command -v systemctl) ]]
 then
@@ -71,7 +74,7 @@ then
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File
-   servicefile="podman-service-reconfigure-autostart.service"
+   servicefile="${servicename}.service"
    destination="${systemdconfigdir}/${servicefile}"
    cp "systemd/services/${servicefile}" "${destination}"
    #chmod +x "${destination}"
@@ -80,7 +83,7 @@ then
    systemd_reload_enable "${user}" "${servicefile}"
 
    # Copy Systemd Timer File
-   timerfile="podman-service-reconfigure-autostart.timer"
+   timerfile="${servicename}.timer"
    destination="${systemdconfigdir}/${timerfile}"
    cp "systemd/timers/${timerfile}" "${destination}"
    #chmod +x "${destination}"

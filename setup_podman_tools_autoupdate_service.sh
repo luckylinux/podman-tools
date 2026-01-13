@@ -51,20 +51,27 @@ fi
 # Determine toolsdir
 toolsdir=$(get_toolsdir "${user}")
 
+# Define Service Name
+servicename="podman-tools-autoupdate"
+
 if [[ "${schedulemode}" == "cron" ]]
 then
    # Setup CRON to automatically generate updated Systemd Service files
-   destination="/etc/cron.d/podman-tools-autoupdate"
-   cp "cron/podman-tools-autoupdate" "${destination}"
+   destination="/etc/cron.d/${servicename}"
+   cp "cron/${servicename}" "${destination}"
    chmod +x "${destination}"
    replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
+
+   # Ensure removal of Systemd Service & Timer
+   systemd_uninstall_service "${servicename}.service"
+   systemd_uninstall_timer "${servicename}.timer"
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Get Systemdconfigdir
    systemdconfigdir=$(get_systemdconfigdir "${user}")
 
    # Copy Systemd Service File
-   filename="podman-tools-autoupdate.service"
+   filename="${servicename}.service"
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/services/${filename}" "${destination}"
    # chmod +x "${destination}"
@@ -72,12 +79,15 @@ then
    systemd_reload_enable "${user}" "${filename}"
 
    # Copy Systemd Timer File
-   filename="podman-tools-autoupdate.timer"
+   filename="${servicename}.timer"
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/timers/${filename}" "${destination}"
    # chmod +x "${destination}"
    replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
    systemd_reload_enable "${user}" "${filename}"
+
+   # Ensure Removal of CRON Schedule
+   cron_uninstall_schedule "${servicename}"
 else
    # Error
    schedule_mode_not_supported "${schedulemode}"

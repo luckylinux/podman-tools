@@ -177,6 +177,9 @@ homedir=$(get_homedir "${user}")
 # Get Systemdconfigdir
 systemdconfigdir=$(get_systemdconfigdir "${user}")
 
+# Get toolsdir
+toolsdir=$(get_toolsdir "${user}")
+
 # Enable ZFS Pool Autotrim
 if [[ "${forcezfsautotrim}" == "y" ]]
 then
