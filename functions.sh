@@ -423,6 +423,39 @@ quadlet_restart() {
     fi
 }
 
+# Start Quadlet
+quadlet_start() {
+    # Input Arguments
+    local luser="${1}"
+    local lquadlet="${2}"
+
+    # Check if Service Exists
+    quadlet_exists "${luser}" "${lquadlet}"
+    local lexistscode=$?
+
+    if [[ ${lexistscode} -eq 0 ]]
+    then
+       # Run Command using Wrapper
+       systemd_cmd "${luser}" "start" "${lquadlet}"
+    fi
+}
+
+# Start Quadlet
+quadlet_stop() {
+    # Input Arguments
+    local luser="${1}"
+    local lquadlet="${2}"
+
+    # Check if Service Exists
+    quadlet_exists "${luser}" "${lquadlet}"
+    local lexistscode=$?
+
+    if [[ ${lexistscode} -eq 0 ]]
+    then
+       # Run Command using Wrapper
+       systemd_cmd "${luser}" "stop" "${lquadlet}"
+    fi
+}
 
 # Execute Systemd Command
 generic_cmd() {
