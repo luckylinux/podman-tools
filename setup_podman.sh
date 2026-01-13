@@ -270,6 +270,13 @@ then
 fi
 
 # Ensure proper permissions for config folder
+# First umount if anything and chattr -i
+if mountpoint -q "${containersconfigdir}"
+then
+    # Currently mounted, unmount
+    umount "${containersconfigdir}"
+fi
+chattr -i "${containersconfigdir}"
 chown -R "${user}":"${user}" "${containersconfigdir}"
 
 # Chattr $HOME/.config/containers (rootless)
