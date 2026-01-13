@@ -17,10 +17,10 @@ user=$(whoami)
 sleep 15
 
 # Reload Systemd Daemon
-systemd_daemon_reload
+systemd_daemon_reload "${user}"
 
 # Rexecute Systemd Daemon
-systemd_daemon_reexec
+systemd_daemon_reexec "${user}"
 
 # Get Quadlets Generators Folder
 quadlets_generators_path=$(get_quadlets_generators_dir "${user}")
@@ -29,7 +29,7 @@ quadlets_generators_path=$(get_quadlets_generators_dir "${user}")
 mapfile -t services < <( find "${quadlets_generators_path}" -iwholename *.service )
 
 # Reload Systemd Daemon
-systemd_reload
+systemd_reload "${user}"
 
 # Loop over each Service
 for service in "${services[@]}"
