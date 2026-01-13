@@ -271,12 +271,27 @@ fi
 
 # Ensure proper permissions for config folder
 # First umount if anything and chattr -i
+if [[ -d "${containersconfigdir}/systemd" ]]
+then
+    if mountpoint -q "${containersconfigdir}/systemd"
+    then
+        # Currently mounted, unmount
+        umount "${containersconfigdir}/systemd"
+    fi
+    chattr -i "${containersconfigdir}/systemd"
+fi
+
 if mountpoint -q "${containersconfigdir}"
 then
     # Currently mounted, unmount
     umount "${containersconfigdir}"
 fi
+
+# Ensure we can do changes
 chattr -i "${containersconfigdir}"
+
+
+
 chown -R "${user}":"${user}" "${containersconfigdir}"
 
 # Chattr $HOME/.config/containers (rootless)
