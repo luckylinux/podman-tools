@@ -17,10 +17,10 @@ user=$(whoami)
 sleep 15
 
 # Reload Systemd Daemon
-systemctl --user daemon-reload
+systemd_daemon_reload
 
 # Rexecute Systemd Daemon
-systemctl --user daemon-reexec
+systemctl_daemon_reexec
 
 # List Services that are configured to automatically start
 mapfile -t services < <( find /var/run/user/${uid}/systemd/generator/default.target.wants/ -iwholename *.service )
@@ -38,5 +38,5 @@ do
     echo "Processing Service File ${service} for Service Unit ${servicename}"
 
     # Need to use direct Call since it's not a normal Service
-    systemctl --user restart "${servicename}"
+    systemd_restart "${servicename}"
 done
