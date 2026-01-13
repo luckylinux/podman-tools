@@ -17,25 +17,25 @@ if [ "${EUID}" -ne 0 ]
 fi
 
 # User Name
-user=${1}
+user="${1}"
 #user=${1-"podman"}
 
 # Source Directory
-sourcedir=${2}
+sourcedir="${2}"
 #sourcedir=${2-"/home/podman"}
 
 # Destination Directory
-destinationdir=${3}
+destinationdir="${3}"
 #destinationdir=${3-"/home/podman/containers"}
 
 # Create Destination Directory if Not Existing Yet
-mkdir -p ${destinationdir}
-chattr -i ${destinationdir}/*
-chown -R ${user}:${user} ${destinationdir}
+mkdir -p "${destinationdir}"
+chattr -i "${destinationdir}"/*
+chown -R "${user}":"${user}" "${destinationdir}"
 
 # Storage.conf File Location
 # MUST still be available after all things have been unmounted
-configrealpath=${4}
+configrealpath="${4}"
 #configrealpath=${4-"/zdata/PODMAN/CONFIG"} # Contains storage.conf
 
 # Paths for use in config files

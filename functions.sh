@@ -407,11 +407,55 @@ get_containers_config_dir() {
     echo "${lcontainersconfigdir}"
 }
 
+# Get Containers Storage Directory
+get_containers_storage_dir() {
+    # Input Arguments
+    local luser="${1}"
+
+    # Declare Variable
+    local lcontainersstoragedir
+
+    # Default Values
+    # Maybe in the Future these can be overridden via Environment Variables
+    if [[ "${luser}" == "root" ]]
+    then
+        lcontainersstoragedir="/var/lib/containers/storage"
+    else
+        lcontainersstoragedir="/home/${luser}/containers/storage"
+    fi
+
+    # Return Value
+    echo "${lcontainersstoragedir}"
+}
+
+# Get Containers Cache Directory
+get_containers_cache_dir() {
+    # Input Arguments
+    local luser="${1}"
+
+    # Declare Variable
+    local lcontainerscachedir
+
+    # Default Values
+    # Maybe in the Future these can be overridden via Environment Variables
+    if [[ "${luser}" == "root" ]]
+    then
+        lcontainerscachedir="/var/lib/containers/cache"
+    else
+        lcontainerscachedir="/home/${luser}/.local/share/containers/cache"
+    fi
+
+    # Return Value
+    echo "${lcontainerscachedir}"
+}
+
 # Get Containers Root Default Path
 get_containers_root_default_path() {
     # Input Argumkents
     local luser="${1}"
 
+    # Default Values
+    # Maybe in the Future these can be overridden via Environment Variables
     if [[ "${luser}" == "root" ]]
     then
         lcontainersrootdir="/var/lib/containers"

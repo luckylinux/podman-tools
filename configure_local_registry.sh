@@ -11,7 +11,7 @@ source ${toolpath}/config.sh
 source ${toolpath}/functions.sh
 
 # User Name
-user=${1}
+user="${1}"
 #user=${1-"podman"}
 
 # Localmirror
@@ -26,11 +26,7 @@ fi
 # Home Directory
 homedir=$(get_homedir "${user}")
 
-# Base Directory
-#basedir=${2}
-#basedir=${2-"/home/podman"}
+# Fix short-aliases in ${homedir}/.cache/containers/short-name-aliases.conf
+sed -Ei "s|^(\s*)\"(.*)\"\s*?=\s*?\"docker\.io/(.*)\"(.*)$|\1\"\2\" = \"${localmirror}/\3\"\4|g" "${homedir}/.cache/containers/short-name-aliases.conf"
 
-# Fix short-aliases in /home/podman/.cache/containers/short-name-aliases.conf
-sed -Ei "s|^(\s*)\"(.*)\"\s*?=\s*?\"docker\.io/(.*)\"(.*)$|\1\"\2\" = \"${localmirror}/\3\"\4|g" "${user}/.cache/containers/short-name-aliases.conf"
-
-#sed -Ei "s|^(\s*)\"(.*)\"\s*?=\s*?\"(.*)\"(.*)$|\1\"\2\" = \"\3\"\4|g" ${user}/.cache/containers/short-name-aliases.conf
+# sed -Ei "s|^(\s*)\"(.*)\"\s*?=\s*?\"(.*)\"(.*)$|\1\"\2\" = \"\3\"\4|g" "${homedir}/.cache/containers/short-name-aliases.conf"
