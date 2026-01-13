@@ -599,12 +599,19 @@ get_user() {
 podman_logs() {
     # Input Arguments
     local luser=$(get_user "$1")
-    local lcontainer=$2
+    local lcontainer="$2"
 
     # Get Current Quadlets in current Folder
     # mapfile -t quadlets < <( find . -mindepth 1 -iname *.container )
 
-    # To be implemented
+    # Get logs from Journald for now
+
+    # Check if Service Exists
+    if [[ $(systemd_exists "${luser}" "${lcontainer}") -eq 0 ]]
+    then
+       #  Run Command using Wrapper
+       journald_cmd "${luser}" "-xeu" "${lcontainer}"
+    fi
 }
 
 # Execute Systemd Command
