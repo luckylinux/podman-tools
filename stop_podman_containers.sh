@@ -26,7 +26,7 @@ then
     # Get Systemdconfigdir
     systemdconfigdir=$(get_systemdconfigdir "${user}")
 
-    # Restart Systemd Container Services
+    # Restart Systemd Container Services that were generated manually
     cd ${systemdconfigdir} || exit
     for service in container-*.service
     do
@@ -36,6 +36,29 @@ then
         # Stop container
         systemd_stop "${user}" "${servicename}"
     done
+
+    # Get Quadlets Generators Folder
+    quadlets_generators_path=$(get_quadlets_generators_dir "${user}")
+
+    # List Services that are configured to automatically start
+    mapfile -t services < <( find "${quadlets_generators_path}" -iwholename *.service )
+
+    # Reload Systemd Daemon
+    systemd_reload "${user}"
+
+    # Loop over each Service
+    for service in "${services[@]}"
+    do
+        # Get only the Basename
+        servicename=$(basename "${service}")
+
+        # Echo
+        echo "Processing Service File ${service} for Service Unit ${servicename}"
+
+        # Need to use direct Call since it's not a normal Service
+        quadlet_stop "${user}" "${servicename}"
+    done
+
 fi
 
 # Change back to currentpath
