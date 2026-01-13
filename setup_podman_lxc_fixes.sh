@@ -24,25 +24,25 @@ then
     echo "Running in LXC"
 
     # Copy Script
-    cp ${toolpath}/usr/local/sbin/podman-lxc-fixes.sh /usr/local/sbin/podman-lxc-fixes.sh
+    cp "${toolpath}/usr/local/sbin/podman-lxc-fixes.sh" "/usr/local/sbin/podman-lxc-fixes.sh"
 
     # Systemd based Distribution
     if [[ $(command -v systemctl) ]]
     then
         # Copy Systemd Service
-        cp ${toolpath}/etc/systemd/system/${servicename}.service /etc/systemd/system/${servicename}.service
+        cp "${toolpath}/etc/systemd/system/${servicename}.service" "/etc/systemd/system/${servicename}.service"
 
         # Copy Systemd Timer
-        cp ${toolpath}/etc/systemd/system/${servicename}.timer /etc/systemd/system/${servicename}.timer
+        cp "${toolpath}/etc/systemd/system/${servicename}.timer" "/etc/systemd/system/${servicename}.timer"
 
         # Reload Systemd Daemon
         systemctl daemon-reload
 
         # Enable Systemd Timer
-        systemctl enable ${servicename}
+        systemctl enable "${servicename}"
 
         # Start Systemd Timer
-        systemctl restart ${servicename}
+        systemctl restart "${servicename}"
     else
         # Nothing currently implemented for OpenRC
         echo "[WARNING] Currently ${servicename} is NOT implemented for OpenRC based Distributions"

@@ -63,8 +63,8 @@ then
    replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
 
    # Ensure removal of Systemd Service & Timer
-   systemd_uninstall_service "${servicename}.service"
-   systemd_uninstall_timer "${servicename}.timer"
+   systemd_uninstall_service "${user}" "${servicename}"
+   systemd_uninstall_timer "${user}" "${servicename}"
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Get Systemdconfigdir

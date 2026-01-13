@@ -71,6 +71,10 @@ then
    #chmod +x "${destination}"
    #eplace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
    x=1
+
+   # Ensure removal of Systemd Service & Timer
+   systemd_uninstall_service "${user}" "${servicename}"
+   systemd_uninstall_timer "${user}" "${servicename}"
 elif [[ "${schedulemode}" == "systemd" ]]
 then
    # Copy Systemd Service File

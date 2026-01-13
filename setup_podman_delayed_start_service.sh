@@ -45,24 +45,29 @@ fi
 # Setup new Scheme
 if [[ "${schedulemode}" == "cron" ]]
 then
-   # Setup CRON to automatically generate updated Systemd Service files for Podman
+    # Setup CRON to automatically generate updated Systemd Service files for Podman
 
-   # Nothing currently implemented for OpenRC
-   echo "[WARNING] Currently ${servicename} is NOT implemented for OpenRC based Distributions"
+    # Nothing currently implemented for OpenRC
+    echo "[WARNING] Currently ${servicename} is NOT implemented for OpenRC based Distributions"
 
-   # Disabled for now
-   x=1
+    # Disabled for now
+    x=1
+
+    # Ensure removal of Systemd Service & Timer
+    systemd_uninstall_service "${user}" "${servicename}"
+    systemd_uninstall_timer "${user}" "${servicename}"
+
 elif [[ "${schedulemode}" == "systemd" ]]
 then
-   # Copy Systemd Service File
-   servicefile="${servicename}.service"
-   destination="${systemdconfigdir}/${servicefile}"
-   cp "systemd/services/${servicefile}" "${destination}"
-   chmod +x "${destination}"
-   chown "${user}:${user}" "${destination}"
-   replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
-   systemd_reload_enable "${user}" "${servicefile}"
+    # Copy Systemd Service File
+    servicefile="${servicename}.service"
+    destination="${systemdconfigdir}/${servicefile}"
+    cp "systemd/services/${servicefile}" "${destination}"
+    chmod +x "${destination}"
+    chown "${user}:${user}" "${destination}"
+    replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
+    systemd_reload_enable "${user}" "${servicefile}"
 else
-   # Error
-   schedule_mode_not_supported "${schedulemode}"
+    # Error
+    schedule_mode_not_supported "${schedulemode}"
 fi

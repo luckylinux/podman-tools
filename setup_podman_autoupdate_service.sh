@@ -44,9 +44,6 @@ servicename="podman-service-containers-auto-update"
 # Systemd based Distribution
 if [[ $(command -v systemctl) ]]
 then
-    # Get Systemdconfigdir
-    systemdconfigdir=$(get_systemdconfigdir "${user}")
-
     # Remove old files / with old name
     #rm -f /etc/...
     systemd_delete "${user}" "podman-setup-service-custom-auto-update.service"
@@ -56,37 +53,44 @@ fi
 # Setup new Scheme
 if [[ "${schedulemode}" == "cron" ]]
 then
-   # Setup CRON to automatically generate updated Systemd Service files
+    # Setup CRON to automatically generate updated Systemd Service files
 
-   # Nothing currently implemented for OpenRC
-   echo "[WARNING] Currently ${servicename} is NOT implemented for OpenRC based Distributions"
+    # Nothing currently implemented for OpenRC
+    echo "[WARNING] Currently ${servicename} is NOT implemented for OpenRC based Distributions"
 
-   # Disabled for now
-   #destination="/etc/cron.d/${servicename}"
-   #cp "cron/${servicename}" "${destination}"
-   #chmod +x "${destination}"
-   #replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
-   x=1
+    # Disabled for now
+    #destination="/etc/cron.d/${servicename}"
+    #cp "cron/${servicename}" "${destination}"
+    #chmod +x "${destination}"
+    #replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
+    x=1
+
+    # Ensure removal of Systemd Service & Timer
+    systemd_uninstall_service "${user}" "${servicename}"
+    systemd_uninstall_timer "${user}" "${servicename}"
 elif [[ "${schedulemode}" == "systemd" ]]
 then
-   # Copy Systemd Service File
-   servicefile="${servicename}.service"
-   destination="${systemdconfigdir}/${servicefile}"
-   cp "systemd/services/${servicefile}" "${destination}"
-   #chmod +x "${destination}"
-   chown "${user}:${user}" "${destination}"
-   replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
-   systemd_reload_enable "${user}" "${servicefile}"
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
 
-   # Copy Systemd Timer File
-   timerfile="${servicename}.timer"
-   destination="${systemdconfigdir}/${timerfile}"
-   cp "systemd/timers/${timerfile}" "${destination}"
-   #chmod +x "${destination}"
-   chown "${user}:${user}" "${destination}"
-   replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
-   systemd_reload_enable "${user}" "${timerfile}"
+    # Copy Systemd Service File
+    servicefile="${servicename}.service"
+    destination="${systemdconfigdir}/${servicefile}"
+    cp "systemd/services/${servicefile}" "${destination}"
+    #chmod +x "${destination}"
+    chown "${user}:${user}" "${destination}"
+    replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
+    systemd_reload_enable "${user}" "${servicefile}"
+
+    # Copy Systemd Timer File
+    timerfile="${servicename}.timer"
+    destination="${systemdconfigdir}/${timerfile}"
+    cp "systemd/timers/${timerfile}" "${destination}"
+    #chmod +x "${destination}"
+    chown "${user}:${user}" "${destination}"
+    replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
+    systemd_reload_enable "${user}" "${timerfile}"
 else
-   # Error
-   schedule_mode_not_supported "${schedulemode}"
+    # Error
+    schedule_mode_not_supported "${schedulemode}"
 fi

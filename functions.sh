@@ -820,6 +820,76 @@ systemd_reload_enable() {
 }
 
 
+# Somewhat duplicated of systemd_delete
+systemd_uninstall_service() {
+    # Input Arguments
+    local luser="$1"
+    local lservicename="$2"
+
+    if [[ "${lservicename}" == *".service" ]]
+        # Nothing to do
+        local x=1
+    else
+        # Append ".service" Suffix
+        lservicename="${lservicename}.service"
+    fi
+
+    # Get Systemdconfigdir
+    local lsystemdconfigdir
+    lsystemdconfigdir=$(get_systemdconfigdir "${luser}")
+
+    # Stop & Disable Service
+    systemd_stop "${luser}" "${lservicename}"
+    systemd_disable "${luser}" "${lservicename}"
+
+    # Remove Systemd Service File
+    rm -f "${lsystemdconfigdir}/${lservicename}"
+
+    # Reload Systemd Daemon
+    systemd_reload "${luser}"
+}
+
+# Somewhat duplicated of systemd_delete
+systemd_uninstall_timer() {
+    # Input Arguments
+    local luser="$1"
+    local ltimername="$2"
+
+    if [[ "${ltimername}" == *".timer" ]]
+        # Nothing to do
+        local x=1
+    else
+        # Append ".timer" Suffix
+        ltimername="${ltimername}.timer"
+    fi
+
+    # Get Systemdconfigdir
+    local lsystemdconfigdir
+    lsystemdconfigdir=$(get_systemdconfigdir "${luser}")
+
+    # Stop & Disable Timer
+    systemd_stop "${luser}" "${lservicename}"
+    systemd_disable "${luser}" "${lservicename}"
+
+    # Remove Systemd Timer File
+    rm -f "${lsystemdconfigdir}/${lservicename}"
+
+    # Reload Systemd Daemon
+    systemd_reload "${luser}"
+}
+
+cron_uninstall_schedule() {
+    # Input Arguments
+    local lservicename="$1"
+
+    # Remove File from /etc/cron.d, /etc/cron.hourly, /etc/cron.daily, /etc/cron.weekly, /etc/cron.monthly, /etc/cron.yearly
+    rm -f "/etc/cron.d/${lservicename}"
+    rm -f "/etc/cron.hourly/${lservicename}"
+    rm -f "/etc/cron.daily/${lservicename}"
+    rm -f "/etc/cron.weekly/${lservicename}"
+    rm -f "/etc/cron.monthly/${lservicename}"
+    rm -f "/etc/cron.yearly/${lservicename}"
+}
 
 # List subuid / subgid
 list_subuid_subgid() {
