@@ -476,8 +476,21 @@ then
 fi
 
 # Create symbolic links for "legacy" versions of podmans (e.g. not supporting "volumepath" or "imagestore" configuration directives)
-rm -f "${destination}/storage/volumes"
+
+# First of all remove Folder if empty
+if [[ -d "${destination}/storage/volumes" ]]
+then
+    rmdir "${destination}/storage/volumes"
+fi
+
+# Second of all remove Symlink if it already exists
+if [[ -L "${destination}/storage/volumes" ]]
+then
+    rm -f "${destination}/storage/volumes"
+fi
+
 ln -s "${destination}/volumes" "${destination}/storage/volumes"
+
 chown "${user}":"${user}" "${destination}/storage/volumes"
 
 # Save Current Path
