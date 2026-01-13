@@ -372,6 +372,57 @@ get_quadlets_generators_dir() {
    echo "${lquadletsgeneratorsdir}"
 }
 
+# Check if Quadlet Exists
+quadlet_exists() {
+    # Input Arguments
+    local luser="${1}"
+    local lquadlet=$(systemd_service_filename "${2}")
+
+    # Get Quadlets Generators Directory
+    local lquadletsgeneratorsdir
+    lquadletsgeneratorsdir=$(get_quadlets_generators_dir "${luser}")
+
+   # Build Systemd Service Path
+   local lquadletpath="${lquadletsgeneratorsdir}/${lquadlet}"
+
+   # Debug
+   debug_message "Check if Quadlet Service <${lquadlet}> exists for User <${luser}>"
+
+   # Check if Service Exists
+   if [[ -f "${lquadletpath}" ]]
+   then
+      # Debug
+      debug_message "Systemd Service <${lquadlet}> exists at <${lquadletpath}>"
+
+      # Return Code
+      return 0
+   else
+      # Debug
+      debug_message "Systemd Service <${lquadlet}> does NOT exists at <${lquadletpath}>"
+
+      # Return Code
+      return 1
+   fi
+
+}
+
+# Restart Quadlet
+quadlet_restart() {
+    # Input Arguments
+    local luser="${1}"
+    local lquadlet="${2}"
+
+    # Check if Service Exists
+    quadlet_exists "${luser}" "${lquadlet}"
+    local lexistscode=$?
+
+    if [[ ${lexistscode} -eq 0 ]]
+    then
+       # Run Command using Wrapper
+       systemd_cmd "${luser}" "restart" "${lquadlet}"
+    fi
+}
+
 
 # Execute Systemd Command
 generic_cmd() {

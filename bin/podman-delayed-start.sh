@@ -41,5 +41,5 @@ do
     echo "Processing Service File ${service} for Service Unit ${servicename}"
 
     # Need to use direct Call since it's not a normal Service
-    systemd_restart "${user}" "${servicename}"
+    quadlet_restart "${user}" "${servicename}"
 done
