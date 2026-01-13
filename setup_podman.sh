@@ -908,3 +908,7 @@ source "${toolpath}/setup_podman_autostart_service.sh"
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
 source "${toolpath}/setup_tools_autoupdate_service.sh"
+
+# Install the delayed Podman Start Service
+# This is useful in Situations where the Quadlets Folder is bind-mounted to /etc/containers/systemd (rootful) or /home/<user>/.config/containers/systemd but the Generator already finished executing before the --rbind Mount was mounted
+source "${toolpath}/setup_podman_delayed_start_service.sh"
