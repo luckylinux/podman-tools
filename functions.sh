@@ -349,13 +349,13 @@ get_systemdconfigdir() {
    fi
 
    # Return result
-   echo ${lsystemdconfigdir}
+   echo "${lsystemdconfigdir}"
 }
 
 # Get Quadlets Generators Directory
 get_quadlets_generators_dir() {
    # User is the TARGET user, NOT (necessarily) the user executing the script / function !
-   local luser=${1}
+   local luser="${1}"
 
    # Initialize Variable
    local lquadletsgeneratorsdir=""
@@ -370,6 +370,41 @@ get_quadlets_generators_dir() {
 
    # Return Value
    echo "${lquadletsgeneratorsdir}"
+}
+
+# Get Containers Configuration Directory
+get_containers_config_dir() {
+    # Input Arguments
+    local luser="${1}"
+
+    # Declare Variable
+    local lcontainersconfigdir
+
+    if [[ "${luser}" == "root" ]]
+    then
+        lcontainersconfigdir="/etc/containers"
+    else
+        lcontainersconfigdir="/home/${user}/.config/containers"
+    fi
+
+    # Return Value
+    echo "${lcontainersconfigdir}"
+}
+
+# Get Containers Root Default Path
+get_containers_root_default_path() {
+    # Input Argumkents
+    local luser="${1}"
+
+    if [[ "${luser}" == "root" ]]
+    then
+        lcontainersrootdir="/var/lib/containers"
+    else
+        lcontainersrootdir="/home/${user}/containers"
+    fi
+
+    # Return Value
+    echo "${lcontainersrootdir}"
 }
 
 # Check if Quadlet Exists

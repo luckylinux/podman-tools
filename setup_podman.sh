@@ -2,14 +2,14 @@
 
 # Determine toolpath if not set already
 relativepath="./" # Define relative path to go from this script to the root level of the tool
-if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing ${scriptpath}/${relativepath}); fi
+if [[ ! -v toolpath ]]; then scriptpath=$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd ); toolpath=$(realpath --canonicalize-missing "${scriptpath}/${relativepath}"); fi
 
 # Load Configuration
 # shellcheck source=./config.sh
-source ${toolpath}/config.sh
+source "${toolpath}/config.sh"
 
 # Load Functions
-source ${toolpath}/functions.sh
+source "${toolpath}/functions.sh"
 
 # Exit in case of error
 #set -e
@@ -21,26 +21,26 @@ get_os_release() {
     distribution=$(cat /etc/os-release | grep -Ei "^ID=" | sed -E "s|ID=\"?([a-zA-Z_-]+)\"?|\1|")
 
     # Return Value
-    echo $distribution
+    echo "${distribution}"
 }
 
 # Setup storage
 setup_storage() {
-    local lpath=${1}
+    local lpath="${1}"
 }
 
 # Setup Mountpoint
 setup_mountpoint() {
-    local lpath=${1}
+    local lpath="${1}"
 }
 
 # Umount if mounted
 umount_if_mounted() {
-    local mp=${1}
+    local mp="${1}"
 
     if mountpoint -q "${mp}"
     then
-	umount ${mp}
+	umount "${mp}"
     fi
 }
 
@@ -58,10 +58,10 @@ set_zfs_property() {
    if [[ "${lpropertyvalue}" == "${zfsdefault}" ]]
    then
       # Inherit Property from Parent Dataset or use ZFS Defaults if Parent does NOT have the Property set by the User to a Custom Value
-      zfs inherit -S ${lpropertyname} ${ltarget}
+      zfs inherit -S "${lpropertyname}" "${ltarget}"
    else
       # Set Property
-      zfs set ${lpropertyname}=${lpropertyvalue} ${ltarget}
+      zfs set "${lpropertyname}"="${lpropertyvalue}" "${ltarget}"
    fi
 }
 
@@ -70,7 +70,7 @@ set_zfs_property() {
 
 # Define user
 # User name
-export user=${1}
+export user="${1}"
 #export user=${1:-'podman'}
 
 if [[ -z "${user}" ]]
@@ -80,7 +80,7 @@ then
 fi
 
 # Mode (zfs / zvol / dir)
-export mode=${2}
+export mode="${2}"
 #export mode=${2:-'zfs'}
 
 if [[ -z "${mode}" ]]
@@ -100,15 +100,18 @@ fi
 # Get Distribution OS Release
 distribution=$(get_os_release)
 
+# Get Containers Default / Recommended Root Dir
+containersdefaultrootdir=$(get_containers_root_default_path "${user}")
+
 # Storage Path
 if [[ "${mode}" == "dir" ]]
 then
-   storage=${3:-"/home/${user}/containers"}
-   destination=${storage}
+   storage=${3:-"${containersdefaultrootdir}"}
+   destination="${storage}"
 elif [[ "${mode}" == "zfs" ]]
 then
-   storage=${3:-'zdata/PODMAN'}
-   destination=${4:-"/home/${user}/containers"}
+   storage=${3:-"zdata/PODMAN"}
+   destination=${4:-"${containersdefaultrootdir}"}
 
    # Ask whether to forcefully DISABLE compression, DISABLE automatic snapshots and ENABLE autotrim
    # Needed for instance when running ZFS on top of (e.g. Proxmox VE Host) ZVOL
@@ -131,8 +134,8 @@ then
 
 elif [[ "${mode}" == "zvol" ]]
 then
-   storage=${3:-'zdata/PODMAN'}
-   destination=${4:-"/home/${user}/containers"}
+   storage=${3:-"zdata/PODMAN"}
+   destination=${4:-"${containersdefaultrootdir}"}
 else
    echo "Storage mode <${mode}> NOT supported. Aborting !"
    exit 2
@@ -177,6 +180,9 @@ homedir=$(get_homedir "${user}")
 # Get Systemdconfigdir
 systemdconfigdir=$(get_systemdconfigdir "${user}")
 
+# Get Containers Config Dir
+containersconfigdir=$(get_containers_config_dir "${user}")
+
 # Get toolsdir
 toolsdir=$(get_toolsdir "${user}")
 
@@ -190,7 +196,7 @@ then
    poolname="${storageparts[0]}"
 
    # Enable ZFS Pool Autotrim
-   zpool set autotrim=on ${poolname}
+   zpool set autotrim=on "${poolname}"
 fi
 
 # Default ZFS Compression
@@ -203,23 +209,23 @@ fi
 if [ "${mode}" == "zvol"  ]
 then
     # Create Root storage
-    zfs create -o compression=${zfsdefaultcompression} -o canmount=on ${storage}
+    zfs create -o compression="${zfsdefaultcompression}" -o canmount=on "${storage}"
 
     # Allow over-subscribind in case of ZVOL
-    zfs set refreservation=none ${storage}
+    zfs set refreservation=none "${storage}"
 elif [ "${mode}" == "zfs"  ]
 then
     # Create Root storage
-    zfs create -o compression=${zfsdefaultcompression} -o canmount=on ${storage}
+    zfs create -o compression="${zfsdefaultcompression}" -o canmount=on "${storage}"
 
     # Enable mounting of ZFS datasets
-    zfs set canmount=on ${storage}
+    zfs set canmount=on "${storage}"
 fi
 
 # Disable ZFS Automatic Snapshots
 if [[ "${forcezfsnoautomaticsnapshots}" == "y" ]]
 then
-    zfs set com.sun:auto-snapshot=false ${storage}
+    zfs set com.sun:auto-snapshot=false "${storage}"
 fi
 
 # Setup FSTAB
@@ -237,36 +243,35 @@ fi
 
 if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
 then
-    echo "/${storage}/SYSTEM			/home/${user}/.config/containers		none	${mount_opts}		0	0" >> /etc/fstab
+    echo "/${storage}/SYSTEM			${containersconfigdir}		none	${mount_opts}		0	0" >> /etc/fstab
 else
-    echo "/home/${user}/containers/system	/home/${user}/.config/containers		none	${mount_opts}		0	0" >> /etc/fstab
+    echo "${destination}/system	${containersconfigdir}		none	${mount_opts}		0	0" >> /etc/fstab
 fi
 
-mkdir -p "/home/${user}"
-chattr -i "/home/${user}"
-mkdir -p "/home/${user}/.config"
-mkdir -p "/home/${user}/.config/containers"
+mkdir -p "${homedir}"
+chattr -i "${homedir}"
+mkdir -p "${containersconfigdir}"
 
 # Systemd based Distribution
 if [[ $(command -v systemctl) ]]
 then
     # Create Folder if not exist already
-    mkdir -p "/home/${user}/.config/systemd"
+    mkdir -p "${systemdconfigdir}"
 
     # Add extra FSTAB Entries
     if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
     then
-        echo "/${storage}/QUADLETS			/home/${user}/.config/containers/systemd	none	${mount_opts}		0	0" >> /etc/fstab
+        echo "/${storage}/QUADLETS			${containersconfigdir}/systemd	none	${mount_opts}		0	0" >> /etc/fstab
     else
-        echo "/home/${user}/containers/quadlets		/home/${user}/.config/containers/systemd	none	${mount_opts}		0	0" >> /etc/fstab
+        echo "${destination}/quadlets		${containersconfigdir}/systemd	none	${mount_opts}		0	0" >> /etc/fstab
     fi
 fi
 
 # Ensure proper permissions for config folder
-chown -R ${user}:${user} /home/${user}/.config/containers
+chown -R "${user}":"${user}" "${containersconfigdir}"
 
-# Chattr .config/containers directory
-chattr +i /home/${user}/.config/containers
+# Chattr $HOME/.config/containers (rootless) or /etc/containers (root) directory
+chattr +i "${containersconfigdir}"
 
 # Initialize Counter
 counter=0
@@ -290,15 +295,15 @@ do
         volblocksize="${recordsize}"
 
 	# Create storage for image directory
-	mkdir -p ${destination}/${lname}/
-	umount_if_mounted ${destination}/${lname}/
-	chattr -i ${destination}/${lname}/
-	chown -R ${user}:${user} ${destination}/${lname}/
+	mkdir -p "${destination}/${lname}/"
+	umount_if_mounted "${destination}/${lname}/"
+	chattr -i "${destination}/${lname}/"
+	chown -R "${user}":"${user}" "${destination}/${lname}/"
 
         # Disable ZFS Automatic Snapshots
         if [[ "${forcezfsnoautomaticsnapshots}" == "y" ]]
         then
-            zfs set com.sun:auto-snapshot=false ${name}
+            zfs set com.sun:auto-snapshot=false "${name}"
         fi
 
         # Default ZFS Compression
@@ -312,13 +317,13 @@ do
 	if [ "${mode}" == "zfs"  ]
 	then
 	     # Ensure that Mountpoint cannot contain Files UNLESS Dataset is mounted (user Folder)
-             chattr +i ${destination}/${lname}/
+             chattr +i "${destination}/${lname}/"
 
 	     # Ensure that Mountpoint cannot contain Files UNLESS Dataset is mounted (pool Folder)
              chattr +i "/${name}"
 
 	     # Create Dataset
-             zfs create ${name}
+             zfs create "${name}"
 
              # Set Compression Property
              set_zfs_property "${name}" "compression" "${compression}"
@@ -330,20 +335,20 @@ do
 	     echo "/${name}			${destination}/${lname}		none	defaults,nofail,x-systemd.automount,rbind	0	0" >> /etc/fstab
 
              # Mount dataset
-             zfs mount ${name}
+             zfs mount "${name}"
 
 	     # Wait a bit
 	     sleep 1
         elif [ "${mode}" == "zvol" ]
 	then
 	     # Ensure that mountpoint cannot contain files UNLESS dataset is mounted (user folder)
-             chattr +i ${destination}/${lname}/
+             chattr +i "${destination}/${lname}/"
 
 	     # Get ZVOL size
              zsize="${sizes[${counter}]}"
 
 	     # Create ZVOL
-	     zfs create -s -V ${zsize} ${name}
+	     zfs create -s -V "${zsize} ${name}"
 
              # Set Compression Property
              set_zfs_property "${name}" "compression" "${compression}"
@@ -352,7 +357,7 @@ do
              set_zfs_property "${name}" "volblocksize" "${volblocksize}"
 
 	     # Create EXT4 Filesystem
-             mkfs.ext4 /dev/zvol/${name}
+             mkfs.ext4 "/dev/zvol/${name}"
 
 	     # Wait a bit
 	     sleep 1
@@ -362,7 +367,7 @@ do
         elif [ "${mode}" == "dir" ]
 	then
 	     # Ensure that mountpoint can contain files since nothing will be mounted there in this mode (user folder)
-             chattr -i ${destination}/${lname}/
+             chattr -i "${destination}/${lname}/"
 
 	else
 	     echo "MODE is invalid. It should either be <zfs> or <zvol>. Current value is <${mode}>"
@@ -372,18 +377,18 @@ do
 
         if [[ $(command -v systemctl) ]]
         then
-	    # Reload systemd to make use of new FSTAB
+	    # Reload Systemd to make use of new FSTAB
 	    systemctl daemon-reload
         fi
 
 	# Mount according to FSTAB
         if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
         then
-	    mount ${destination}/${lname}/
+	    mount "${destination}/${lname}/"
         fi
 
 	# Ensure proper permissions
-	chown -R ${user}:${user} ${destination}/${lname}/
+	chown -R "${user}":"${user}" "${destination}/${lname}/"
 
         # Increment counter
         counter=$((counter+1))
@@ -391,21 +396,21 @@ done
 
 if [[ $(command -v systemctl) ]]
 then
-    # Reload Systemd Configuration
+    # Reload System to make use of the new FSTAB
     systemctl daemon-reload
 fi
 
 # Mount Configuration Folder
-mount /home/${user}/.config/containers
+mount "${containersconfigdir}"
 
 # Systemd Based Distribution
 if [[ $(command -v systemctl) ]]
 then
     # Create Mountpoint for Quadlets
-    mkdir -p /home/${user}/.config/containers/systemd
+    mkdir -p "${containersconfigdir}/systemd"
 
     # Prevent direct Writes (must mount a Partition there)
-    chattr +i /home/${user}/.config/containers/systemd
+    chattr +i "${containersconfigdir}/systemd"
 fi
 
 # Automatically mount ZFS datasets
@@ -422,13 +427,13 @@ mount -a
 if [[ $(command -v systemctl) ]]
 then
     # Mount Quadlets
-    mount /home/${user}/.config/containers/systemd
+    mount "${containersconfigdir}/systemd"
 fi
 
 # Create symbolic links for "legacy" versions of podmans (e.g. not supporting "volumepath" or "imagestore" configuration directives)
-rm -f ${destination}/storage/volumes
-ln -s ${destination}/volumes ${destination}/storage/volumes
-chown ${user}:${user} ${destination}/storage/volumes
+rm -f "${destination}/storage/volumes"
+ln -s "${destination}/volumes" "${destination}/storage/volumes"
+chown "${user}":"${user}" "${destination}/storage/volumes"
 
 # Save Current Path
 scriptspath=$(pwd)
@@ -438,14 +443,14 @@ if [[ "${distribution}" == "debian" ]]
 then
    # Enable Backports Repository
    # Copy Debian Backports Repository Configuration
-   cp repositories/debian/bookworm/sources.list.d/debian-backports.list /etc/apt/sources.list.d/debian-backports.list
+   # cp repositories/debian/bookworm/sources.list.d/debian-backports.list /etc/apt/sources.list.d/debian-backports.list
 
    # Install Packages
    apt-get install --yes sudo aptitude jq podman python3 python3-pip podman-compose
 
    # Install podman-compose (only relevant if NOT using Debian Backports)
-   #pip3 install podman-compose # Use latest version
-   #pip3 install https://github.com/containers/podman-compose/archive/refs/tags/v0.1.10.tar.gz # Use legacy version
+   # pip3 install podman-compose # Use latest version
+   # pip3 install https://github.com/containers/podman-compose/archive/refs/tags/v0.1.10.tar.gz # Use legacy version
 elif [[ "${distribution}" == "ubuntu" ]]
 then
    # Install Packages
@@ -471,7 +476,7 @@ fi
 mkdir -p /etc/sysctl.d
 
 # Copy sysctl Configuration Files
-cp -r ${toolpath}/etc/sysctl.d/*.conf /etc/sysctl.d/
+cp -r "${toolpath}"/etc/sysctl.d/*.conf /etc/sysctl.d/
 
 # Remove /etc/sysctl.d/99-userns.conf for alpine since the Kernel doesn't support it
 if [[ "${distribution}" == "alpine" ]]
@@ -506,8 +511,12 @@ then
     x=1
 else
     # Must enable cgroups Service
-    rc-update add cgroups
+    rc-update add cgroups default
     rc-service cgroups start
+
+    # Also enable autostart of Podman Service
+    rc-update add podman default
+    rc-service podman start
 fi
 
 # Automatically mount ZFS datasets
@@ -521,23 +530,22 @@ fi
 mount -a
 
 # Create folder for running processes
-userid=$(id -u ${user})
-mkdir -p /var/run/user/${userid}
-chown -R ${user}:${user} /var/run/user/${userid}
-#su ${user}
+userid=$(id -u "${user}")
+mkdir -p "/var/run/user/${userid}"
+chown -R "${user}":"${user}" "/var/run/user/${userid}"
 
 # Setup folders and set correct permissions
-chown -R ${user}:${user} /home/${user}
+chown -R "${user}":"${user}" "${homedir}"
 
-# Set ~/.bash_profile
-cp ${toolpath}/profile/.bash_profile ${homedir}/.bash_profile
+# Set ${homedir}/.bash_profile
+cp "${toolpath}/profile/.bash_profile" "${homedir}/.bash_profile"
 
-# Set ~/.bashrc
-cp ${toolpath}/profile/.bashrc ${homedir}/.bashrc
+# Set ${homedir}/.bashrc
+cp "${toolpath}/profile/.bashrc" "${homedir}/.bashrc"
 
 # Copy Profile Includes
-mkdir -p ${homedir}/.profile.d
-cp -ar ${toolpath}/profile/.profile.d/*.include ${homedir}/.profile.d/
+mkdir -p "${homedir}/.profile.d"
+cp -ar "${toolpath}"/profile/.profile.d/*.include "${homedir}/.profile.d/"
 
 # For some Systems (e.g. OpenSUSE) which don't have a /etc/skel/.bashrc, just copy it from /usr/etc/skel/.bashrc
 if [[ ! -e "/etc/skel/.bashrc" ]]
@@ -553,29 +561,29 @@ then
 fi
 
 # Set correct Ownership
-chown -R ${user}:${user} ${homedir}/.bash_profile
-chown -R ${user}:${user} ${homedir}/.bashrc
-chown -R ${user}:${user} ${homedir}/.profile.d
+chown -R "${user}":"${user}" "${homedir}/.bash_profile"
+chown -R "${user}":"${user}" "${homedir}/.bashrc"
+chown -R "${user}":"${user}" "${homedir}/.profile.d"
 
 # Set Containers Configuration
-mount ${homedir}/.config/containers
-cd ${homedir}/.config/containers || exit
+mount "${containersconfigdir}"
+cd "${containersconfigdir}" || exit
 
 
 # Systemd Based Distribution
 if [[ $(command -v systemctl) ]]
 then
     # Create Systemd Configuration Folder
-    mkdir -p ${homedir}/.config/containers/systemd
-    chattr +i ${homedir}/.config/containers/systemd
-    mount ${homedir}/.config/containers/systemd
+    mkdir -p "${containersconfigdir}/systemd"
+    chattr +i "${containersconfigdir}/systemd"
+    mount "${containersconfigdir}/systemd"
 fi
 
 # Copy Configuration Files
-cp ${toolpath}/config/containers/storage.conf storage.conf
-cp ${toolpath}/config/containers/registries.conf registries.conf
-cp ${toolpath}/config/containers/default-policy.json default-policy.json
-cp ${toolpath}/config/containers/containers.conf containers.conf
+cp "${toolpath}/config/containers/storage.conf" storage.conf
+cp "${toolpath}/config/containers/registries.conf" registries.conf
+cp "${toolpath}/config/containers/default-policy.json" default-policy.json
+cp "${toolpath}/config/containers/containers.conf" containers.conf
 
 # Create registries.conf.d directory for registries
 mkdir -p registries.conf.d
@@ -589,8 +597,8 @@ then
     # Nothing special to do
     x=1
 else
-    # Copy custom Init Script
-    cp ${toolpath}/openrc/mkrundir /etc/init.d/mkrundir
+    # Copy custom Init Script to enable Rootless Users to have their own /run/user/<uid> Folder at Boot Time
+    cp "${toolpath}/openrc/mkrundir" "/etc/init.d/mkrundir"
 
     # Enable Service
     rc-update add mkrundir default
@@ -615,26 +623,27 @@ sed -Ei "s|^#? ?volumepath = \".*\"|volumepath = \"${destination}/volumes\"|g" c
 #sed -i 's/#CGROUP_MODE=hybrid/CGROUP_MODE=hybrid/g' /etc/rc.conf
 
 # Setup folders and set correct permissions
-chown -R ${user}:${user} /home/${user}
+chown -R "${user}":"${user}" "${homedir}"
 
 # Set timezone
 ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 
 # Systemd based Distribution
+# Always do this as & for "root"
 if [[ $(command -v systemctl) ]]
 then
     # Create Systemd Files if they do NOT exist yet
     # This is typically needed for Fedora
     if [[ ! -f "/etc/systemd/system.conf" ]]
     then
-        cp ${toolpath}/etc/systemd/system.conf /etc/systemd/system.conf
+        cp "${toolpath}/etc/systemd/system.conf" "/etc/systemd/system.conf"
         systemctl daemon-reload
         systemctl daemon-reexec
     fi
 
     if [[ ! -f "/etc/systemd/user.conf" ]]
     then
-        cp ${toolpath}/etc/systemd/user.conf /etc/systemd/user.conf
+        cp "${toolpath}/etc/systemd/user.conf" "/etc/systemd/user.conf"
         systemctl daemon-reload
         systemctl daemon-reexec
     fi
@@ -653,7 +662,7 @@ then
     sed -Ei "s|^#DefaultStartLimitBurst\s*=.*|DefaultStartLimitBurst=500|g" /etc/systemd/user.conf
 
     # Enable lingering sessions
-    loginctl enable-linger ${userid}
+    loginctl enable-linger "${userid}"
 fi
 
 # Upgrade other parts of the system
@@ -701,12 +710,12 @@ then
     # Source: https://salsa.debian.org/debian/libpod/-/blob/debian/sid/contrib/systemd/README.md#user-podman-service-run-as-given-user-aka-rootless
     # Need to execute as podman user
     # Setup files
-    sudo -u ${user} mkdir -p /home/${user}/.config/systemd/user
-    sudo -u ${user} cp /lib/systemd/user/podman.service /home/${user}/.config/systemd/user/
-    sudo -u ${user} cp /lib/systemd/user/podman.socket /home/${user}/.config/systemd/user/
-    sudo -u ${user} cp /lib/systemd/user/podman-auto-update.timer /home/${user}/.config/systemd/user/
-    sudo -u ${user} cp /lib/systemd/user/podman-auto-update.service /home/${user}/.config/systemd/user/
-    sudo -u ${user} cp /lib/systemd/user/podman-restart.service /home/${user}/.config/systemd/user/
+    sudo -u "${user}" mkdir -p "${systemdconfigdir}"
+    sudo -u "${user}" cp /lib/systemd/user/podman.service "${systemdconfigdir}/"
+    sudo -u "${user}" cp /lib/systemd/user/podman.socket "${systemdconfigdir}/"
+    sudo -u "${user}" cp /lib/systemd/user/podman-auto-update.timer "${systemdconfigdir}/"
+    sudo -u "${user}" cp /lib/systemd/user/podman-auto-update.service "${systemdconfigdir}/"
+    sudo -u "${user}" cp /lib/systemd/user/podman-restart.service "${systemdconfigdir}/"
 fi
 
 # Install additionnal packages
@@ -760,7 +769,7 @@ then
     echo "OOMScoreAdjust=" >> override.conf
 
     # Prevent Systemd from auto restarting Podman Containers too quickly and timing out
-    cd ${scriptspath} || exit
+    cd "${scriptspath}" || exit
     mkdir -p /etc/systemd/user.conf.d
     cp systemd/conf/podman.systemd.conf /etc/systemd/user.conf.d/podman.conf
 fi
@@ -773,17 +782,17 @@ sudo sh -c "echo '* soft     nofile         65535
 # Setup Policy in /etc/containers
 # Required in particular for Fedora
 mkdir -p /etc/containers
-cp -r ${toolpath}/etc/containers/* /etc/containers/
+cp -r "${toolpath}"/etc/containers/* /etc/containers/
 
 # Enable rc.local service and make sure ZFS dataset are mounted BEFORE everything else
-source ${toolpath}/enable_rc_local.sh
+source "${toolpath}"/enable_rc_local.sh
 
 #################################################
 ################### User Level ##################
 #################################################
 
 # Setup a copy of the tool for user
-cd ${homedir} || exit
+cd "${homedir}" || exit
 
 if [[ ! -d "${homedir}/podman-tools" ]]
 then
@@ -791,27 +800,27 @@ then
     git clone https://github.com/luckylinux/podman-tools.git podman-tools
 else
     # Update existing local Repository
-    cd ${homedir}/podman-tools || exit
+    cd "${homedir}/podman-tools" || exit
     generic_cmd "${user}" "git pull"
 fi
 
 # Ensure propert Permissions
-chown -R ${user}:${user} "${homedir}/podman-tools/"
+chown -R "${user}":"${user}" "${homedir}/podman-tools/"
 
 # Move to the local copy of the tool for the user
-cd ${homedir}/podman-tools || exit
+cd "${homedir}/podman-tools" || exit
 
 # Setup CRON/Systemd to automatically install images updates
-#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_podman_autoupdate_service.sh"
+#generic_cmd "${user}" "cd ${homedir}/podman-tools/ && source setup_podman_autoupdate_service.sh"
 
 # Setup CRON/Systemd to automatically generate updated Systemd Service files
-#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_podman_autostart_service.sh"
+#generic_cmd "${user}" "cd ${homedir}/podman-tools/ && source setup_podman_autostart_service.sh"
 
 # Setup CRON/Systemd to automatically detect traefik changes and restart traefik to apply them
-#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_podman_traefik_monitor_service.sh"
+#generic_cmd "${user}" "cd ${homedir}/podman-tools/ && source setup_podman_traefik_monitor_service.sh"
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
-#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_tools_autoupdate_service.sh"
+#generic_cmd "${user}" "cd ${homedir}/podman-tools/ && source setup_tools_autoupdate_service.sh"
 
 # Setup Local podman-compose to ensure that we got the latest Version
 source setup_podman_compose_local.sh
@@ -823,7 +832,7 @@ source setup_podman_autoupdate_service.sh
 source setup_podman_autostart_service.sh
 
 # Setup CRON/Systemd to automatically detect traefik changes and restart traefik to apply them
-#generic_cmd "${user}" "cd ~/podman-tools/ && source setup_podman_traefik_monitor_service.sh"
+#generic_cmd "${user}" "cd ${homedir}/podman-tools/ && source setup_podman_traefik_monitor_service.sh"
 
 # Setup CRON/Systemd job to automatically update the Podman Tools (run git pull from toolpath)
 source setup_tools_autoupdate_service.sh
