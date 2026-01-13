@@ -22,7 +22,13 @@ if [[ -z "${schedulemode}" ]]
 then
    if [[ "${user}" == "root" ]]
    then
-        schedulemode=${2:-"cron"}
+        schedulemode=${2:-""}
+
+        if [[ -z "${schedulemode}" ]]
+        then
+            # Default to Systemd
+            schedulemode="systemd"
+        fi
    else
         schedulemode="systemd"
    fi
@@ -58,7 +64,7 @@ then
    filename="podman-tools-autoupdate.service"
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/services/${filename}" "${destination}"
-   chmod +x "${destination}"
+   # chmod +x "${destination}"
    replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
    systemd_reload_enable "${user}" "${filename}"
 
@@ -66,7 +72,7 @@ then
    filename="podman-tools-autoupdate.timer"
    destination="${systemdconfigdir}/${filename}"
    cp "systemd/timers/${filename}" "${destination}"
-   chmod +x "${destination}"
+   # chmod +x "${destination}"
    replace_text "${destination}" "toolpath" "${homedir}/podman-tools" "user" "${user}"
    systemd_reload_enable "${user}" "${filename}"
 else
