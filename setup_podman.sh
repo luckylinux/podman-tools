@@ -403,10 +403,14 @@ then
 fi
 
 # Mount Configuration Folder
-if ! mountpoint -q "${containersconfigdir}"
+# For System-wide /etc/container we don't set it up as a Mountpoint, as it doesn't make much sense to have the Configuration in /var/lib/containers/system
+if [[ "${user}" != "root" ]]
 then
-    # Not currently mounted, mount now
-    mount "${containersconfigdir}"
+    if ! mountpoint -q "${containersconfigdir}"
+    then
+        # Not currently mounted, mount now
+        mount "${containersconfigdir}"
+    fi
 fi
 
 # Systemd Based Distribution
