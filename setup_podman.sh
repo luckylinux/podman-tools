@@ -624,10 +624,13 @@ chown -R "${user}":"${user}" "${homedir}/.bashrc"
 chown -R "${user}":"${user}" "${homedir}/.profile.d"
 
 # Set Containers Configuration
-if ! mountpoint -q "${containersconfigdir}"
+if [[ "${user}" != "root" ]]
 then
-    # Not currently mounted, mount now
-    mount "${containersconfigdir}"
+    if ! mountpoint -q "${containersconfigdir}"
+    then
+        # Not currently mounted, mount now
+        mount "${containersconfigdir}"
+    fi
 fi
 
 cd "${containersconfigdir}" || exit
