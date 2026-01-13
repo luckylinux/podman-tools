@@ -20,10 +20,13 @@ sleep 15
 systemd_daemon_reload
 
 # Rexecute Systemd Daemon
-systemctl_daemon_reexec
+systemd_daemon_reexec
+
+# Get Quadlets Generators Folder
+quadlets_generators_path=$(get_quadlets_generators_dir "${user}")
 
 # List Services that are configured to automatically start
-mapfile -t services < <( find /var/run/user/${uid}/systemd/generator/default.target.wants/ -iwholename *.service )
+mapfile -t services < <( find "${quadlets_generators_path}" -iwholename *.service )
 
 # Reload Systemd Daemon
 systemd_reload

@@ -352,6 +352,26 @@ get_systemdconfigdir() {
    echo ${lsystemdconfigdir}
 }
 
+# Get Quadlets Generators Directory
+get_quadlets_generators_dir() {
+   # User is the TARGET user, NOT (necessarily) the user executing the script / function !
+   local luser=${1}
+
+   # Initialize Variable
+   local lquadletsgeneratorsdir=""
+
+   if [[ "${luser}" == "root" ]]
+   then
+       lquadletsgeneratorsdir="/var/run/systemd/generator/default.target.wants"
+   else
+       local luserid=$(id -u "${luser}")
+       lquadletsgeneratorsdir="/var/run/user/${luserid}/systemd/generator/default.target.wants"
+   fi
+
+   # Return Value
+   echo "${lquadletsgeneratorsdir}"
+}
+
 
 # Execute Systemd Command
 generic_cmd() {
