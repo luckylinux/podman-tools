@@ -272,8 +272,12 @@ fi
 # Ensure proper permissions for config folder
 chown -R "${user}":"${user}" "${containersconfigdir}"
 
-# Chattr $HOME/.config/containers (rootless) or /etc/containers (root) directory
-chattr +i "${containersconfigdir}"
+# Chattr $HOME/.config/containers (rootless)
+# /etc/containers (rootful / system) directory we keep it as it is, since it doesn't make much sense to store the Configuration in /var/lib/containers/system
+if [[ "${user}" != "root" ]]
+then
+    chattr +i "${containersconfigdir}"
+fi
 
 # Initialize Counter
 counter=0
