@@ -241,11 +241,16 @@ else
     mount_opts="defaults,nofail,rbind"
 fi
 
-if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
+# Add extra FSTAB Entries, but only for Podman Rootless
+# We don't need/want to have /etc/containers in /var/lib/containers/system as it doesn't make much sense for System-wide Configuration
+if [[ "${user}" != "root" ]]
 then
-    echo "/${storage}/SYSTEM			${containersconfigdir}		none	${mount_opts}		0	0" >> /etc/fstab
-else
-    echo "${destination}/system	${containersconfigdir}		none	${mount_opts}		0	0" >> /etc/fstab
+    if [ "${mode}" == "zfs" ] || [ "${mode}" == "zvol" ]
+    then
+        echo "/${storage}/SYSTEM			${containersconfigdir}		none	${mount_opts}		0	0" >> /etc/fstab
+    else
+        echo "${destination}/system	${containersconfigdir}		none	${mount_opts}		0	0" >> /etc/fstab
+    fi
 fi
 
 mkdir -p "${homedir}"
