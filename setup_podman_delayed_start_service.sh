@@ -63,7 +63,6 @@ then
     servicefile="${servicename}.service"
     destination="${systemdconfigdir}/${servicefile}"
     cp "systemd/services/${servicefile}" "${destination}"
-    chmod +x "${destination}"
     chown "${user}:${user}" "${destination}"
     replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
     systemd_reload_enable "${user}" "${servicefile}"
