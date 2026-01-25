@@ -148,7 +148,9 @@ fi
 touch /etc/{subgid,subuid}
 
 # If user doesn't exist yet
-if [[ $(user_exists "${user}") -ne 0 ]]
+user_exists "${user}"
+user_exists_already=$?
+if [[ ${user_exists_already} -ne 0 ]]
 then
     # Systemd based Distribution
     if [[ $(command -v systemctl) ]]
