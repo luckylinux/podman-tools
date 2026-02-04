@@ -8,12 +8,18 @@ if [[ ! -v PODMAN_PROCESS_ANALYSIS_TOOL_PATH ]]; then scriptpath=$(cd "$( dirnam
 source "${PODMAN_PROCESS_ANALYSIS_TOOL_PATH}/text_utils.sh"
 
 
+# Only vsz is available through the podman top wrapper, NOT pss/rss/trs/uss:
+# podman top CONTAINER_NAME_OR_ID pid hpid user huser group hgroup groups vsz
+
+# On the other Hand. these don't work and return incomplete Information if an invalid Field is requested
+# No Warning/Error is however emitted
+#
 # This Command returns some Mapping Information between Host and Container as well as the VSZ Memory Usage
 # Other Fields such as pss/rss/trs/uss are NOT exposed and therefore we need a wrapper around it anyways
 #
 # podman top CONTAINER_NAME_OR_ID pid hpid user huser hpid hgroup group stime vsz
 #
-
+# podman top CONTAINER_NAME_OR_ID pid hpid user huser hpid hgroup group stime
 
 
 # Clean NULL Byte Characters and translate it into Whitespace
