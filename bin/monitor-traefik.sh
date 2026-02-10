@@ -77,7 +77,7 @@ do
        then
           # Restart traefik container
           echo "Restarting traefik container"
-          systemctl --user restart container-traefik
+          systemctl --user restart traefik
        fi
    fi
 

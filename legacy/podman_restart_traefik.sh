@@ -8,6 +8,13 @@ formatted=""
 # Get current epoch time
 now=$(date +%s)
 
+# Define user
+if [[ ! -v user ]]
+then
+#   user=${1:-'podman'}
+   user=$(whoami)
+fi
+
 # Get past epoch Time in which traefik was started (constant value)
 traefik_startedat=$(podman ps --all --format="{{.StartedAt}}" --filter name=traefik)
 
@@ -47,5 +54,5 @@ if [[ ${traefik_restart} -gt 0 ]]
 then
     # Restart traefik container
     echo "Restarting traefik container"
-    systemd_restart "container-traefik.service"
+    systemd_restart "" "traefik.service"
 fi

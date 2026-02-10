@@ -28,7 +28,7 @@ then
     systemd_stop "${user}" "monitor-traefik.service"
 
     # Stop Traefik Container
-    systemd_stop "${user}" "container-traefik.service"
+    systemd_stop "${user}" "traefik.service"
 
     # Run Podman Compose
     if [[ -d "${basefolder}/compose" ]] && [[ -d "${basefolder}/compose/traefik" ]]
