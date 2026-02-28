@@ -60,15 +60,19 @@ tar cvfz "${containersdir}/${podname}-${timestamp}.tar.gz" ${used_folders[@]}
 ARCHIVE_FOLDERS=("cache" "certificates" "compose" "config" "data" "local" "log" "quadlets" "secrets" "volumes")
 for ARCHIVE_FOLDER in "${ARCHIVE_FOLDERS[@]}"
 do
-    # Create Parent Folder if not existing yet
-    mkdir -p "${containersdir}/+archived/${ARCHIVE_FOLDER}"
-
-    # Issue Warning if folder already exists in +archived Folder
-    if [[ -d "${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname}" ]]
+    # Check if Folder Exists
+    if [[ -d "${containersdir}/${ARCHIVE_FOLDER}/${podname}" ]]
     then
-        echo "WARNING: ${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname} already exists !"
-    fi
+        # Create Parent Folder if not existing yet
+        mkdir -p "${containersdir}/+archived/${ARCHIVE_FOLDER}"
 
-    # Perform Moving (but ask if Folder already exists)
-    mv --interactive "${containersdir}/${ARCHIVE_FOLDER}/${podname}" "${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname}"
+        # Issue Warning if folder already exists in +archived Folder
+        if [[ -d "${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname}" ]]
+        then
+            echo "WARNING: ${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname} already exists !"
+        fi
+
+        # Perform Moving (but ask if Folder already exists)
+        mv --interactive "${containersdir}/${ARCHIVE_FOLDER}/${podname}" "${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname}"
+    fi
 done
