@@ -27,12 +27,14 @@ fi
 # Stop Pod using Systemd
 # This fails since it doesn't keep generators into account
 # systemd_stop "${user}" "${podname}-pod.service"
-
 quadlet_stop "${user}" "${podname}-pod.service"
-
 
 # Get containersdir
 containersdir=$(get_containers_root_default_path "${user}")
+
+# Create Folders if not existing yet
+mkdir -p "${containersdir}/+archived"
+mkdir -p "${containersdir}/+exported"
 
 # Generate Timestamp for backup archive
 timestamp=$(date +"%Y%m%d-%H%M%S")
@@ -55,8 +57,6 @@ timestamp=$(date +"%Y%m%d-%H%M%S")
 # Become "root" in order to have sufficient Privileges to handle subuids/subgids
 # Create Archive
 # podman unshare bash -c "tar cvfz \"${containersdir}/${podname}-${timestamp}.tar.gz\" ${used_folders[@]}"
-
-
 
 # Become "root" in order to have sufficient Privileges to handle subuids/subgids
 # Then execute Script

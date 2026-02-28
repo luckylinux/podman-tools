@@ -40,7 +40,7 @@ timestamp=$(date +"%Y%m%d-%H%M%S")
 cd "${containersdir}"
 
 # Find all Folders that Match Pod Storage Pattern
-mapfile -t used_folders < <(find ./{cache,certificates,compose,config,data,log,quadlets,secrets,volumes} -maxdepth 1 -type d -iwholename "*/${podname}*" 2> /dev/null)
+mapfile -t used_folders < <(find ./{cache,certificates,compose,config,data,local,log,quadlets,secrets,volumes} -maxdepth 1 -type d -iwholename "*/${podname}*" 2> /dev/null)
 
 # Debug
 echo "Archiving the following Folders":
@@ -57,4 +57,15 @@ echo "tar cvfz \"${containersdir}/${podname}-${timestamp}.tar.gz\" ${used_folder
 tar cvfz "${containersdir}/${podname}-${timestamp}.tar.gz" ${used_folders[@]}
 
 # Move all Folders to Archive
-# ...
+ARCHIVE_FOLDERS=("cache" "certificates" "compose" "config" "data" "local" "log" "quadlets" "secrets" "volumes")
+for ARCHIVE_FOLDER in "${ARCHIVE_FOLDERS[@]}"
+do
+    # Issue Warning if folder already exists in +archived Folder
+    if [[ -d "${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname}" ]]
+    then
+        echo "WARNING: ${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname} already exists !"
+    fi
+
+    # Perform Moving (but ask if Folder already exists)
+    mv --interactive "${containersdir}/${ARCHIVE_FOLDER}/${podname}" "${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname}"
+done
