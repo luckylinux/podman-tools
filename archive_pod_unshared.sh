@@ -60,6 +60,9 @@ tar cvfz "${containersdir}/${podname}-${timestamp}.tar.gz" ${used_folders[@]}
 ARCHIVE_FOLDERS=("cache" "certificates" "compose" "config" "data" "local" "log" "quadlets" "secrets" "volumes")
 for ARCHIVE_FOLDER in "${ARCHIVE_FOLDERS[@]}"
 do
+    # Create Parent Folder if not existing yet
+    mkdir -p "${containersdir}/+archived/${ARCHIVE_FOLDER}"
+
     # Issue Warning if folder already exists in +archived Folder
     if [[ -d "${containersdir}/+archived/${ARCHIVE_FOLDER}/${podname}" ]]
     then
