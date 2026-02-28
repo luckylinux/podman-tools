@@ -40,7 +40,7 @@ timestamp=$(date +"%Y%m%d-%H%M%S")
 cd "${containersdir}"
 
 # Find all Folders that Match Pod Storage Pattern
-mapfile -t used_folders < <(find ./{cache,certificates,compose,config,data,local,log,quadlets,secrets,volumes} -maxdepth 1 -type d -iwholename "*/${podname}*" 2> /dev/null)
+mapfile -t used_folders < <(find ./{cache,certificates,compose,config,data,db,local,log,quadlets,secrets,volumes} -maxdepth 1 -type d -iwholename "*/${podname}*" 2> /dev/null)
 
 # Debug
 echo "Archiving the following Folders":
@@ -57,7 +57,7 @@ echo "tar cvfz \"${containersdir}/${podname}-${timestamp}.tar.gz\" ${used_folder
 tar cvfz "${containersdir}/${podname}-${timestamp}.tar.gz" ${used_folders[@]}
 
 # Move all Folders to Archive
-ARCHIVE_FOLDERS=("cache" "certificates" "compose" "config" "data" "local" "log" "quadlets" "secrets" "volumes")
+ARCHIVE_FOLDERS=("cache" "certificates" "compose" "config" "data" "db" "local" "log" "quadlets" "secrets" "volumes")
 for ARCHIVE_FOLDER in "${ARCHIVE_FOLDERS[@]}"
 do
     # Check if Folder Exists
