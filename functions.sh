@@ -1707,7 +1707,8 @@ enable_autostart_container() {
    sleep 0.5
 
    # Generate Service File
-   generic_cmd "${luser}" "podman" generate systemd --name "${lcontainer}" --new > "${lservicepath}"
+   # Disable, we use quadlets, in the future might need some Configuration Environment Variable
+   # generic_cmd "${luser}" "podman" generate systemd --name "${lcontainer}" --new > "${lservicepath}"
 
    # Debug
    debug_message "${FUNCNAME[0]} - Reload Systemd Daemon"
