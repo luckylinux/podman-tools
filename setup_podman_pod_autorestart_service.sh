@@ -42,15 +42,15 @@ toolsdir=$(get_toolsdir "${user}")
 servicename="podman-pod-autorestart@"
 
 # Systemd based Distribution
-#if [[ $(command -v systemctl) ]]
-#then
-#    # Get Systemdconfigdir
-#    systemdconfigdir=$(get_systemdconfigdir "${user}")
-#
-#    # Remove old files / with old name
-#    #rm -f /etc/...
-#    systemd_delete "${user}" "podman-pod-autorestart@.service"
-#fi
+if [[ $(command -v systemctl) ]]
+then
+    # Get Systemdconfigdir
+    systemdconfigdir=$(get_systemdconfigdir "${user}")
+
+    # Remove old files / with old name
+    #rm -f /etc/...
+    systemd_delete "${user}" "podman-pod-autorestart@.service"
+fi
 
 # Setup new Scheme
 if [[ "${schedulemode}" == "cron" ]]
