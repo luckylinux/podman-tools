@@ -1,0 +1,12 @@
+[Unit]
+Description=Automatically Restart Podman Pod <%i>
+StartLimitIntervalSec=10
+StartLimitBurst=1
+
+[Service]
+RemainAfterExit=yes
+ExecStart=/bin/bash -c "{{toolpath}}/podman_pod_autorestart.sh %i start"
+ExecStop=/bin/bash -c "{{toolpath}}/podman_pod_autorestart.sh %i stop"
+
+[Install]
+WantedBy=default.target
