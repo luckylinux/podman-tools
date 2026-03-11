@@ -46,15 +46,15 @@ toolsdir=$(get_toolsdir "${user}")
 servicename="podman-pod-autorestart@"
 
 # Systemd based Distribution
-if [[ $(command -v systemctl) ]]
-then
-    # Get Systemdconfigdir
-    systemdconfigdir=$(get_systemdconfigdir "${user}")
-
-    # Remove old files / with old name
-    #rm -f /etc/...
-    systemd_delete "${user}" "podman-pod-autorestart@.service"
-fi
+#if [[ $(command -v systemctl) ]]
+#then
+#    # Get Systemdconfigdir
+#    systemdconfigdir=$(get_systemdconfigdir "${user}")
+#
+#    # Remove old files / with old name
+#    #rm -f /etc/...
+#    systemd_delete "${user}" "podman-pod-autorestart@.service"
+#fi
 
 # Setup new Scheme
 if [[ "${schedulemode}" == "cron" ]]
@@ -82,16 +82,7 @@ then
    #chmod +x "${destination}"
    chown "${user}:${user}" "${destination}"
    replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
-   systemd_reload_enable "${user}" "${servicefile}"
-
-   # Copy Systemd Timer File
-   timerfile="${servicename}.timer"
-   destination="${systemdconfigdir}/${timerfile}"
-   cp "systemd/timers/${timerfile}" "${destination}"
-   #chmod +x "${destination}"
-   chown "${user}:${user}" "${destination}"
-   replace_text "${destination}" "toolpath" "${toolsdir}" "user" "${user}"
-   systemd_reload_enable "${user}" "${timerfile}"
+   systemd_daemon_reload "${user}"
 else
    # Error
    schedule_mode_not_supported "${schedulemode}"
